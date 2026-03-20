@@ -159,33 +159,33 @@ Create `vorec.json` with the actions and preferences.
 
 Replace all `<placeholders>` with real values. Omit `storageState` if no auth. Omit `language` if English.
 
-### 7. Record the Video
+### 7. Record and Upload
 
-First, record **without** uploading — so the user can validate:
+Record the video and upload it (without spending credits yet):
 
 ```bash
 npx @vorec/cli@latest run vorec.json
 ```
 
-This records the video and saves it locally. **Do NOT use `--auto` yet.**
+This records the screen, uploads the video, and saves the project. **It does NOT start analysis yet.**
 
-After recording completes, tell the user:
+After it completes, tell the user:
 
-> Recording saved to `.vorec/recordings/[file].mp4` ([duration]s, [action count] actions tracked).
-> Please review the video — if it looks good, I'll upload it to Vorec for narration. A bad recording will cost credits to re-do.
+> Recording uploaded. The video is at `.vorec/recordings/[file].mp4` ([duration]s, [action count] actions tracked).
+> Please review it in the editor. If it looks good, I'll start the narration process (costs 10 credits).
 > Should I proceed?
 
-**Wait for the user to confirm.** If they say redo, adjust the manifest and record again.
+**Wait for the user to confirm.** If they say redo, adjust the manifest and run again.
 
-### 8. Upload and Process
+### 8. Start Analysis
 
-Once the user confirms the recording is good:
+Once the user confirms:
 
 ```bash
-npx @vorec/cli@latest run vorec.json --auto --skip-record --video .vorec/recordings/[file].mp4 --tracked-actions .vorec/tracked-actions.json
+npx @vorec/cli@latest run vorec.json --auto --skip-record
 ```
 
-This uploads the validated recording and processes it. When done, it prints an editor URL.
+This resumes the existing project (does NOT create a new one) and runs the analysis + narration steps. When done, it prints the editor URL.
 
 ### 9. Share the Result
 
