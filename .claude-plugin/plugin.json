@@ -1,7 +1,7 @@
 {
   "name": "record-tutorial",
-  "description": "Record narrated tutorial videos, product demos, and screencasts with AI voice-over. Your coding agent records the screen with Playwright, tracks actions, and Vorec generates professional narration automatically.",
-  "version": "1.0.0",
+  "description": "Record screen and generate narrated tutorial videos with AI voice-over.",
+  "version": "1.0.1",
   "author": {
     "name": "Vorec",
     "email": "support@vorec.ai"
@@ -16,9 +16,7 @@
     "voice-over",
     "product-demo",
     "screencast",
-    "playwright",
     "documentation",
-    "walkthrough",
-    "onboarding"
+    "walkthrough"
   ]
 }

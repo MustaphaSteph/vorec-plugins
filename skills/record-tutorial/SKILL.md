@@ -1,14 +1,9 @@
 ---
 name: record-tutorial
 description: >
-  Record narrated tutorial videos from any codebase using the Vorec CLI and Playwright.
-  Use this skill whenever the user wants to create a tutorial video, demo video, screen recording
-  with narration, product walkthrough, or onboarding video. Triggers on: "record tutorial",
-  "create tutorial", "demo video", "screen recording", "narrate this flow", "vorec record",
-  "make a walkthrough", "record a demo", "tutorial video", "product demo", "show how to",
-  "record this feature", "create a screencast". Also use when the user asks to document a UI
-  flow visually or wants to turn a feature into a video explanation — even if they don't
-  explicitly say "tutorial" or "video".
+  Record screen and generate narrated tutorial videos with AI voice-over.
+  Use when the user wants to record a tutorial, demo video, screencast, walkthrough,
+  or any screen recording with narration.
 ---
 
 # Record Tutorial with Vorec
