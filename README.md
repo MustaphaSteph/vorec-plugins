@@ -29,9 +29,12 @@ Record narrated tutorial videos, product demos, and onboarding walkthroughs from
 ## Installation
 
 1. In Claude Code, run `/plugin`
-2. Select **Add Marketplace**
+2. Go to **Marketplaces** → **Add Marketplace**
 3. Enter: `MustaphaSteph/vorec-plugins`
 4. Select **record-tutorial** and install it
+5. Go back to **Marketplaces** → select **vorec-plugins** → **Enable auto-update**
+
+Auto-update keeps the plugin current — you'll always have the latest version.
 
 ## Prerequisites
 
