@@ -1,0 +1,20 @@
+{
+  "name": "vorec-plugins",
+  "description": "Official plugins for Vorec — AI-narrated tutorial videos from any codebase",
+  "owner": {
+    "name": "Vorec",
+    "email": "support@vorec.ai"
+  },
+  "plugins": [
+    {
+      "name": "record-tutorial",
+      "description": "Record narrated tutorial videos, product demos, and screencasts with AI voice-over. Your coding agent records the screen with Playwright, tracks actions, and Vorec generates professional narration automatically.",
+      "version": "1.0.0",
+      "source": "./",
+      "author": {
+        "name": "Vorec",
+        "email": "support@vorec.ai"
+      }
+    }
+  ]
+}

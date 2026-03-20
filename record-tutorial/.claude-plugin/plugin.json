@@ -1,8 +1,0 @@
-{
-  "name": "record-tutorial",
-  "description": "Record narrated tutorial videos from any codebase using the Vorec CLI and Playwright. Automatically records screen, tracks user actions, and generates AI narration. Use when the user wants to create tutorial videos, demo videos, screen recordings with narration, product walkthroughs, or onboarding videos.",
-  "author": {
-    "name": "Vorec",
-    "email": "support@vorec.ai"
-  }
-}
