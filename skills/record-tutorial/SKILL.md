@@ -48,16 +48,17 @@ Also check what port the dev server runs on. Look for it in `package.json` scrip
 
 Ask the user or infer from context what flow to demonstrate. Then ask these questions:
 
-> Before I start, I need to understand the flow better:
+> Before I start, a few quick questions:
 > 1. **What's the goal?** What should the viewer be able to do after watching? (e.g., "Create their first project")
 > 2. **Who's watching?** New users, developers, or existing customers?
-> 3. **Anything to highlight?** Loading states, animations, specific UI details?
+> 3. **Any pages or sections to explain?** Should I pause on certain screens to describe the layout before interacting? (e.g., "Explain the dashboard before clicking anything", "Show what the settings page looks like")
 
 Use their answers to:
-- Write better `context` on each action (tailored to the audience)
-- Add `wait` actions for animations or loading states they mention
-- Set `customPrompt` so Vorec's narration covers what matters
-- Set `videoContext` describing the overall flow for the audience
+- Add `narrate` actions before key interactions to describe what's on screen
+- Add `hover` actions to point at UI elements while narrating
+- Write rich `context` on each action (tailored to the audience)
+- Add `wait` actions for animations or loading states
+- Set `customPrompt` and `videoContext` for Vorec
 
 ### 2. Determine the App URL
 
@@ -228,10 +229,11 @@ Write context as if you're describing the screen to someone who can't see it. In
 
 | Type | Required Fields | What It Does |
 |------|----------------|--------------|
+| `narrate` | `description`, `context`, `delay` | Pause and describe what's on screen — no interaction. Use before key actions to set the scene. |
 | `click` | `selector`, `description` | Click an element |
-| `type` | `selector`, `text`, `description` | Click an input, then type text. Include what was typed — Vorec needs this context. |
+| `type` | `selector`, `text`, `description` | Click an input, then type text. Include what was typed. |
 | `select` | `selector`, `value`, `description` | Pick from a dropdown. Include the selected value. |
-| `hover` | `selector`, `description` | Hover (tooltips, menus) |
+| `hover` | `selector`, `description` | Hover to draw attention to an element (tooltips, menus, highlights) |
 | `scroll` | `description` | Scroll the page down |
 | `wait` | `delay` (ms) | Pause for animations/loading (no description needed) |
 | `navigate` | `text` (URL), `description` | Go to a different page |
@@ -239,6 +241,22 @@ Write context as if you're describing the screen to someone who can't see it. In
 Optional on any action: `delay` (ms) — extra wait time after the action completes.
 
 **Important:** Document ALL actions, not just clicks. If the user types text, include the `type` action with `text`. If they select a dropdown value, include `select` with `value`. Vorec uses this to understand the full workflow — clicks alone aren't enough.
+
+### When to use `narrate` and `hover`
+
+Add `narrate` actions when the user lands on a new page or screen that needs explanation before interacting:
+
+```json
+{ "type": "narrate", "delay": 4000, "description": "Dashboard overview", "context": "The dashboard shows a grid of project cards. Each card has a thumbnail, title, and status badge. The sidebar has Library, Recent, and Settings links." }
+```
+
+Add `hover` actions to draw attention to specific elements while narrating:
+
+```json
+{ "type": "hover", "selector": ".sidebar .settings-link", "description": "Point to Settings", "context": "Hovers over the Settings link in the sidebar to show where account preferences are managed.", "delay": 2000 }
+```
+
+Use this pattern: **narrate** (describe the page) → **hover** (point at key elements) → **click** (interact). This gives Vorec enough context to write a tutorial that explains the UI, not just the clicks.
 
 ## Alternative Commands
 
