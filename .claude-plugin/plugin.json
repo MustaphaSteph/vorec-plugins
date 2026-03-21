@@ -1,7 +1,7 @@
 {
   "name": "record-tutorial",
   "description": "Record screen and generate narrated tutorial videos with AI voice-over.",
-  "version": "1.3.0",
+  "version": "1.3.1",
   "author": {
     "name": "Vorec",
     "email": "support@vorec.ai"

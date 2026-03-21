@@ -51,7 +51,7 @@ Ask the user or infer from context what flow to demonstrate. Then ask these ques
 > Before I start, a few quick questions:
 > 1. **What's the goal?** What should the viewer be able to do after watching? (e.g., "Create their first project")
 > 2. **Who's watching?** New users, developers, or existing customers?
-> 3. **Any pages or sections to explain?** Should I pause on certain screens to describe the layout before interacting? (e.g., "Explain the dashboard before clicking anything", "Show what the settings page looks like")
+> 3. **Anything to explain?** Any pages, features, or concepts that need more context? (e.g., "Explain how the credit system works", "Show what each status badge means")
 
 Use their answers to:
 - Add `narrate` actions before key interactions to describe what's on screen
@@ -244,19 +244,26 @@ Optional on any action: `delay` (ms) — extra wait time after the action comple
 
 ### When to use `narrate` and `hover`
 
-Add `narrate` actions when the user lands on a new page or screen that needs explanation before interacting:
+Don't add `narrate` to every action — use your judgment. Add it when:
+
+- **The user asked** to explain a specific page or feature
+- **A complex page** would confuse viewers without context (many panels, unfamiliar layout)
+- **Something isn't obvious** from the recording alone (e.g., what a button does, how a feature works, why a setting matters)
+
+`narrate` is not about describing what's visible — it's about explaining **how things work** and **how to use them**.
+
+**Good context for narrate:** "This sidebar lets you switch between personal and team projects. The search bar filters by name, and you can sort by date or title using the dropdown."
+**Bad context for narrate:** "There is a sidebar on the left with some links." (too obvious — the viewer can see that)
+
+Example flow — only narrate when it adds value:
 
 ```json
-{ "type": "narrate", "delay": 4000, "description": "Dashboard overview", "context": "The dashboard shows a grid of project cards. Each card has a thumbnail, title, and status badge. The sidebar has Library, Recent, and Settings links." }
+{ "type": "narrate", "delay": 4000, "description": "Dashboard overview", "context": "The dashboard organizes projects by status. Draft projects need video, editing projects have narration ready. You can filter by personal or team projects using the tabs above." },
+{ "type": "hover", "selector": ".filter-tabs", "description": "Point to project filters", "context": "Hovers over the filter tabs to show how to switch between All, Personal, and Team views.", "delay": 2000 },
+{ "type": "click", "selector": "button.new-video", "description": "Create new project", "context": "Clicks New Video to start a new tutorial." }
 ```
 
-Add `hover` actions to draw attention to specific elements while narrating:
-
-```json
-{ "type": "hover", "selector": ".sidebar .settings-link", "description": "Point to Settings", "context": "Hovers over the Settings link in the sidebar to show where account preferences are managed.", "delay": 2000 }
-```
-
-Use this pattern: **narrate** (describe the page) → **hover** (point at key elements) → **click** (interact). This gives Vorec enough context to write a tutorial that explains the UI, not just the clicks.
+If the flow is simple and self-explanatory (e.g., filling a login form), skip `narrate` entirely — the clicks and context fields are enough.
 
 ## Alternative Commands
 
