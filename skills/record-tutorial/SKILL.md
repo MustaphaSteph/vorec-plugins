@@ -46,17 +46,18 @@ Also check what port the dev server runs on. Look for it in `package.json` scrip
 
 ### 1. Understand What to Record
 
-Ask the user or infer from context what flow to demonstrate. Then ask:
+Ask the user or infer from context what flow to demonstrate. Then ask these questions:
 
-**"Is there anything specific I should pay attention to during the recording?"**
+> Before I start, I need to understand the flow better:
+> 1. **What's the goal?** What should the viewer be able to do after watching? (e.g., "Create their first project")
+> 2. **Who's watching?** New users, developers, or existing customers?
+> 3. **Anything to highlight?** Loading states, animations, specific UI details?
 
-Examples of what the user might say:
-- "Focus on the loading states between steps"
-- "Make sure the animation after submit is visible"
-- "The dropdown takes a moment to load, wait for it"
-- "Show the error state when the field is empty"
-
-Use their answer to add appropriate `wait` actions, adjust delays, and set the `customPrompt` field so Vorec's narration covers what matters to the user.
+Use their answers to:
+- Write better `context` on each action (tailored to the audience)
+- Add `wait` actions for animations or loading states they mention
+- Set `customPrompt` so Vorec's narration covers what matters
+- Set `videoContext` describing the overall flow for the audience
 
 ### 2. Determine the App URL
 
@@ -148,11 +149,26 @@ Create `vorec.json` with the actions and preferences.
   "narrationStyle": "tutorial",
   "videoContext": "Brief description of what the video shows",
   "actions": [
-    { "type": "click", "selector": "<real-selector>", "description": "Open the create dialog" },
+    {
+      "type": "click",
+      "selector": "<real-selector>",
+      "description": "Open the create dialog",
+      "context": "Clicks the 'New Project' button in the top-right of the dashboard. A modal appears with a form for project name and visibility settings."
+    },
     { "type": "wait", "delay": 1000 },
-    { "type": "type", "selector": "<real-input-selector>", "text": "My First Project", "description": "Enter the project name" },
-    { "type": "select", "selector": "<real-select-selector>", "value": "public", "description": "Set visibility to public" },
-    { "type": "click", "selector": "<real-submit-selector>", "description": "Save the new project" }
+    {
+      "type": "type",
+      "selector": "<real-input-selector>",
+      "text": "My First Project",
+      "description": "Enter the project name",
+      "context": "Types 'My First Project' into the title field. This is the only required field — the modal also has an optional description textarea below."
+    },
+    {
+      "type": "click",
+      "selector": "<real-submit-selector>",
+      "description": "Save the new project",
+      "context": "Clicks the blue 'Create' button at the bottom of the modal. After saving, the modal closes and the new project appears at the top of the project list."
+    }
   ]
 }
 ```
@@ -198,7 +214,17 @@ Every action **must include a `description`** — a clear, human-readable name d
 **Good descriptions:** "Open the create dialog", "Enter the project name", "Save the new task"
 **Bad descriptions:** "button:has-text('Create')", "input[type='email']", "click #submit-btn"
 
-The description is NOT the selector — it's the intent. Vorec uses it to write narration, so it must read naturally. Think of it as what a human would say: "Now we click Save" not "Now we click button.submit".
+The description is NOT the selector — it's the intent. Think: "Save the project" not "button.submit".
+
+Every action should also include a **`context`** field — a rich sentence or two explaining what's happening on screen, what the user just did, and what changes after this action. This is what Vorec uses to write intelligent narration.
+
+**Good context:** "Clicks the blue 'Create' button. A success toast appears and the new project shows at the top of the list."
+**Bad context:** "Clicks submit" (too vague — Vorec can't write good narration from this)
+
+Write context as if you're describing the screen to someone who can't see it. Include:
+- What the UI looks like at this moment
+- What text was typed or what option was selected
+- What visually changes after the action (modal opens, page navigates, toast appears)
 
 | Type | Required Fields | What It Does |
 |------|----------------|--------------|
