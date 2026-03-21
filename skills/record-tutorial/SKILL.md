@@ -176,35 +176,15 @@ Create `vorec.json` with the actions and preferences.
 
 Replace all `<placeholders>` with real values. Omit `storageState` if no auth. Omit `language` if English.
 
-### 7. Record and Upload
-
-Record the video and upload it (without spending credits yet):
+### 7. Run
 
 ```bash
 npx @vorec/cli@latest run vorec.json
 ```
 
-This records the screen, uploads the video, and saves the project. **It does NOT start analysis yet.**
+This records the screen, uploads the video, and generates the narrated tutorial. When done, it prints the editor URL.
 
-After it completes, tell the user:
-
-> Recording uploaded. The video is at `.vorec/recordings/[file].mp4` ([duration]s, [action count] actions tracked).
-> Please review it in the editor. If it looks good, I'll start the narration process (costs 10 credits).
-> Should I proceed?
-
-**Wait for the user to confirm.** If they say redo, adjust the manifest and run again.
-
-### 8. Start Analysis
-
-Once the user confirms:
-
-```bash
-npx @vorec/cli@latest run vorec.json --auto --skip-record
-```
-
-This resumes the existing project (does NOT create a new one) and runs the analysis + narration steps. When done, it prints the editor URL.
-
-### 9. Share the Result
+### 8. Share the Result
 
 Share the editor URL with the user. They can preview narration and generate audio in the editor.
 
@@ -268,7 +248,7 @@ If the flow is simple and self-explanatory (e.g., filling a login form), skip `n
 ## Alternative Commands
 
 ```bash
-# Skip recording, use existing video + tracked actions
+# Use existing video instead of recording
 npx @vorec/cli@latest run vorec.json --skip-record --video recording.mp4 --tracked-actions tracked.json
 
 # Just upload a video without actions
