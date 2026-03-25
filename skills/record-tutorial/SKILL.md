@@ -87,34 +87,55 @@ If auth needed: write `save-session.mjs`, user logs in manually, `waitForURL` sa
 
 ### 8. Write the Recording Script
 
-**Do NOT use `vorec run` for recording.** Write a standalone Playwright script so you have full control over error handling and verification.
+**Do NOT use `vorec run` for recording.** Write a standalone Playwright script so you have full control over error handling and recovery.
 
 The script must:
 1. Launch visible browser with video recording
 2. Load storageState if auth needed
-3. Execute each action and **verify it succeeded before continuing**
-4. If an action fails (validation error, wrong selector, timeout), **stop and report why**
+3. Execute each action and **check for errors after each step**
+4. If an error appears on screen, **recover inside the recording** — don't stop
 5. Track coordinates + timestamps
 6. Convert webm → mp4 via FFmpeg
 7. Save video + tracked actions JSON
 
-**After every form submission or navigation, check for errors:**
+**Error recovery pattern — keep recording, fix the mistake on screen:**
+
+When an action produces a visible error (validation message, toast, red border), the recording should show the error AND the fix. This makes the tutorial more useful — viewers learn how to handle real mistakes.
 
 ```javascript
-// After clicking submit:
-await submitEl.click();
+// General pattern: try → check → recover if needed
+await actionElement.click();
+await page.waitForTimeout(1000);
 
-// VERIFY success
-try {
-  await page.waitForURL('**/success-route**', { timeout: 10000 });
-} catch {
-  const error = await page.locator('.error, [role="alert"]').first();
-  if (await error.isVisible()) {
-    console.error('FAILED:', await error.textContent());
-    await browser.close();
-    process.exit(1);
-  }
+// Check if an error appeared
+const errorEl = page.locator('.error, [role="alert"], .toast-error, [class*="error"]');
+if (await errorEl.count() > 0 && await errorEl.first().isVisible()) {
+  const errorText = await errorEl.first().textContent();
+  console.log(`  ⚠ Error detected: ${errorText}`);
+
+  // Track the error as a narrate action — Vorec will explain it
+  track('narrate', '', null,
+    'Error appeared',
+    `An error message appeared: "${errorText}". This is a common mistake — let me show the correct way.`
+  );
+  await page.waitForTimeout(2000); // Let viewer see the error
+
+  // RECOVER: fix the input and retry
+  // Clear the field, type correct value, resubmit
+  // ... (specific recovery depends on the error)
 }
+```
+
+**When to stop vs recover:**
+- **Recover in recording** (preferred): validation errors, wrong format, missing fields — these teach the viewer something useful
+- **Stop and re-record**: wrong selector, page crash, auth expired, app bug — these are recording problems, not tutorial content
+
+**If you must stop**, close the browser cleanly and report what went wrong:
+```javascript
+console.error('FATAL: Cannot recover from this error. Re-record needed.');
+await page.close(); await context.close(); await browser.close();
+process.exit(1);
+```
 ```
 
 ### 9. Record and Verify
@@ -173,14 +194,15 @@ Every action needs `description` (timeline label) and `context` (rich scene desc
 
 ## Key Rules
 
-1. **Analyze validation before choosing test data** — read frontend + backend + DB
-2. **Verify every action** — check for errors after each submission/navigation
-3. **Stop on failure** — don't blindly continue. Fix and re-record.
-4. **User validates video** before upload — saves credits on bad recordings
-5. **Check credits first** — warn if user might not have enough
-6. **Realistic data** — professional-looking, not `test123@test.com`
-7. **Never ask for passwords**
-8. Use `narrate` only when it adds value — explain how things work, not what's visible
+1. **Check credits first** — run `npx @vorec/cli check` before starting
+2. **Analyze validation before choosing test data** — read frontend + backend + DB
+3. **Verify every action** — check for errors after each step
+4. **Recover from errors in the recording** — show the mistake and the fix. This teaches viewers.
+5. **Only stop for unrecoverable errors** — wrong selector, crash, auth expired
+6. **User validates video** before upload — saves credits on bad recordings
+7. **Realistic data** — professional-looking, not `test123@test.com`
+8. **Never ask for passwords**
+9. Use `narrate` only when it adds value
 
 ## Troubleshooting
 
