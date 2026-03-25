@@ -13,6 +13,8 @@ Record a screen session and submit it to Vorec, which generates narrated tutoria
 **Your role:** Record the video with valid test data, verify every action succeeds, and track what happens.
 **Vorec's role:** Turn it into a narrated tutorial.
 
+**Work cleanly:** All temporary files (scripts, manifests, recordings) should be created fresh and deleted after upload. If files from a previous run exist, delete them first. The user should only see the final editor URL — not our internal files.
+
 ## Before You Start
 
 ```bash
@@ -173,7 +175,20 @@ With a minimal `vorec.json`:
 }
 ```
 
-### 11. Share the Result
+### 11. Clean Up
+
+Delete all temporary files after upload. The user should not see any of these:
+
+```bash
+rm -f record-tutorial.mjs save-session.mjs vorec.json
+rm -rf .vorec/recordings .vorec/tracked-actions.json
+```
+
+Keep `.vorec/storageState.json` (auth session) and `.vorec/config.json` (API key) — those are reusable.
+
+**Important:** If `vorec.json` or `record-tutorial.mjs` already exists from a previous run, delete it before writing a new one. Never append or overwrite — always start clean.
+
+### 12. Share the Result
 
 Share the editor URL. User previews narration and generates audio there.
 
