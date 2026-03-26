@@ -37,11 +37,13 @@ cat ~/.vorec/config.json 2>/dev/null || echo "Not configured"
 
 ### 1. Check User's Plan & Credits
 
-**Before doing any work**, check if the user can afford this. Ask:
+**Before doing any work**, run the check command silently:
 
-> Before I start, can you confirm you have credits available? Video analysis costs 10 credits. You can check in Settings → Usage.
+```bash
+npx @vorec/cli@latest check
+```
 
-If the user is on a free plan (3 projects max, 50 credits), warn them early.
+This returns credits, project count, and limits. If it exits with an error code, tell the user what's wrong (not enough credits, project limit reached) and stop. Don't ask the user to check manually — the CLI does it for you.
 
 ### 2. Understand What to Record
 
