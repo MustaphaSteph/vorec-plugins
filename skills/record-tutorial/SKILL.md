@@ -1,233 +1,255 @@
 ---
 name: record-tutorial
 description: >
-  Record screen and generate narrated tutorial videos with AI voice-over.
-  Use when the user wants to record a tutorial, demo video, screencast, walkthrough,
-  or any screen recording with narration.
+  Record narrated tutorial videos from any codebase using the Vorec CLI and Playwright.
+  Use this skill whenever the user wants to create a tutorial video, demo video, screen recording
+  with narration, product walkthrough, or onboarding video. Triggers on: "record tutorial",
+  "create tutorial", "demo video", "screen recording", "narrate this flow", "vorec record",
+  "make a walkthrough", "record a demo", "tutorial video", "product demo", "show how to",
+  "record this feature", "create a screencast". Also use when the user asks to document a UI
+  flow visually or wants to turn a feature into a video explanation — even if they don't
+  explicitly say "tutorial" or "video".
 ---
 
 # Record Tutorial with Vorec
 
-Record a screen session and submit it to Vorec, which generates narrated tutorial videos automatically.
+You are an AI coding agent with deep knowledge of the codebase. Your job is to record a screen session and submit it to Vorec, which turns it into a narrated tutorial automatically.
 
-**Your role:** Record the video with valid test data, verify every action succeeds, and track what happens.
+## How It Works
+
+1. You record the screen using Playwright while executing actions
+2. You upload the recording + tracked actions to Vorec
+3. Vorec generates narration, visual cues, and voice-over automatically
+4. The user gets an editor URL to preview and fine-tune
+
+**Your role:** Record the video and track what happens.
 **Vorec's role:** Turn it into a narrated tutorial.
-
-**Work cleanly:** All temporary files (scripts, manifests, recordings) should be created fresh and deleted after upload. If files from a previous run exist, delete them first. The user should only see the final editor URL — not our internal files.
 
 ## Before You Start
 
 ```bash
-# 1. Playwright
+# 1. Playwright (required for screen recording)
 npm install playwright && npx playwright install chromium
 
-# 2. FFmpeg
+# 2. FFmpeg (required for video conversion)
 ffmpeg -version || echo "Install: brew install ffmpeg (macOS) or apt install ffmpeg (Linux)"
 
 # 3. Vorec CLI
 npx @vorec/cli@latest --version
 
-# 4. API key
+# 4. API key — check if configured
 cat ~/.vorec/config.json 2>/dev/null || echo "Not configured"
-# If not configured: npx @vorec/cli@latest init
-# NEVER write ~/.vorec/config.json directly.
+# If not configured: create key at Settings → API Keys in vorec.ai, then:
+npx @vorec/cli@latest init
+# IMPORTANT: Always use `vorec init` to set the API key.
+# NEVER write ~/.vorec/config.json directly — the CLI sets the correct API URL automatically.
 ```
+
+Also check what port the dev server runs on. Look for it in `package.json` scripts, `vite.config`, `.env`, or framework config. Verify it's running before proceeding.
 
 ## Step-by-Step
 
-### 1. Check User's Plan & Credits
+### 1. Understand What to Record
 
-**Before doing any work**, run the check command silently:
+Ask the user or infer from context what flow to demonstrate. Then ask:
 
-```bash
-npx @vorec/cli@latest check
-```
+**"Is there anything specific I should pay attention to during the recording?"**
 
-This returns credits, project count, and limits. If it exits with an error code, tell the user what's wrong (not enough credits, project limit reached) and stop. Don't ask the user to check manually — the CLI does it for you.
+Examples of what the user might say:
+- "Focus on the loading states between steps"
+- "Make sure the animation after submit is visible"
+- "The dropdown takes a moment to load, wait for it"
+- "Show the error state when the field is empty"
 
-### 2. Understand What to Record
+Use their answer to add appropriate `wait` actions, adjust delays, and set the `customPrompt` field so Vorec's narration covers what matters to the user.
 
-Ask:
+### 2. Determine the App URL & Wait Strategy
 
-> 1. **What's the goal?** What should the viewer learn?
-> 2. **Who's watching?** New users, developers, or customers?
-> 3. **Anything to explain?** Features or concepts that need context?
+Find the dev server URL from project config — never assume ports. Check:
+- `package.json` scripts (e.g., `"dev": "vite --port 5173"`)
+- `vite.config.ts`, `next.config.js`, `.env` files
+- Framework defaults (Vite: 5173, Next.js: 3000, CRA: 3000)
 
-### 3. Analyze the Code for Valid Test Data
+Also choose the right `waitStrategy` for the manifest by reading the app's code:
 
-**Critical step.** Before writing anything, read frontend AND backend to understand:
+| Strategy | Use when |
+|----------|----------|
+| `load` | Default. Works for most apps. Waits for page + resources. |
+| `domcontentloaded` | SPAs that hydrate client-side (React, Vue, Next.js). Faster. |
+| `networkidle` | Simple static sites with no background requests. |
+| `commit` | Extremely slow apps where you just need the page to start loading. |
 
-- **Form validation** — email format? Min password length? Required fields?
-- **API validation** — what does the backend reject? Check routes, validators, middleware
-- **Database constraints** — unique email? Enum values? Foreign keys?
-- **Error states** — what happens on invalid input?
+Check for: WebSockets, SSE, analytics scripts, polling, service workers — if the app has any of these, **do not use `networkidle`** (it will hang).
 
-Generate **valid test data** that passes all validation:
-- Email → realistic, passes regex (e.g., `demo.user@example.com`)
-- Password → meets all rules (e.g., `DemoPass2026!` if min 8 + special char required)
-- Unique fields → check if test data already exists in DB
-- Dropdowns → read actual option values from code
+### 3. Research the Codebase for Selectors
 
-**Never use placeholder data.** The recording should look professional.
+**Never guess selectors.** Always verify they exist in source code.
 
-### 4. Find App URL
+Search strategy:
+- **Routes**: Grep router/App file for route definitions
+- **Buttons/Links**: Read page components for button text, classes, `data-testid`, `href`
+- **Inputs**: Look for `id`, `name`, or `placeholder` attributes
+- **Modals/Dropdowns**: Check for conditional renders, `role` attributes
 
-Read project config — never assume ports. Check `package.json`, `vite.config`, `.env`.
+Selector priority (most reliable first):
+1. `data-testid="create-btn"`
+2. `button:has-text('Save')`
+3. `a[href='/settings']`
+4. `#email-input` or `input[name="email"]`
+5. `.btn-primary` (less stable but OK if specific)
 
-### 5. Research Selectors
+### 4. Handle Authentication
 
-**Never guess.** Verify in source code.
-Priority: `data-testid` → `:has-text()` → `[href]` → `#id` → `[name]` → `.class`
+Check if the target URL requires authentication — look for auth guards, login redirects, or protected routes in the codebase.
 
-### 6. Handle Authentication
+**If the app requires login:**
 
-If auth needed: write `save-session.mjs`, user logs in manually, `waitForURL` saves session.
-**Never ask for passwords.**
+1. Read the router/auth guard to find:
+   - The login page route
+   - The post-login redirect route
 
-### 7. Ask Preferences
+2. Tell the user: "This app requires login. I'll open a browser to the login page — please log in manually. The session will be saved automatically once you're redirected."
 
-> 1. **What language?** (default: English)
-> 2. **What style?** Tutorial / Professional / Conversational / Storytelling / Concise / Exact
-
-### 8. Write the Recording Script
-
-**Do NOT use `vorec run` for recording.** Write a standalone Playwright script so you have full control over error handling and recovery.
-
-The script must:
-1. Launch visible browser with video recording
-2. Load storageState if auth needed
-3. Execute each action and **check for errors after each step**
-4. If an error appears on screen, **recover inside the recording** — don't stop
-5. Track coordinates + timestamps
-6. Convert webm → mp4 via FFmpeg
-7. Save video + tracked actions JSON
-
-**Error recovery pattern — keep recording, fix the mistake on screen:**
-
-When an action produces a visible error (validation message, toast, red border), the recording should show the error AND the fix. This makes the tutorial more useful — viewers learn how to handle real mistakes.
+3. Write and run a small script to capture the session:
 
 ```javascript
-// General pattern: try → check → recover if needed
-await actionElement.click();
-await page.waitForTimeout(1000);
-
-// Check if an error appeared
-const errorEl = page.locator('.error, [role="alert"], .toast-error, [class*="error"]');
-if (await errorEl.count() > 0 && await errorEl.first().isVisible()) {
-  const errorText = await errorEl.first().textContent();
-  console.log(`  ⚠ Error detected: ${errorText}`);
-
-  // Track the error as a narrate action — Vorec will explain it
-  track('narrate', '', null,
-    'Error appeared',
-    `An error message appeared: "${errorText}". This is a common mistake — let me show the correct way.`
-  );
-  await page.waitForTimeout(2000); // Let viewer see the error
-
-  // RECOVER: fix the input and retry
-  // Clear the field, type correct value, resubmit
-  // ... (specific recovery depends on the error)
-}
+// save-session.mjs
+import { chromium } from 'playwright';
+const browser = await chromium.launch({ headless: false });
+const context = await browser.newContext();
+const page = await context.newPage();
+await page.goto('<LOGIN_URL_FROM_ROUTER>');
+console.log('Please log in manually in the browser...');
+await page.waitForURL('**/<POST_LOGIN_ROUTE_FROM_ROUTER>**', { timeout: 120000 });
+await context.storageState({ path: '.vorec/storageState.json' });
+console.log('Session saved to .vorec/storageState.json');
+await browser.close();
 ```
 
-**When to stop vs recover:**
-- **Recover in recording** (preferred): validation errors, wrong format, missing fields — these teach the viewer something useful
-- **Stop and re-record**: wrong selector, page crash, auth expired, app bug — these are recording problems, not tutorial content
+Replace placeholders with actual routes from the codebase.
 
-**If you must stop**, close the browser cleanly and report what went wrong:
-```javascript
-console.error('FATAL: Cannot recover from this error. Re-record needed.');
-await page.close(); await context.close(); await browser.close();
-process.exit(1);
-```
-```
+**Key rule:** Never ask the user for their password. Always let them type it in the browser themselves.
 
-### 9. Record and Verify
+**If no auth needed:** Omit `storageState` entirely.
 
-```bash
-node record-tutorial.mjs
-```
+### 5. Ask the User About Preferences
 
-If it fails → fix the issue (wrong data, bad selector, validation error) → re-run.
+**You must ask these questions before writing the manifest. Present them together in one message:**
 
-After success, tell the user:
+> Before I create the recording, a few quick questions:
+> 1. **What language** should the narration be in? (default: English)
+> 2. **What narration style** do you prefer?
+>    - **Tutorial** — step-by-step, clear, like a YouTube tutorial
+>    - **Professional** — polished, enterprise-ready
+>    - **Conversational** — casual, like explaining to a colleague
+>    - **Storytelling** — engaging, narrative-driven
+>    - **Concise** — minimal, just the essentials
+>    - **Exact** — neutral, factual, technical
 
-> Recording saved ([duration]s, [count] actions). Please review the video.
-> If it looks good, I'll upload to Vorec (costs 10 credits). Should I proceed?
+Wait for the user to respond before proceeding. If they say "just go with defaults", use English + tutorial.
 
-**Wait for confirmation.** A bad recording wastes credits.
+Set `videoContext` to a brief description of the flow (you write this yourself based on your codebase understanding). Set `customPrompt` to what the user said they want to pay attention to (from Step 1).
 
-### 10. Upload to Vorec
+### 6. Write the Manifest
 
-Once confirmed:
-
-```bash
-npx @vorec/cli@latest run vorec.json --skip-record --video <VIDEO_PATH> --tracked-actions .vorec/tracked-actions.json
-```
-
-With a minimal `vorec.json`:
+Create `vorec.json` with the actions and preferences.
 
 ```json
 {
-  "title": "<TITLE>",
-  "url": "<APP_URL>",
+  "title": "How to [description of the flow]",
+  "url": "<APP_URL_WITH_PORT>/<starting-route>",
+  "viewport": { "width": 1920, "height": 1080 },
+  "storageState": ".vorec/storageState.json",
   "language": "en",
   "narrationStyle": "tutorial",
-  "videoContext": "<DESCRIPTION>"
+  "videoContext": "Brief description of what the video shows",
+  "actions": [
+    { "type": "click", "selector": "<real-selector>", "description": "Open the create dialog" },
+    { "type": "wait", "delay": 1000 },
+    { "type": "type", "selector": "<real-input-selector>", "text": "My First Project", "description": "Enter the project name" },
+    { "type": "select", "selector": "<real-select-selector>", "value": "public", "description": "Set visibility to public" },
+    { "type": "click", "selector": "<real-submit-selector>", "description": "Save the new project" }
+  ]
 }
 ```
 
-### 11. Clean Up
+Replace all `<placeholders>` with real values. Omit `storageState` if no auth. Omit `language` if English.
 
-Delete all temporary files after upload. The user should not see any of these:
+### 7. Record the Video
+
+First, record **without** uploading — so the user can validate:
 
 ```bash
-rm -f record-tutorial.mjs save-session.mjs vorec.json
-rm -rf .vorec/recordings .vorec/tracked-actions.json
+npx @vorec/cli@latest run vorec.json
 ```
 
-Keep `.vorec/storageState.json` (auth session) and `.vorec/config.json` (API key) — those are reusable.
+This records the video and saves it locally. **Do NOT use `--auto` yet.**
 
-**Important:** If `vorec.json` or `record-tutorial.mjs` already exists from a previous run, delete it before writing a new one. Never append or overwrite — always start clean.
+After recording completes, tell the user:
 
-### 12. Share the Result
+> Recording saved to `.vorec/recordings/[file].mp4` ([duration]s, [action count] actions tracked).
+> Please review the video — if it looks good, I'll upload it to Vorec for narration. A bad recording will cost credits to re-do.
+> Should I proceed?
 
-Share the editor URL. User previews narration and generates audio there.
+**Wait for the user to confirm.** If they say redo, adjust the manifest and record again.
+
+### 8. Upload and Process
+
+Once the user confirms the recording is good:
+
+```bash
+npx @vorec/cli@latest run vorec.json --auto --skip-record --video .vorec/recordings/[file].mp4 --tracked-actions .vorec/tracked-actions.json
+```
+
+This uploads the validated recording and processes it. When done, it prints an editor URL.
+
+### 9. Share the Result
+
+Share the editor URL with the user. They can preview narration and generate audio in the editor.
 
 ## Action Reference
 
-Every action needs `description` (timeline label) and `context` (rich scene description).
+Every action **must include a `description`** — a clear, human-readable name describing what the action accomplishes.
 
-| Type | Fields | What It Does |
-|------|--------|-------------|
-| `narrate` | `description`, `context`, `delay` | Pause — describe scene |
-| `click` | `selector`, `description` | Click |
-| `type` | `selector`, `text`, `description` | Type text |
-| `select` | `selector`, `value`, `description` | Select dropdown |
-| `hover` | `selector`, `description` | Hover to highlight |
-| `scroll` | `description` | Scroll down |
-| `wait` | `delay` (ms) | Pause |
-| `navigate` | `text` (URL), `description` | Navigate |
+**Good descriptions:** "Open the create dialog", "Enter the project name", "Save the new task"
+**Bad descriptions:** "button:has-text('Create')", "input[type='email']", "click #submit-btn"
 
-## Key Rules
+The description is NOT the selector — it's the intent. Vorec uses it to write narration, so it must read naturally. Think of it as what a human would say: "Now we click Save" not "Now we click button.submit".
 
-1. **Check credits first** — run `npx @vorec/cli check` before starting
-2. **Analyze validation before choosing test data** — read frontend + backend + DB
-3. **Verify every action** — check for errors after each step
-4. **Recover from errors in the recording** — show the mistake and the fix. This teaches viewers.
-5. **Only stop for unrecoverable errors** — wrong selector, crash, auth expired
-6. **User validates video** before upload — saves credits on bad recordings
-7. **Realistic data** — professional-looking, not `test123@test.com`
-8. **Never ask for passwords**
-9. Use `narrate` only when it adds value
+| Type | Required Fields | What It Does |
+|------|----------------|--------------|
+| `click` | `selector`, `description` | Click an element |
+| `type` | `selector`, `text`, `description` | Click an input, then type text. Include what was typed — Vorec needs this context. |
+| `select` | `selector`, `value`, `description` | Pick from a dropdown. Include the selected value. |
+| `hover` | `selector`, `description` | Hover (tooltips, menus) |
+| `scroll` | `description` | Scroll the page down |
+| `wait` | `delay` (ms) | Pause for animations/loading (no description needed) |
+| `navigate` | `text` (URL), `description` | Go to a different page |
+
+Optional on any action: `delay` (ms) — extra wait time after the action completes.
+
+**Important:** Document ALL actions, not just clicks. If the user types text, include the `type` action with `text`. If they select a dropdown value, include `select` with `value`. Vorec uses this to understand the full workflow — clicks alone aren't enough.
+
+## Alternative Commands
+
+```bash
+# Skip recording, use existing video + tracked actions
+npx @vorec/cli@latest run vorec.json --skip-record --video recording.mp4 --tracked-actions tracked.json
+
+# Just upload a video without actions
+npx @vorec/cli@latest upload my-recording.mp4 --title "My Tutorial"
+
+# Check processing status
+npx @vorec/cli@latest status
+```
 
 ## Troubleshooting
 
 | Error | Fix |
 |-------|-----|
-| Validation failed | Read validation code, fix test data |
-| Selector timeout | Verify in source, add `wait` before |
-| Submission error | Check API/backend validation rules |
-| Project limit | Delete projects or upgrade plan |
-| Insufficient credits | Buy credits or wait for monthly reset |
-| Recording too short | Min 10 seconds. Add delays. |
+| "Playwright required" | `npm install playwright && npx playwright install chromium` |
+| "FFmpeg required" | `brew install ffmpeg` (macOS) or `apt install ffmpeg` (Linux) |
+| "No API key" | `npx @vorec/cli@latest init` — get key from vorec.ai Settings |
+| Selector timeout | Add a `wait` action before, or verify selector in source |
+| 401 error | API key revoked — create a new one |
+| Recording too short | Minimum 10 seconds. Add more actions or increase delays. |
