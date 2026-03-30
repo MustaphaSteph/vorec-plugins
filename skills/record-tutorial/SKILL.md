@@ -185,9 +185,10 @@ Run the script. If it fails, fix and re-run. Ask user to validate the video.
 
 After the user validates the recording, ask:
 
-> I've recorded the video ([duration]s, [count] actions tracked). Want me to generate AI narration for it? Vorec will add voice-over, timing, and an editor to polish it. (Costs 10 credits)
+> Recording saved to `[FULL_PATH_TO_MP4]` ([duration]s, [count] actions).
+> Please review the video to make sure it looks good.
 >
-> Or you can keep just the video file at `.vorec/recordings/recording.mp4`.
+> Want me to generate AI narration for it? Vorec will add voice-over, timing, and give you an editor to polish it.
 
 If the user wants narration, proceed with upload. If not, skip to clean up.
 
