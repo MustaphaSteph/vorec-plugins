@@ -8,133 +8,208 @@ description: >
 
 # Record Tutorial with Vorec
 
-Record a screen session and submit it to Vorec, which generates narrated tutorial videos automatically.
+You are an AI coding agent with deep knowledge of the user's codebase. Use that knowledge to record a screen session that Vorec turns into a narrated tutorial automatically.
 
-**Your role:** Record the video with valid test data, verify actions succeed, track what happens.
-**Vorec's role:** Turn it into a narrated tutorial.
+**Your advantage:** You can read every component, route, validator, and config file. You know the app better than any screen scraper. Use that to write precise, reliable recording scripts with valid test data.
 
-**Work cleanly:** All temp files created fresh, deleted after upload. User sees only the final editor URL.
+**Your role:** Analyze the codebase → write a Playwright recording script → record → upload to Vorec.
+**Vorec's role:** Watch the video, write narration, generate voice-over.
 
-## Before You Start
+**Work cleanly:** Temp files created fresh, deleted after upload. User sees only the editor URL.
 
-**Run ALL of these checks before doing anything else. Do not skip any.**
+## Prerequisites
+
+**Run ALL checks. Fix before continuing.**
 
 ```bash
-# 1. Playwright + Chromium browser
+# 1. Playwright + Chromium
 node -e "require('playwright')" 2>/dev/null && echo "Playwright OK" || npm install playwright
-# Verify Chromium is installed — if not, download it (~400MB)
 node -e "const pw = require('playwright'); pw.chromium.launch().then(b => { console.log('Chromium OK'); b.close() })" 2>/dev/null || npx playwright install chromium
 
 # 2. FFmpeg
-ffmpeg -version 2>/dev/null || echo "MISSING: brew install ffmpeg (macOS) or apt install ffmpeg (Linux)"
+ffmpeg -version 2>/dev/null || echo "MISSING: brew install ffmpeg"
 
 # 3. Vorec CLI
 npx @vorec/cli@latest --version
 ```
 
-If any check fails, fix it before continuing. Do NOT proceed to recording without all three installed.
-
-**4. Vorec API key** — check if configured:
-
+**4. Vorec API key:**
 ```bash
-cat ~/.vorec/config.json 2>/dev/null
+cat ~/.vorec/config.json 2>/dev/null || npx @vorec/cli@latest login
 ```
-
-If not configured or no API key found, run `vorec login` — this opens a browser where the user logs in (or signs up) and the CLI gets the key automatically:
-
-```bash
-npx @vorec/cli@latest login
-```
-
-The CLI prints a URL and pairing phrase. Tell the user to open the URL and click Verify. The CLI saves the key automatically. **Never tell the user to manually copy an API key from the website — always use `vorec login`.**
+**Never tell the user to manually copy an API key. Always use `vorec login`.**
 
 ## Workflow
 
 ### 1. Check credits
-
-Run silently: `npx @vorec/cli@latest check` — if it fails, tell the user why and stop.
+```bash
+npx @vorec/cli@latest check
+```
 
 ### 2. Understand the flow
+Ask: What's the goal? Who's watching? Anything to explain?
 
-Ask the user:
-1. What's the goal?
-2. Who's watching?
-3. Anything to explain?
+### 3. Deep-scan the codebase
 
-### 3. Find app URL & wait strategy
+**This is your main advantage.** Before writing any script, thoroughly analyze the project:
 
-Read project config for URL/port. Choose `waitStrategy` based on the app:
-- `load` — default, works for most apps
-- `domcontentloaded` — SPAs (React, Vue, Next.js)
-- `networkidle` — static sites only (hangs on WebSockets/polling)
-- `commit` — extremely slow apps
+**Project structure:**
+- Read `package.json` — framework, dependencies, scripts, dev server port
+- Read router/App file — all routes, guards, redirects
+- Read `.env` or config files — API URLs, feature flags
 
-### 4. Analyze validation & test data
+**For the specific flow being recorded:**
+- Read the page component — understand what renders, what's interactive
+- Read form components — field names, types, placeholders, labels
+- Read validation logic — frontend validators, regex patterns, required fields, min/max lengths
+- Read API routes/handlers — what the backend accepts/rejects
+- Read DB schema/models — unique constraints, enums, required columns
+- Read auth guards — which routes need login, where login redirects to
 
-Load [./rules/validation.md](./rules/validation.md) — read frontend + backend code to generate valid test data that passes all validation.
+**From this analysis, extract:**
+- Exact selectors: `data-testid`, element IDs, names, placeholders, button text, `href` values
+- Valid test data that passes ALL validation (frontend + backend + DB)
+- The expected result after each action (URL change, toast, modal, redirect)
+- Wait conditions (loading states, API calls, animations)
+- Error states and how to recover from them
 
-### 5. Research selectors
+### 4. Find app URL & wait strategy
 
-**Never guess.** Verify in source code. Use semantic locators when possible — load [./rules/playwright.md](./rules/playwright.md) for locator best practices.
+From `package.json` scripts or config, determine:
+- Dev server URL and port
+- Framework type → choose `waitStrategy`:
+  - `load` — default, works for most
+  - `domcontentloaded` — React/Vue/Next.js SPAs
+  - `networkidle` — static sites only
+  - `commit` — extremely slow apps
 
-Priority: `getByRole` → `getByLabel` → `getByTestId` → `[data-testid]` → `:has-text()` → `[href]` → CSS selector
+Check for WebSockets, SSE, analytics, service workers — if present, avoid `networkidle`.
 
-### 6. Handle auth
+### 5. Handle auth
 
-If the app requires login, load [./rules/auth.md](./rules/auth.md) for the session capture workflow.
+If routes are protected, load [./rules/auth.md](./rules/auth.md).
 
-### 7. Ask preferences
+### 6. Ask preferences
+> 1. **Language?** (default: English)
+> 2. **Style?** Tutorial / Professional / Conversational / Storytelling / Concise / Exact
 
-> 1. **What language?** (default: English)
-> 2. **What style?** Tutorial / Professional / Conversational / Storytelling / Concise / Exact
+### 7. Write the recording script
 
-### 8. Write the recording script
+Write a standalone Playwright `.mjs` script. Load [./rules/playwright.md](./rules/playwright.md) for locator and automation best practices.
 
-Write a standalone Playwright script — load [./rules/playwright.md](./rules/playwright.md) for best practices on locators, waiting, error handling, tracing.
+**Use what you learned from the codebase:**
+- Selectors come from reading actual component source — not guessing
+- Test data comes from reading validators — not placeholder values
+- Wait conditions come from reading loading states — not arbitrary timeouts
+- Expected results come from reading handlers — not hoping
 
 The script must:
-- Launch visible browser with video recording + `slowMo: 50`
-- Dismiss cookie banners/overlays first
-- Execute each action and verify it succeeded
-- Recover from errors in the recording (show mistake + fix) — load [./rules/validation.md](./rules/validation.md)
-- Track coordinates + timestamps for each action
-- Convert webm → mp4 via FFmpeg
-- Save video + tracked actions JSON
+- Launch `chromium` visible (`headless: false`) with video recording at 1920x1080
+- Use `slowMo: 50` for smooth, visible actions
+- Load `storageState` if auth is needed
+- For each action: locate element → get boundingBox (coordinates) → execute → verify result
+- After form submissions: check for error messages and either recover (keep recording) or stop
+- Convert webm → mp4 via FFmpeg after recording
+- Save tracked actions JSON with timestamps, coordinates, descriptions, and context
 
-For action types and manifest format, load [./rules/actions.md](./rules/actions.md).
+For action types, load [./rules/actions.md](./rules/actions.md).
+For error recovery, load [./rules/validation.md](./rules/validation.md).
 
-### 9. Record and verify
+**Script template pattern:**
+```javascript
+import { chromium } from 'playwright';
+import { writeFileSync, mkdirSync } from 'node:fs';
+import { execSync } from 'node:child_process';
 
-Run the script. If it fails, fix and re-run. Then ask the user to validate the video before uploading.
+const viewport = { width: 1920, height: 1080 };
+mkdirSync('.vorec/recordings', { recursive: true });
 
-### 10. Upload to Vorec
+const browser = await chromium.launch({ headless: false, slowMo: 50 });
+const context = await browser.newContext({
+  viewport,
+  recordVideo: { dir: '.vorec/recordings', size: viewport },
+  // storageState: '.vorec/storageState.json', // if auth needed
+});
+const page = await context.newPage();
 
+const startTime = Date.now();
+const tracked = [];
+
+function track(type, selector, box, description, context, extra = {}) {
+  tracked.push({
+    type, timestamp: (Date.now() - startTime) / 1000,
+    coordinates: box ? {
+      x: Math.round(((box.x + box.width / 2) / viewport.width) * 1000),
+      y: Math.round(((box.y + box.height / 2) / viewport.height) * 1000),
+    } : { x: 500, y: 500 },
+    target: selector, interaction_type: type === 'type' ? 'type' : type,
+    description, context, ...extra,
+  });
+}
+
+// Navigate
+await page.goto('<URL>', { waitUntil: '<WAIT_STRATEGY>' });
+await page.waitForTimeout(2000);
+
+// === ACTIONS (from codebase analysis) ===
+// For each action:
+//   1. Find element using selector from source code
+//   2. Get boundingBox for coordinate tracking
+//   3. Execute the action
+//   4. Verify success (check for errors, URL changes, new elements)
+//   5. Wait for UI to settle
+
+// ... your actions here ...
+
+// === FINISH ===
+await page.waitForTimeout(2000);
+const video = page.video();
+await page.close();
+await context.close();
+await browser.close();
+
+const webmPath = await video.path();
+const mp4Path = webmPath.replace(/\.webm$/, '.mp4');
+execSync(`ffmpeg -y -i "${webmPath}" -c:v libx264 -preset fast -crf 23 -c:a aac "${mp4Path}"`, { stdio: 'pipe' });
+
+writeFileSync('.vorec/tracked-actions.json', JSON.stringify(tracked, null, 2));
+console.log(`Video: ${mp4Path}`);
+console.log(`Actions: ${tracked.length} tracked`);
+```
+
+### 8. Record and verify
+Run the script. If it fails, fix and re-run. Ask user to validate the video.
+
+### 9. Upload to Vorec
 ```bash
 npx @vorec/cli@latest run vorec.json --skip-record --video <VIDEO> --tracked-actions .vorec/tracked-actions.json
 ```
 
-### 11. Clean up
-
+### 10. Clean up
 ```bash
 rm -f record-tutorial.mjs save-session.mjs vorec.json
 rm -rf .vorec/recordings .vorec/tracked-actions.json
 ```
 
-### 12. Share the result
-
-Share the editor URL.
+### 11. Share the editor URL
 
 ## Key Rules
 
-1. Check credits first — `vorec check`
-2. Analyze validation before choosing test data
-3. Use semantic locators — `getByRole`, `getByLabel`
-4. Verify every action — recover from errors in the recording
-5. User validates video before upload
-6. Clean up temp files after
-7. Never ask for passwords
-8. Never hardcode URLs
+1. **Read the codebase first** — selectors, test data, and expectations all come from source code
+2. Check credits — `vorec check`
+3. Use semantic locators from code — `getByRole`, `getByLabel`, actual `data-testid` values
+4. Generate valid test data from validators — not placeholder values
+5. Verify every action — check for errors using knowledge of error states from the code
+6. Recover from errors in the recording when they teach the viewer something
+7. User validates video before upload
+8. Clean up all temp files
+9. Never ask for passwords — use `vorec login` for API key, `storageState` for app auth
+10. Never hardcode URLs — read from project config
 
-## Troubleshooting
+## Reference Files
 
-Load [./rules/troubleshooting.md](./rules/troubleshooting.md) for common errors and fixes.
+- [./rules/playwright.md](./rules/playwright.md) — Locators, waiting, error capture, tracing
+- [./rules/validation.md](./rules/validation.md) — Test data analysis, error recovery
+- [./rules/auth.md](./rules/auth.md) — Session capture
+- [./rules/actions.md](./rules/actions.md) — Vorec action types
+- [./rules/troubleshooting.md](./rules/troubleshooting.md) — Common errors
