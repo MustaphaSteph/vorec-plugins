@@ -1,0 +1,130 @@
+---
+name: playwright-best-practices
+description: Playwright techniques for reliable browser automation and recording
+---
+
+# Playwright Best Practices
+
+## Semantic Locators — NOT CSS selectors
+
+```javascript
+// BEST: role-based (survives refactors)
+page.getByRole('button', { name: 'Submit' })
+page.getByLabel('Email')
+page.getByPlaceholder('Enter password')
+page.getByText('Sign up')
+page.getByTestId('submit-btn')
+
+// OK: CSS selectors (when semantic not possible)
+page.locator('button[type="submit"]')
+
+// AVOID: fragile
+page.locator('.btn-primary')           // class can change
+page.locator('#submit')                // id can change
+page.locator('div > form > button')    // structure can change
+```
+
+## Chain and filter for precision
+
+```javascript
+page.getByRole('row').filter({ hasText: 'My Project' }).getByRole('button', { name: 'Edit' })
+page.getByRole('listitem').nth(2)
+```
+
+## Wait for API responses, not just DOM
+
+```javascript
+const [response] = await Promise.all([
+  page.waitForResponse(resp => resp.url().includes('/api/projects') && resp.status() === 200),
+  page.getByRole('button', { name: 'Save' }).click(),
+]);
+```
+
+## Wait for loading states to clear
+
+```javascript
+await page.locator('.skeleton, .loading, [aria-busy="true"]').waitFor({ state: 'hidden', timeout: 10000 }).catch(() => {});
+```
+
+## Scroll elements into view
+
+```javascript
+const element = page.getByRole('button', { name: 'Submit' });
+await element.scrollIntoViewIfNeeded();
+await element.click();
+```
+
+## Handle cookie banners and overlays
+
+```javascript
+const cookieBanner = page.locator('[class*="cookie"], [class*="consent"], [id*="cookie"]');
+if (await cookieBanner.count() > 0) {
+  const acceptBtn = cookieBanner.getByRole('button', { name: /accept|agree|ok|got it/i });
+  if (await acceptBtn.count() > 0) await acceptBtn.first().click();
+}
+```
+
+## Handle new tabs/popups
+
+```javascript
+const [newPage] = await Promise.all([
+  context.waitForEvent('page'),
+  page.getByText('Open in new tab').click(),
+]);
+await newPage.waitForLoadState();
+```
+
+## Handle iframes
+
+```javascript
+const frame = page.frameLocator('#my-iframe');
+await frame.getByRole('button', { name: 'Submit' }).click();
+```
+
+## Handle file uploads
+
+```javascript
+await page.getByLabel('Upload file').setInputFiles('path/to/file.pdf');
+```
+
+## Use slowMo for visible actions
+
+```javascript
+const browser = await chromium.launch({ headless: false, slowMo: 50 });
+```
+
+## Capture JS errors during recording
+
+```javascript
+const jsErrors = [];
+page.on('pageerror', error => jsErrors.push(error.message));
+page.on('console', msg => { if (msg.type() === 'error') jsErrors.push(msg.text()); });
+if (jsErrors.length > 0) console.warn('JS errors during recording:', jsErrors);
+```
+
+## Enable tracing for debugging failed recordings
+
+```javascript
+await context.tracing.start({ screenshots: true, snapshots: true });
+// ... run actions ...
+// If something fails:
+await context.tracing.stop({ path: '.vorec/trace.zip' });
+// Debug with: npx playwright show-trace .vorec/trace.zip
+```
+
+## Retry flaky interactions
+
+```javascript
+for (let i = 0; i < 3; i++) {
+  try { await element.click({ timeout: 5000 }); break; }
+  catch { await page.waitForTimeout(1000 * (i + 1)); }
+}
+```
+
+## Auto-detect dev servers
+
+```javascript
+import { exec } from 'node:child_process';
+const ports = [3000, 3001, 4200, 5173, 8080];
+// lsof -i :PORT to find which one is running
+```
