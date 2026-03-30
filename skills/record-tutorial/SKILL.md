@@ -188,7 +188,18 @@ After the user validates the recording, ask:
 > Recording saved to `[FULL_PATH_TO_MP4]` ([duration]s, [count] actions).
 > Please review the video to make sure it looks good.
 >
-> Want me to generate AI narration for it? Vorec will add voice-over, timing, and give you an editor to polish it.
+> Want me to upload it to Vorec? You'll get:
+> - **AI voice-over** — natural narration generated from the video
+> - **Zoom & callout animations** — highlight important UI elements
+> - **Cursor effects** — click ripples, tap rings, arrow pointers
+> - **Text & shape overlays** — arrows, circles, callout boxes, number badges
+> - **Background styling** — gradients, wallpapers, padding, rounded corners, shadows
+> - **Intro slides** — title cards with professional themes
+> - **Background music** — with volume control and fade in/out
+> - **Subtitles** — auto-generated, customizable style and position
+> - **Multi-language** — translate narration to any language
+> - **Full timeline editor** — adjust timing, re-record segments, trim video
+> - **Export** — up to 4K resolution, 60fps
 
 If the user wants narration, proceed with upload. If not, skip to clean up.
 
