@@ -243,13 +243,156 @@ npx @vorec/cli@latest upload my-recording.mp4 --title "My Tutorial"
 npx @vorec/cli@latest status
 ```
 
+## Playwright Best Practices
+
+When writing the recording script, use these techniques for reliable automation:
+
+### Use semantic locators — NOT CSS selectors
+
+```javascript
+// BEST: role-based (survives refactors, accessible)
+page.getByRole('button', { name: 'Submit' })
+page.getByLabel('Email')
+page.getByPlaceholder('Enter password')
+page.getByText('Sign up')
+page.getByTestId('submit-btn')
+
+// OK: CSS selectors (use when semantic not possible)
+page.locator('button[type="submit"]')
+
+// AVOID: fragile selectors
+page.locator('.btn-primary')           // class can change
+page.locator('#submit')                // id can change
+page.locator('div > form > button')    // structure can change
+```
+
+### Chain and filter for precision
+
+```javascript
+// Find button inside a specific row
+page.getByRole('row').filter({ hasText: 'My Project' }).getByRole('button', { name: 'Edit' })
+
+// Find nth element
+page.getByRole('listitem').nth(2)
+```
+
+### Wait for API responses, not just DOM
+
+```javascript
+// Wait for the API call to complete after clicking
+const [response] = await Promise.all([
+  page.waitForResponse(resp => resp.url().includes('/api/projects') && resp.status() === 200),
+  page.getByRole('button', { name: 'Save' }).click(),
+]);
+```
+
+### Wait for loading states to clear
+
+```javascript
+// Wait for spinners/skeletons to disappear before interacting
+await page.locator('.skeleton, .loading, [aria-busy="true"]').waitFor({ state: 'hidden', timeout: 10000 }).catch(() => {});
+```
+
+### Scroll elements into view
+
+```javascript
+const element = page.getByRole('button', { name: 'Submit' });
+await element.scrollIntoViewIfNeeded();
+await element.click();
+```
+
+### Handle cookie banners and overlays
+
+```javascript
+// Dismiss cookie/consent banners before recording
+const cookieBanner = page.locator('[class*="cookie"], [class*="consent"], [id*="cookie"]');
+if (await cookieBanner.count() > 0) {
+  const acceptBtn = cookieBanner.getByRole('button', { name: /accept|agree|ok|got it/i });
+  if (await acceptBtn.count() > 0) await acceptBtn.first().click();
+}
+```
+
+### Handle new tabs/popups
+
+```javascript
+const [newPage] = await Promise.all([
+  context.waitForEvent('page'),
+  page.getByText('Open in new tab').click(),
+]);
+await newPage.waitForLoadState();
+// Record actions on newPage...
+```
+
+### Handle iframes
+
+```javascript
+const frame = page.frameLocator('#my-iframe');
+await frame.getByRole('button', { name: 'Submit' }).click();
+```
+
+### Handle file uploads
+
+```javascript
+await page.getByLabel('Upload file').setInputFiles('path/to/file.pdf');
+```
+
+### Use slowMo for visible actions
+
+```javascript
+// Makes typing and clicks visible in the recording
+const browser = await chromium.launch({ headless: false, slowMo: 50 });
+```
+
+### Capture JS errors during recording
+
+```javascript
+const jsErrors = [];
+page.on('pageerror', error => jsErrors.push(error.message));
+page.on('console', msg => { if (msg.type() === 'error') jsErrors.push(msg.text()); });
+// After recording, report any JS errors
+if (jsErrors.length > 0) console.warn('JS errors during recording:', jsErrors);
+```
+
+### Enable tracing for debugging failed recordings
+
+```javascript
+await context.tracing.start({ screenshots: true, snapshots: true });
+// ... run actions ...
+// If something fails:
+await context.tracing.stop({ path: '.vorec/trace.zip' });
+// Debug with: npx playwright show-trace .vorec/trace.zip
+```
+
+### Retry flaky interactions
+
+```javascript
+// If an element is briefly obscured by animations
+for (let i = 0; i < 3; i++) {
+  try { await element.click({ timeout: 5000 }); break; }
+  catch { await page.waitForTimeout(1000 * (i + 1)); }
+}
+```
+
+### Auto-detect dev servers
+
+```javascript
+// Check common ports before hardcoding
+import { exec } from 'node:child_process';
+const ports = [3000, 3001, 4200, 5173, 8080];
+// lsof -i :PORT to find which one is running
+```
+
 ## Troubleshooting
 
 | Error | Fix |
 |-------|-----|
-| "Playwright required" | `npm install playwright && npx playwright install chromium` |
-| "FFmpeg required" | `brew install ffmpeg` (macOS) or `apt install ffmpeg` (Linux) |
-| "No API key" | `npx @vorec/cli@latest init` — get key from vorec.ai Settings |
-| Selector timeout | Add a `wait` action before, or verify selector in source |
-| 401 error | API key revoked — create a new one |
-| Recording too short | Minimum 10 seconds. Add more actions or increase delays. |
+| Validation failed | Read validation code, fix test data |
+| Selector timeout | Use semantic locators (`getByRole`, `getByLabel`), add `scrollIntoViewIfNeeded()` |
+| Submission error | Check API/backend validation rules |
+| Page hangs on load | Change `waitStrategy` — avoid `networkidle` for SPAs with WebSockets |
+| Cookie banner blocks clicks | Dismiss it at the start of recording |
+| Element obscured | Wait for overlays to disappear, use `force: true` as last resort |
+| JS errors in console | Check `page.on('pageerror')` output, may indicate app bugs |
+| Project limit | Delete projects or upgrade plan |
+| Insufficient credits | Buy credits or wait for monthly reset |
+| Recording too short | Min 10 seconds. Add delays. |
