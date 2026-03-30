@@ -17,16 +17,21 @@ Record a screen session and submit it to Vorec, which generates narrated tutoria
 
 ## Before You Start
 
+**Run ALL of these checks before doing anything else. Do not skip any.**
+
 ```bash
-# 1. Playwright
-npm install playwright && npx playwright install chromium
+# 1. Playwright — MUST be a project dependency, not global
+node -e "require('playwright')" 2>/dev/null && echo "OK" || npm install playwright
+npx playwright install chromium
 
 # 2. FFmpeg
-ffmpeg -version || echo "Install: brew install ffmpeg"
+ffmpeg -version 2>/dev/null || echo "MISSING: brew install ffmpeg (macOS) or apt install ffmpeg (Linux)"
 
 # 3. Vorec CLI
 npx @vorec/cli@latest --version
 ```
+
+If any check fails, fix it before continuing. Do NOT proceed to recording without all three installed.
 
 **4. Vorec API key** — check if configured:
 
