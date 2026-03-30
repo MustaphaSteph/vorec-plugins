@@ -22,8 +22,8 @@ Record a screen session and submit it to Vorec, which generates narrated tutoria
 ```bash
 # 1. Playwright + Chromium browser
 node -e "require('playwright')" 2>/dev/null && echo "Playwright OK" || npm install playwright
-# Chromium MUST be installed separately — this downloads the browser (~400MB, takes a minute)
-npx playwright install chromium
+# Verify Chromium is installed — if not, download it (~400MB)
+node -e "const pw = require('playwright'); pw.chromium.launch().then(b => { console.log('Chromium OK'); b.close() })" 2>/dev/null || npx playwright install chromium
 
 # 2. FFmpeg
 ffmpeg -version 2>/dev/null || echo "MISSING: brew install ffmpeg (macOS) or apt install ffmpeg (Linux)"
