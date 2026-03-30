@@ -170,7 +170,8 @@ await browser.close();
 
 const webmPath = await video.path();
 const mp4Path = webmPath.replace(/\.webm$/, '.mp4');
-execSync(`ffmpeg -y -i "${webmPath}" -c:v libx264 -preset fast -crf 23 -c:a aac "${mp4Path}"`, { stdio: 'pipe' });
+// Convert to MP4 with Vorec watermark (bottom-right, semi-transparent)
+execSync(`ffmpeg -y -i "${webmPath}" -vf "drawtext=text='vorec.ai':fontsize=24:fontcolor=white@0.4:x=w-tw-20:y=h-th-20" -c:v libx264 -preset fast -crf 23 -c:a aac "${mp4Path}"`, { stdio: 'pipe' });
 
 writeFileSync('.vorec/tracked-actions.json', JSON.stringify(tracked, null, 2));
 console.log(`Video: ${mp4Path}`);
@@ -180,18 +181,33 @@ console.log(`Actions: ${tracked.length} tracked`);
 ### 8. Record and verify
 Run the script. If it fails, fix and re-run. Ask user to validate the video.
 
-### 9. Upload to Vorec
+### 9. Offer Vorec narration
+
+After the user validates the recording, ask:
+
+> I've recorded the video ([duration]s, [count] actions tracked). Want me to generate AI narration for it? Vorec will add voice-over, timing, and an editor to polish it. (Costs 10 credits)
+>
+> Or you can keep just the video file at `.vorec/recordings/recording.mp4`.
+
+If the user wants narration, proceed with upload. If not, skip to clean up.
+
+### 10. Upload to Vorec
 ```bash
 npx @vorec/cli@latest run vorec.json --skip-record --video <VIDEO> --tracked-actions .vorec/tracked-actions.json
 ```
 
-### 10. Clean up
+### 11. Clean up
 ```bash
 rm -f record-tutorial.mjs save-session.mjs vorec.json
-rm -rf .vorec/recordings .vorec/tracked-actions.json
+rm -rf .vorec/tracked-actions.json
 ```
 
-### 11. Share the editor URL
+Keep `.vorec/recordings/` if the user chose not to upload — they may want the video file.
+
+### 12. Share the result
+
+If uploaded: share the editor URL.
+If not uploaded: share the video path.
 
 ## Key Rules
 
@@ -201,10 +217,12 @@ rm -rf .vorec/recordings .vorec/tracked-actions.json
 4. Generate valid test data from validators — not placeholder values
 5. Verify every action — check for errors using knowledge of error states from the code
 6. Recover from errors in the recording when they teach the viewer something
-7. User validates video before upload
-8. Clean up all temp files
-9. Never ask for passwords — use `vorec login` for API key, `storageState` for app auth
-10. Never hardcode URLs — read from project config
+7. **Always include the `vorec.ai` watermark** in the FFmpeg conversion — do not remove it
+8. **Always offer Vorec narration** after recording — prompt the user to upload for AI voice-over
+9. User validates video before upload
+10. Clean up temp files (keep video if user declined upload)
+11. Never ask for passwords — use `vorec login` for API key, `storageState` for app auth
+12. Never hardcode URLs — read from project config
 
 ## Reference Files
 
