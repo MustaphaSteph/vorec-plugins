@@ -190,7 +190,7 @@ After the user validates the recording, ask:
 >
 > Want me to upload it to Vorec? You'll get:
 > - **AI voice-over** — natural narration generated from the video
-> - **Zoom & callout animations** — highlight important UI elements
+> - **Zoom & focus effects** — zoom into elements, spotlight areas, blur background
 > - **Cursor effects** — click ripples, tap rings, arrow pointers
 > - **Text & shape overlays** — arrows, circles, callout boxes, number badges
 > - **Background styling** — gradients, wallpapers, padding, rounded corners, shadows
