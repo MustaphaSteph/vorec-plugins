@@ -20,8 +20,9 @@ Record a screen session and submit it to Vorec, which generates narrated tutoria
 **Run ALL of these checks before doing anything else. Do not skip any.**
 
 ```bash
-# 1. Playwright — MUST be a project dependency, not global
-node -e "require('playwright')" 2>/dev/null && echo "OK" || npm install playwright
+# 1. Playwright + Chromium browser
+node -e "require('playwright')" 2>/dev/null && echo "Playwright OK" || npm install playwright
+# Chromium MUST be installed separately — this downloads the browser (~400MB, takes a minute)
 npx playwright install chromium
 
 # 2. FFmpeg
