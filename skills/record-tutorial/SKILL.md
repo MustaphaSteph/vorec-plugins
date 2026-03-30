@@ -18,11 +18,29 @@ Record a screen session and submit it to Vorec, which generates narrated tutoria
 ## Before You Start
 
 ```bash
+# 1. Playwright
 npm install playwright && npx playwright install chromium
+
+# 2. FFmpeg
 ffmpeg -version || echo "Install: brew install ffmpeg"
+
+# 3. Vorec CLI
 npx @vorec/cli@latest --version
-cat ~/.vorec/config.json 2>/dev/null || npx @vorec/cli@latest login
 ```
+
+**4. Vorec API key** — check if configured:
+
+```bash
+cat ~/.vorec/config.json 2>/dev/null
+```
+
+If not configured or no API key found, run `vorec login` — this opens a browser where the user logs in (or signs up) and the CLI gets the key automatically:
+
+```bash
+npx @vorec/cli@latest login
+```
+
+The CLI prints a URL and pairing phrase. Tell the user to open the URL and click Verify. The CLI saves the key automatically. **Never tell the user to manually copy an API key from the website — always use `vorec login`.**
 
 ## Workflow
 
