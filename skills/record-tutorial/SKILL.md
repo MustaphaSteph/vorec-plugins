@@ -10,131 +10,174 @@ description: >
 
 Record a screen session and submit it to Vorec, which generates narrated tutorial videos automatically.
 
-**Your role:** Record the video with valid test data, verify actions succeed, track what happens.
-**Vorec's role:** Turn it into a narrated tutorial.
+**Your role:** Record the video, track actions, verify everything works.
+**Vorec's role:** Turn it into a narrated tutorial with AI voice-over.
 
-**Work cleanly:** All temp files created fresh, deleted after upload. User sees only the final editor URL.
+**Work cleanly:** All temp files created fresh, deleted after upload. User sees only the editor URL.
 
 ## Before You Start
 
-**Run ALL of these checks before doing anything else. Do not skip any.**
+**Run ALL checks. Do not skip any. Fix before continuing.**
 
 ```bash
-# 1. Playwright + Chromium browser
-node -e "require('playwright')" 2>/dev/null && echo "Playwright OK" || npm install playwright
-# Verify Chromium is installed — if not, download it (~400MB)
-node -e "const pw = require('playwright'); pw.chromium.launch().then(b => { console.log('Chromium OK'); b.close() })" 2>/dev/null || npx playwright install chromium
+# 1. Playwright CLI — the main automation tool
+npm list @playwright/cli 2>/dev/null || npm install @playwright/cli
+npx playwright-cli --version
 
-# 2. FFmpeg
+# 2. Chromium browser
+npx playwright-cli open --headless about:blank && npx playwright-cli close || npx playwright install chromium
+
+# 3. FFmpeg (video conversion)
 ffmpeg -version 2>/dev/null || echo "MISSING: brew install ffmpeg (macOS) or apt install ffmpeg (Linux)"
 
-# 3. Vorec CLI
+# 4. Vorec CLI
 npx @vorec/cli@latest --version
 ```
 
-If any check fails, fix it before continuing. Do NOT proceed to recording without all three installed.
-
-**4. Vorec API key** — check if configured:
+**5. Vorec API key:**
 
 ```bash
 cat ~/.vorec/config.json 2>/dev/null
 ```
 
-If not configured or no API key found, run `vorec login` — this opens a browser where the user logs in (or signs up) and the CLI gets the key automatically:
+If not configured, run `vorec login` — opens browser, user logs in, CLI gets key automatically:
 
 ```bash
 npx @vorec/cli@latest login
 ```
 
-The CLI prints a URL and pairing phrase. Tell the user to open the URL and click Verify. The CLI saves the key automatically. **Never tell the user to manually copy an API key from the website — always use `vorec login`.**
+**Never tell the user to manually copy an API key. Always use `vorec login`.**
 
 ## Workflow
 
 ### 1. Check credits
 
-Run silently: `npx @vorec/cli@latest check` — if it fails, tell the user why and stop.
+```bash
+npx @vorec/cli@latest check
+```
+
+If it fails, tell the user and stop.
 
 ### 2. Understand the flow
 
-Ask the user:
+Ask:
 1. What's the goal?
 2. Who's watching?
 3. Anything to explain?
 
-### 3. Find app URL & wait strategy
+### 3. Analyze validation & test data
 
-Read project config for URL/port. Choose `waitStrategy` based on the app:
-- `load` — default, works for most apps
-- `domcontentloaded` — SPAs (React, Vue, Next.js)
-- `networkidle` — static sites only (hangs on WebSockets/polling)
-- `commit` — extremely slow apps
+Load [./rules/validation.md](./rules/validation.md) — read frontend + backend code for valid test data.
 
-### 4. Analyze validation & test data
+### 4. Explore the page with playwright-cli
 
-Load [./rules/validation.md](./rules/validation.md) — read frontend + backend code to generate valid test data that passes all validation.
+Use `playwright-cli` to explore the app and find elements before recording:
 
-### 5. Research selectors
+```bash
+# Open the app in a visible browser
+npx playwright-cli open <APP_URL> --headed
 
-**Never guess.** Verify in source code. Use semantic locators when possible — load [./rules/playwright.md](./rules/playwright.md) for locator best practices.
+# Take a snapshot — shows all elements with refs (e1, e5, e15...)
+npx playwright-cli snapshot
 
-Priority: `getByRole` → `getByLabel` → `getByTestId` → `[data-testid]` → `:has-text()` → `[href]` → CSS selector
+# Test interactions before recording
+npx playwright-cli click e5
+npx playwright-cli fill e8 "test@example.com"
+npx playwright-cli snapshot  # verify what happened
+```
 
-### 6. Handle auth
+The snapshot gives you a YAML tree of the page with element refs. Use these refs to interact — **much more reliable than CSS selectors** for any website.
 
-If the app requires login, load [./rules/auth.md](./rules/auth.md) for the session capture workflow.
+For advanced playwright-cli techniques, load [./rules/playwright-cli.md](./rules/playwright-cli.md).
 
-### 7. Ask preferences
+### 5. Handle auth
+
+If the app requires login:
+
+```bash
+npx playwright-cli open <LOGIN_URL> --headed --persistent
+# Tell user to log in manually in the browser
+# Then save the session:
+npx playwright-cli state-save .vorec/auth.json
+npx playwright-cli close
+```
+
+The `--persistent` flag keeps the session. Load it later with `state-load`.
+
+For more details, load [./rules/auth.md](./rules/auth.md).
+
+### 6. Ask preferences
 
 > 1. **What language?** (default: English)
 > 2. **What style?** Tutorial / Professional / Conversational / Storytelling / Concise / Exact
 
-### 8. Write the recording script
+### 7. Record the tutorial
 
-Write a standalone Playwright script — load [./rules/playwright.md](./rules/playwright.md) for best practices on locators, waiting, error handling, tracing.
+Write a recording script that uses `playwright-cli` for video + interactions, and tracks coordinates for Vorec.
 
-The script must:
-- Launch visible browser with video recording + `slowMo: 50`
-- Dismiss cookie banners/overlays first
-- Execute each action and verify it succeeded
-- Recover from errors in the recording (show mistake + fix) — load [./rules/validation.md](./rules/validation.md)
-- Track coordinates + timestamps for each action
-- Convert webm → mp4 via FFmpeg
-- Save video + tracked actions JSON
+Load [./rules/recording.md](./rules/recording.md) for the full recording script template.
 
-For action types and manifest format, load [./rules/actions.md](./rules/actions.md).
+The script:
+1. Opens browser with `playwright-cli open --headed`
+2. Starts video with `playwright-cli video-start`
+3. Takes snapshot, interacts via refs, verifies after each action
+4. Tracks coordinates using `run-code` for each element
+5. Recovers from errors in the recording (show mistake + fix)
+6. Stops video with `playwright-cli video-stop`
+7. Converts webm → mp4 via FFmpeg
+8. Saves tracked actions JSON
 
-### 9. Record and verify
+### 8. User validates video
 
-Run the script. If it fails, fix and re-run. Then ask the user to validate the video before uploading.
+Tell the user the video path and ask them to review before uploading.
 
-### 10. Upload to Vorec
+### 9. Upload to Vorec
 
 ```bash
 npx @vorec/cli@latest run vorec.json --skip-record --video <VIDEO> --tracked-actions .vorec/tracked-actions.json
 ```
 
-### 11. Clean up
+With a minimal `vorec.json`:
+
+```json
+{
+  "title": "<TITLE>",
+  "url": "<APP_URL>",
+  "waitStrategy": "<STRATEGY>",
+  "language": "en",
+  "narrationStyle": "tutorial",
+  "videoContext": "<DESCRIPTION>"
+}
+```
+
+### 10. Clean up
 
 ```bash
 rm -f record-tutorial.mjs save-session.mjs vorec.json
 rm -rf .vorec/recordings .vorec/tracked-actions.json
+npx playwright-cli close
 ```
 
-### 12. Share the result
+### 11. Share the result
 
 Share the editor URL.
 
 ## Key Rules
 
 1. Check credits first — `vorec check`
-2. Analyze validation before choosing test data
-3. Use semantic locators — `getByRole`, `getByLabel`
-4. Verify every action — recover from errors in the recording
-5. User validates video before upload
-6. Clean up temp files after
-7. Never ask for passwords
-8. Never hardcode URLs
+2. Use `playwright-cli snapshot` to find elements — don't guess selectors
+3. Use element refs (`e5`, `e15`) for interactions — more reliable than CSS
+4. Verify every action with a snapshot after
+5. Recover from errors in the recording
+6. User validates video before upload
+7. Clean up temp files + close browser after
+8. Never ask for passwords — `vorec login` for API key, `--persistent` for app auth
 
-## Troubleshooting
+## Reference Files
 
-Load [./rules/troubleshooting.md](./rules/troubleshooting.md) for common errors and fixes.
+- [./rules/playwright-cli.md](./rules/playwright-cli.md) — All playwright-cli commands and techniques
+- [./rules/recording.md](./rules/recording.md) — Recording script template with coordinate tracking
+- [./rules/validation.md](./rules/validation.md) — Test data analysis and error recovery
+- [./rules/auth.md](./rules/auth.md) — Authentication and session management
+- [./rules/actions.md](./rules/actions.md) — Vorec manifest action types
+- [./rules/troubleshooting.md](./rules/troubleshooting.md) — Common errors and fixes
