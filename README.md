@@ -7,12 +7,12 @@
 
 ## Why Vorec?
 
-Other tools record blindly — they don't understand your app. **Vorec's Claude Code plugin reads your source code first.** It knows your components, routes, validators, and UI flows. That means:
+Other tools record blindly — they don't understand your app. **Vorec understands your codebase.** It knows your UI flows, forms, and navigation. That means:
 
-- **Real selectors** from your actual components — not guessing from screenshots
-- **Valid test data** from your validators — not placeholder values
-- **Smart wait conditions** from your loading states — not arbitrary timeouts
-- **Error recovery** built into the recording — teaches viewers how to fix mistakes
+- **Accurate recordings** — Vorec interacts with your app the way a real user would
+- **Valid data** — forms are filled with data that actually works
+- **Smart timing** — waits for loading states and animations naturally
+- **Error recovery** — if something goes wrong, the recording shows the fix
 
 ## Quick Start
 
@@ -63,29 +63,27 @@ Claude Code will analyze your codebase, record the screen, and offer to upload t
 ```
 You: "record a tutorial showing how to sign up"
   ↓
-Claude Code: reads your components, validators, routes
+Vorec analyzes your codebase
   ↓
-Claude Code: writes a Playwright script with real selectors + valid test data
+Vorec records your app in 1080p
   ↓
-Claude Code: records screen in 1080p, tracks every action
+You review the video
   ↓
-You: review the video
+Vorec generates AI narration + voice-over
   ↓
-Vorec: AI narration + voice-over + editor
-  ↓
-You: zoom, callouts, subtitles, export
+You add zoom, callouts, subtitles → export
 ```
 
 ## Features
 
-### Deep Codebase Analysis
-The agent reads your `package.json`, router, components, form validators, API routes, and database schema to build the most accurate recording possible.
+### Codebase-Aware Recording
+Vorec understands your app — it knows your routes, forms, and UI flows. Recordings use real data and accurate interactions, not blind clicking.
 
 ### Smart Error Recovery
-If a form validation fails during recording, the agent keeps recording — showing the error and the fix. This makes tutorials more useful because viewers learn to handle real mistakes.
+If something goes wrong during recording, Vorec keeps going — showing the error and the fix. Tutorials become more useful because viewers learn to handle real mistakes.
 
-### Authentication Handling
-For apps behind login walls, the agent opens a browser for you to log in manually, saves the session, and reuses it during recording. No passwords shared.
+### Authentication Support
+For apps behind login walls, Vorec handles the session automatically. You log in once, and recordings reuse your session.
 
 ### Multiple Narration Styles
 
