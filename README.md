@@ -1,18 +1,18 @@
 # Vorec — Claude Code Plugin for Screen Recording & AI Narration
 
-> **Turn any codebase into a narrated tutorial video with one command.** Claude Code reads your app's source code, records the screen with Playwright, and Vorec generates professional AI voice-over automatically.
+> **Turn your app into a narrated tutorial video with one command.** Just describe the flow you want to record — Vorec handles the rest.
 
 [![npm](https://img.shields.io/npm/v/@vorec/cli)](https://www.npmjs.com/package/@vorec/cli)
 [![Claude Code Plugin](https://img.shields.io/badge/Claude_Code-Plugin-blueviolet)](https://vorec.ai)
 
 ## Why Vorec?
 
-Other tools record blindly — they don't understand your app. **Vorec understands your codebase.** It knows your UI flows, forms, and navigation. That means:
+Vorec records your app like a real user would — filling forms with valid data, waiting for loading states, and handling errors gracefully. No manual scripting, no guesswork.
 
-- **Accurate recordings** — Vorec interacts with your app the way a real user would
-- **Valid data** — forms are filled with data that actually works
-- **Smart timing** — waits for loading states and animations naturally
-- **Error recovery** — if something goes wrong, the recording shows the fix
+- **Just describe what to record** — "show how to sign up", "demo the billing page"
+- **Smart automation** — forms are filled correctly, buttons clicked at the right time
+- **Natural timing** — waits for animations and loading states automatically
+- **Error recovery** — if something goes wrong, it shows the fix in the recording
 
 ## Quick Start
 
@@ -76,14 +76,14 @@ You add zoom, callouts, subtitles → export
 
 ## Features
 
-### Codebase-Aware Recording
-Vorec understands your app — it knows your routes, forms, and UI flows. Recordings use real data and accurate interactions, not blind clicking.
+### Intelligent Recording
+Vorec records your app accurately — forms are filled with valid data, navigation follows real user paths, and interactions look natural.
 
 ### Smart Error Recovery
 If something goes wrong during recording, Vorec keeps going — showing the error and the fix. Tutorials become more useful because viewers learn to handle real mistakes.
 
-### Authentication Support
-For apps behind login walls, Vorec handles the session automatically. You log in once, and recordings reuse your session.
+### Works with Login-Protected Apps
+You log in once, and Vorec reuses your session for all recordings. No passwords stored or shared.
 
 ### Multiple Narration Styles
 
