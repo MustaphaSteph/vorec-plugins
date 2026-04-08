@@ -81,6 +81,39 @@ const frame = page.frameLocator('#my-iframe');
 await frame.getByRole('button', { name: 'Submit' }).click();
 ```
 
+## Handle embedded/hosted apps (Shopify, Salesforce, etc.)
+
+Apps that run inside a host platform render in an iframe. ALL interactions must go through `frameLocator`.
+
+```javascript
+// Shopify apps — the app renders inside an iframe in the admin
+const appFrame = page.frameLocator('iframe#app-iframe, iframe[src*="extensions"]');
+
+// All selectors target the frame, not the page
+await appFrame.getByRole('button', { name: 'Create product' }).click();
+await appFrame.getByLabel('Title').fill('Summer Collection');
+
+// Getting boundingBox from iframe elements — need the frame's element handle
+const frameElement = await page.locator('iframe#app-iframe').elementHandle();
+const frameBox = await frameElement.boundingBox();
+const innerEl = await appFrame.getByRole('button', { name: 'Save' }).elementHandle();
+const innerBox = await innerEl.boundingBox();
+// Offset inner coordinates by frame position for accurate tracking
+const absBox = {
+  x: frameBox.x + innerBox.x,
+  y: frameBox.y + innerBox.y,
+  width: innerBox.width,
+  height: innerBox.height,
+};
+```
+
+**Key points for embedded apps:**
+- The host page (e.g. Shopify admin sidebar) is on `page` — the app content is in the `frame`
+- Read the app's source code locally for selectors — they work the same inside the iframe
+- `waitForURL` still works on `page` for host navigation
+- Use `frame.locator()` for app-specific waiting: `await appFrame.locator('.loading').waitFor({ state: 'hidden' })`
+- If the iframe `src` changes dynamically, re-acquire the frameLocator after navigation
+
 ## Handle file uploads
 
 ```javascript

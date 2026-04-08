@@ -75,12 +75,19 @@ Ask: What's the goal? Who's watching? Anything to explain?
 
 ### 4. Find app URL & wait strategy
 
-From `package.json` scripts or config, determine:
-- Dev server URL and port
-- Framework type → choose `waitStrategy`:
+**Local apps:** From `package.json` scripts or config, determine dev server URL and port.
+
+**Hosted/embedded apps** (Shopify, Salesforce, HubSpot, etc.): The app runs on a remote platform, not localhost.
+- Read the app config for the host URL (e.g. `shopify.config.ts`, `.env`, `SHOPIFY_APP_URL`)
+- The recording URL is the **host platform URL** where the app is installed — not the app's own URL
+- Example: `https://admin.shopify.com/store/my-store/apps/my-app`
+- The app renders in an **iframe** inside the host — load [./rules/playwright.md](./rules/playwright.md) for iframe handling
+- All selectors from the local source code still work — just target them through `frameLocator`
+
+**Wait strategy** — choose based on framework:
   - `load` — default, works for most
   - `domcontentloaded` — React/Vue/Next.js SPAs
-  - `networkidle` — static sites only
+  - `networkidle` — static sites only (never for hosted apps)
   - `commit` — extremely slow apps
 
 Check for WebSockets, SSE, analytics, service workers — if present, avoid `networkidle`.
