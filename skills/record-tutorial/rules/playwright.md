@@ -5,6 +5,12 @@ description: Playwright techniques for reliable browser automation and recording
 
 # Playwright Best Practices
 
+> **For Vorec tutorial recordings**, prefer writing a hero script and running it via `playwright-cli run-code` over calling the Playwright library directly.
+> See [./hero-script.md](./hero-script.md) for the canonical recording template with slowScroll, glideClick, slowType helpers.
+> See [./cli-commands.md](./cli-commands.md), [./cli-video.md](./cli-video.md), [./cli-running-code.md](./cli-running-code.md), and [./cli-session.md](./cli-session.md) for `playwright-cli` reference.
+>
+> The patterns below apply to **both** hero scripts and standalone Playwright scripts.
+
 ## Semantic Locators — NOT CSS selectors
 
 ```javascript

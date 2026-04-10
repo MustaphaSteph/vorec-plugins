@@ -1,0 +1,11 @@
+{
+  "arrow":      [9, 6],
+  "pointer":    [13, 3],
+  "text":       [8, 14],
+  "grabbing":   [16, 16],
+  "move":       [9, 9],
+  "resize-diag":[9, 9],
+  "crosshair":  [16, 16],
+  "zoom-in":    [10, 10],
+  "zoom-out":   [10, 10]
+}
