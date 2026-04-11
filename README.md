@@ -197,20 +197,6 @@ vorec run <manifest> # Record, upload, and generate narration
 vorec status         # Check processing status
 ```
 
-## Changelog
-
-### v7.0.0 (2026-04-11)
-- Added mode selection: record your own project OR any live website
-- Added opt-in visible cursor pack with click shrink animation
-- New canonical recording template with smooth scrolls, cursor glide, and human typing
-- Improved recording quality: matched 1080p viewport, no white frame, glitch-free last frame
-- Bundled playwright-cli reference docs (Apache 2.0, Microsoft)
-- No breaking changes — existing workflows unchanged
-
-### v6.0.0 (earlier)
-- Support for recording hosted apps (Shopify Admin, Salesforce, etc.) via iframe handling
-- Session capture with storageState for auth-protected flows
-
 ## Links
 
 - **[vorec.ai](https://vorec.ai)** — AI-narrated tutorial videos
