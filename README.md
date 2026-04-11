@@ -1,17 +1,26 @@
 # Vorec — Claude Code Plugin for Screen Recording & AI Narration
 
-> **Turn your app into a narrated tutorial video with one command.** Just describe the flow you want to record — Vorec handles the rest.
+> **Turn any web app into a narrated tutorial video with one command.** Your own project or any site on the web — Vorec handles the recording, narration, and editing.
 
 [![npm](https://img.shields.io/npm/v/@vorec/cli)](https://www.npmjs.com/package/@vorec/cli)
 [![Claude Code Plugin](https://img.shields.io/badge/Claude_Code-Plugin-blueviolet)](https://vorec.ai)
+[![Plugin Version](https://img.shields.io/badge/plugin-v7.0.0-success)](https://github.com/MustaphaSteph/vorec-plugins)
+
+## ✨ What's new in v7.0.0
+
+- **Record any website, not just your own code** — the plugin now works whether you have the project open or you're recording a live site from anywhere on the web
+- **Visible cursor pack (opt-in)** — big animated cursor that shrinks on click, auto-morphs between arrow / hand / text
+- **Cleaner recordings** — matched 1080p viewport, no white start frame, glitch-free last frame
+- **Same Vorec upload pipeline** — everything ends in the Vorec editor, same narration, same effects
 
 ## Why Vorec?
 
 Building an app is hard enough. Making tutorial videos for it shouldn't be.
 
-Vorec records your app and generates professional narrated videos — right from your terminal. No screen recording software, no microphone, no video editing skills needed.
+Vorec records any web app and generates professional narrated videos — right from your terminal. No screen recording software, no microphone, no video editing skills needed.
 
-- **Just say what to record** — "show how to sign up", "demo the billing page"
+- **Just say what to record** — "show how to sign up", "demo the billing page", "record how to buy X on some-site.com"
+- **Works on your code or any live site** — the plugin picks the right approach automatically
 - **Smart automation** — forms filled correctly, buttons clicked at the right time, natural timing
 - **AI narration** — professional voice-over generated automatically
 - **Full video editor** — zoom, callouts, subtitles, background music, 4K export
@@ -42,6 +51,9 @@ Your project needs a "Getting Started" video but you hate being on camera. Vorec
 ### 💼 Agencies & Freelancers
 Delivering a project? Include a narrated walkthrough video for your client. Takes 5 minutes. Looks like you spent hours. Clients love it.
 
+### ✍️ Content Creators & Tech Bloggers
+Write tutorials about ANY tool — your own or someone else's. Vorec records the flow, generates narration, and turns it into a polished video you can embed in blog posts, YouTube, or social.
+
 ## Quick Start
 
 ### Install the Plugin
@@ -61,18 +73,24 @@ Just tell Claude Code what to record:
 ```
 "record a tutorial showing how to create a project"
 "make a demo video of the settings page"
-"create a screencast of the signup flow"
-"record a product demo for investors"
+"create a screencast of the signup flow on vorec.ai"
+"record how to buy a product on stripe checkout"
 "show how the onboarding experience works"
 "demo the checkout flow for the team"
 ```
 
+The plugin automatically picks the right approach:
+- **Your own project?** — reads your components for exact selectors and validation rules
+- **A live site on the web?** — discovers the page at runtime using semantic locators
+
+Either way, you get the same polished result.
+
 ## How It Works
 
 ```
-You: "record a tutorial showing how to sign up"
+You: "record a tutorial showing how to sign up on vorec.ai"
   ↓
-Vorec records your app in 1080p
+Vorec opens the site, walks through the flow naturally
   ↓
 You review the video
   ↓
@@ -86,9 +104,10 @@ No screen recording software. No microphone. No video editor. Just one command.
 ## What You Get
 
 ### The Recording
-- **1080p screen recording** — smooth, professional-looking
-- **Every action tracked** — clicks, keystrokes, navigation
-- **MP4 video** — ready to use anywhere, even without Vorec
+- **1080p video** — smooth, professional-looking
+- **Every action tracked** — clicks, keystrokes, navigation, timing
+- **MP4 file** — ready to use anywhere, even without Vorec
+- **Optional visible cursor** — big animated arrow/hand/text cursor with click feedback, baked into the recording
 
 ### The Vorec Editor
 - **AI voice-over** — natural narration that explains each step
@@ -107,6 +126,9 @@ No screen recording software. No microphone. No video editor. Just one command.
 
 ### One Command, Done
 No scripts to write, no buttons to click, no recordings to manage. Describe what you want and get a video.
+
+### Works Anywhere
+Record your own project AND any live website. Same command, same quality, same Vorec editor.
 
 ### Smart Automation
 Forms are filled with valid data, navigation follows real user paths, and interactions look natural. Not a clumsy bot — a smooth demo.
@@ -148,12 +170,15 @@ Record once, narrate in any language. Perfect for global products.
 | Support documentation | "record how to reset a password and update billing" |
 | Training video | "demo the CRM workflow from lead to close" |
 | Marketing content | "record a 60-second product tour for the landing page" |
+| Tool comparison video | "record signup on competitor.com to compare UX" |
+| Blog post screencast | "record how to use tool-X from landing to first result" |
 
 ## Prerequisites
 
 ```bash
-# Playwright + Chromium (screen recording)
-npm install playwright && npx playwright install chromium
+# Playwright CLI (drives the recording)
+npm install -g @playwright/cli@latest
+npx playwright install chromium
 
 # FFmpeg (video conversion)
 brew install ffmpeg          # macOS
@@ -172,6 +197,20 @@ vorec run <manifest> # Record, upload, and generate narration
 vorec status         # Check processing status
 ```
 
+## Changelog
+
+### v7.0.0 (2026-04-11)
+- Added mode selection: record your own project OR any live website
+- Added opt-in visible cursor pack with click shrink animation
+- New canonical recording template with smooth scrolls, cursor glide, and human typing
+- Improved recording quality: matched 1080p viewport, no white frame, glitch-free last frame
+- Bundled playwright-cli reference docs (Apache 2.0, Microsoft)
+- No breaking changes — existing workflows unchanged
+
+### v6.0.0 (earlier)
+- Support for recording hosted apps (Shopify Admin, Salesforce, etc.) via iframe handling
+- Session capture with storageState for auth-protected flows
+
 ## Links
 
 - **[vorec.ai](https://vorec.ai)** — AI-narrated tutorial videos
@@ -185,4 +224,4 @@ vorec status         # Check processing status
 
 ---
 
-**Keywords:** claude code plugin, claude code skill, screen recording, AI narration, tutorial video generator, product demo recorder, investor demo, screencast tool, automated documentation, voice-over generator, video tutorial maker, SaaS demo, developer onboarding, vibe coding, solo developer tools, startup demo video, Claude Code screen recorder, AI tutorial maker, product walkthrough, open source documentation, customer onboarding video, changelog demo, training video maker
+**Keywords:** claude code plugin, claude code skill, screen recording, AI narration, tutorial video generator, product demo recorder, investor demo, screencast tool, automated documentation, voice-over generator, video tutorial maker, SaaS demo, developer onboarding, vibe coding, solo developer tools, startup demo video, Claude Code screen recorder, AI tutorial maker, product walkthrough, open source documentation, customer onboarding video, changelog demo, training video maker, website recorder, live website tutorial, competitor demo recorder, content creator tools
