@@ -9,6 +9,28 @@ description: Session management — named browsers, close-all, kill-all, persist
 
 > Adapted from Microsoft's [playwright-cli session-management reference](https://github.com/microsoft/playwright-cli/blob/main/skills/playwright-cli/references/session-management.md) (Apache 2.0).
 
+## ⚠️ CRITICAL: Headed vs headless
+
+**`playwright-cli open` defaults to HEADLESS.** The browser window is invisible — the user will not see it and cannot interact.
+
+| Use case | Flag |
+|---|---|
+| User needs to see or interact (login, validation, session capture) | **`--headed`** (REQUIRED) |
+| Automated recording with no user interaction | default (headless) is fine |
+| Session capture for a login flow | **`--headed`** (REQUIRED) |
+| Reconnaissance snapshot + grep | default (headless) is fine |
+| When in doubt during setup | **`--headed`** |
+
+```bash
+# WRONG — user can't see the browser to log in
+playwright-cli open https://vorec.ai/login
+
+# RIGHT — browser window is visible
+playwright-cli open --headed https://vorec.ai/login
+```
+
+**If you open for a user-interactive flow without `--headed`, the user will ask "I don't see anything".** Don't make them. Always use `--headed` when the user needs to do something in the browser.
+
 ## Default session (what Vorec uses)
 
 Most Vorec recordings use the default session — no `-s` flag needed:

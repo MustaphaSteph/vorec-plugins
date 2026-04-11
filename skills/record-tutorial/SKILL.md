@@ -15,6 +15,18 @@ Record a screen session that Vorec turns into a narrated tutorial automatically.
 
 **Work cleanly:** Temp files created fresh, deleted after upload. User sees only the editor URL.
 
+## 🎯 FIRST: Load agent-behavior rules
+
+Before anything else, load [./rules/agent-behavior.md](./rules/agent-behavior.md). It's short and teaches you:
+- Act first, ask later
+- Never batch 3+ questions
+- Prefer sensible defaults
+- Default to headed mode when the user needs to interact
+- Fix silently, retry without reporting small failures
+- End with a link/path, not an essay
+
+**These rules override everything else.** If a step below tells you to ask a question, first check agent-behavior.md to see if you can answer it with a default.
+
 ## Step 0: Pick a mode
 
 Ask the user **one** question before anything else:
@@ -174,21 +186,30 @@ If not uploaded: share the video path.
 
 ## Key Rules
 
-1. **Always pick a mode first** (Connected or Explore) — don't skip Step 0
-2. Check credits — `vorec check`
-3. **Use `playwright-cli`** — not raw Playwright library. It handles sessions, snapshots, and video recording natively
-4. **Matching viewport and screencast size** — always 1920×1080 to avoid the content-in-quadrant bug
-5. **Open the target URL directly** via `playwright-cli open <url>` — never `about:blank` (avoids white start frame)
-6. **Use semantic locators** — `getByRole`, `getByLabel`, `getByPlaceholder`, exact matches when needed
-7. **Only valid action types** in the log — `click`, `type`, `narrate`, `hover`, `scroll`, `select`, `wait`, `navigate`
-8. **Render flush before stop** — `requestAnimationFrame × 2` + 500ms wait before `screencast.stop()` to avoid glitched last frame
-9. **Always offer Vorec narration** after recording
-10. User validates video before upload
-11. Clean up temp files (keep video if user declined upload)
-12. Never ask for passwords — use `vorec login` for API key, `storageState` for app auth
-13. Never hardcode URLs — read from project config
+1. **Act first, ask later** — if a step requires a blocking action, do the action and announce it in ONE sentence. Don't ask permission. See [./rules/agent-behavior.md](./rules/agent-behavior.md)
+2. **Never batch 3+ questions** — max 2 questions at a time, prefer defaults
+3. **Always use `--headed`** for `playwright-cli open` when the user needs to see/interact with the browser (login, validation, session capture). Default is headless.
+4. **Re-check state first** — before asking the user to log in or re-do anything, check if an existing session / file / state already covers it
+5. **Fix silently, retry** — for known issues (headless instead of headed, leftover cart items, stale session), fix and retry without bothering the user
+6. **Always pick a mode first** (Connected or Explore) — don't skip Step 0
+7. Check credits — `vorec check`
+8. **Use `playwright-cli`** — not raw Playwright library. It handles sessions, snapshots, and video recording natively
+9. **Matching viewport and screencast size** — always 1920×1080 to avoid the content-in-quadrant bug
+10. **Open the target URL directly** via `playwright-cli open <url>` — never `about:blank` (avoids white start frame)
+11. **Use semantic locators** — `getByRole`, `getByLabel`, `getByPlaceholder`, exact matches when needed
+12. **Only valid action types** in the log — `click`, `type`, `narrate`, `hover`, `scroll`, `select`, `wait`, `navigate`
+13. **Render flush before stop** — `requestAnimationFrame × 2` + 500ms wait before `screencast.stop()` to avoid glitched last frame
+14. **Always offer Vorec narration** after recording
+15. User validates video before upload
+16. Clean up temp files (keep video if user declined upload)
+17. Never ask for passwords — use `vorec login` for API key, `storageState` for app auth
+18. Never hardcode URLs — read from project config
+19. **End with a link** — the final message contains ONE actionable result (editor URL or file path), not a summary essay
 
 ## Reference Files
+
+### Agent behavior (load this FIRST)
+- [./rules/agent-behavior.md](./rules/agent-behavior.md) — Act first, ask later, prefer defaults, fix silently
 
 ### Workflow rules
 - [./rules/connected.md](./rules/connected.md) — Connected mode (codebase-driven)

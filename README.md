@@ -4,11 +4,12 @@
 
 [![npm](https://img.shields.io/npm/v/@vorec/cli)](https://www.npmjs.com/package/@vorec/cli)
 [![Claude Code Plugin](https://img.shields.io/badge/Claude_Code-Plugin-blueviolet)](https://vorec.ai)
-[![Plugin Version](https://img.shields.io/badge/plugin-v7.0.0-success)](https://github.com/MustaphaSteph/vorec-plugins)
+[![Plugin Version](https://img.shields.io/badge/plugin-v7.1.0-success)](https://github.com/MustaphaSteph/vorec-plugins)
 
-## ✨ What's new in v7.0.0
+## ✨ What's new in v7.1.0
 
-- **Record any website, not just your own code** — the plugin now works whether you have the project open or you're recording a live site from anywhere on the web
+- **Less talk, more action** — the agent acts on your request immediately instead of asking a wall of setup questions
+- **Record any website, not just your own code** — works whether you have the project open or you're recording a live site
 - **Visible cursor pack (opt-in)** — big animated cursor that shrinks on click, auto-morphs between arrow / hand / text
 - **Cleaner recordings** — matched 1080p viewport, no white start frame, glitch-free last frame
 - **Same Vorec upload pipeline** — everything ends in the Vorec editor, same narration, same effects
