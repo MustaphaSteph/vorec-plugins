@@ -125,19 +125,21 @@ Load [./rules/explore.md](./rules/explore.md) for semantic locators and page dis
 
 Find: selectors for elements to interact with, valid test data, expected results, wait conditions.
 
-### 5. Ask preferences (ONE message, max 2-3 questions)
+### 5. Ask Vorec preferences
 
-Ask in a single message. Use defaults for anything the user didn't mention:
+These are for Vorec's AI narration — ask in ONE message:
 
-> Before I start recording, a few quick options:
-> 1. **Quality?** 4K (default) / 2K / 1080p
-> 2. **Narration style?** Tutorial (default) / Professional / Conversational / Storytelling / Persuasive / Academic / Concise / Exact
-> 3. **Visible cursor in recording?** No (default) / Yes
->
-> Or just say "go" and I'll use the defaults (4K, Tutorial, no cursor).
+> Two things before I record:
+> 1. **What language?** (default: English)
+> 2. **What narration style?** Tutorial / Professional / Conversational / Storytelling / Persuasive / Academic / Concise / Exact (default: Tutorial)
 
-If the user says "go" or doesn't answer a question, use the defaults. Don't ask again.
-See [./rules/narration-styles.md](./rules/narration-styles.md) for style descriptions.
+That's it. Don't ask about quality (always 4K) or cursors (always off) unless the user brings it up. If the user says "go" or "defaults", use English + Tutorial.
+
+See [./rules/narration-styles.md](./rules/narration-styles.md) if the user needs help picking a style.
+
+**Advanced options** (only if the user asks):
+- **Quality:** 4K (default) / 2K / 1080p
+- **Visible cursors:** No (default) / Yes
 
 ### 6. Build the recording script
 
