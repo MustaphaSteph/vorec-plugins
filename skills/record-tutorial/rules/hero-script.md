@@ -406,45 +406,9 @@ All presets use: lossless PNG frames, H.264 codec, CRF 18, slow preset, animatio
 
 Viewport is always 1920×1080 — only DPR changes. Content stays the same size, just sharper pixels.
 
-## Dead-time trim (optional)
+## No dead-time trimming needed
 
-If the recording has long pauses between actions, trim them. Read the action log and keep only windows around each action:
-
-```bash
-# Python trim using action timestamps
-python3 - <<PY
-import json, subprocess
-with open('.vorec/tracked-actions.json') as f:
-    actions = json.load(f)
-
-PRE, POST = 0.8, 2.0   # keep this long before/after each action
-segs = []
-for a in actions:
-    if a['type'] in ('start', 'stop'): continue
-    segs.append([max(0, a['timestamp'] - PRE), a['timestamp'] + POST])
-
-# Merge overlapping segments
-segs.sort()
-merged = []
-for s in segs:
-    if merged and s[0] <= merged[-1][1]:
-        merged[-1][1] = max(merged[-1][1], s[1])
-    else:
-        merged.append(list(s))
-
-sel = '+'.join(f"between(t,{s:.2f},{e:.2f})" for s, e in merged)
-subprocess.run([
-    'ffmpeg', '-y', '-i', './recordings/output.mp4',
-    '-filter_complex', f"[0:v]select='{sel}',setpts=N/FRAME_RATE/TB[v]",
-    '-map', '[v]', '-an',
-    '-c:v', 'libx264', '-preset', 'slower', '-crf', '15',
-    '-pix_fmt', 'yuv420p', '-movflags', '+faststart',
-    './recordings/output-trimmed.mp4'
-], check=True)
-PY
-```
-
-Typical result: 80-90% of dead time removed, video length drops from ~60s to ~10-15s.
+The recording script controls all timing directly — there are no random pauses like a human recording. Every `waitForTimeout` in the script is intentional (waiting for animations, page loads, giving the viewer time to see what happened). No post-processing trim needed.
 
 ## Common failures and fixes
 

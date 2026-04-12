@@ -221,15 +221,10 @@ If yes, write a `vorec.json` manifest:
 
 ```json
 {
-  "title": "How to generate a tournament on PadelMake",
+  "title": "How to Create a Padel Tournament on PadelMake",
   "url": "https://padelmake.com",
   "language": "en",
-  "narrationStyle": "tutorial",
-  "actions": [
-    { "type": "narrate", "description": "Homepage overview" },
-    { "type": "click", "selector": "button.create", "description": "Click Create Tournament" },
-    { "type": "type", "selector": "#name", "text": "Summer Cup", "description": "Enter tournament name" }
-  ]
+  "narrationStyle": "tutorial"
 }
 ```
 
@@ -240,8 +235,9 @@ If yes, write a `vorec.json` manifest:
 | `url` | Yes | The URL that was recorded |
 | `language` | No | Narration language (default: `en`) |
 | `narrationStyle` | No | Narration tone (default: `tutorial`) |
-| `videoContext` | No | Extra context for AI narration (e.g. "This is a padel tournament app") |
-| `actions` | Yes | Minimal action list for manifest validation (the real action data comes from `--tracked-actions`) |
+| `videoContext` | No | Extra context for AI narration (e.g. "This is a padel tournament generator app") |
+
+No need for `actions` in the manifest — the real action data comes from `--tracked-actions`.
 
 Then upload:
 ```bash
@@ -253,13 +249,17 @@ npx @vorec/cli@latest run vorec.json --skip-record \
 Tell the user:
 > Uploading video and action data to Vorec now...
 
-**What happens behind the scenes:**
-1. CLI sends tracked actions (with coordinates, context, timestamps) to `create-project`
-2. CLI uploads video to Vorec storage via presigned URL
-3. CLI triggers `generate-video` — Vorec AI writes narration using the tracked actions as context
-4. CLI polls until narration is ready, then shows the editor URL
+**How data flows to Vorec:**
 
-The tracked actions from `.vorec/tracked-actions.json` are the key — they tell Vorec exactly what was clicked, when, where on screen, and why. Vorec skips video-based click detection and goes straight to writing narration.
+1. **Tracked actions** (`.vorec/tracked-actions.json`) → sent to `create-project` API → saved as `project_clicks` in Vorec DB. Each action has: `type`, `timestamp`, `coordinates` (0-1000), `description`, `context`, `target`, `typed_text`, `primary`.
+
+2. **Video** (`./recordings/output.mp4`) → uploaded to Vorec storage via presigned URL.
+
+3. **Generate narration** → Vorec AI reads the tracked actions (`description` + `context` fields) and writes voice-over scripts. **Because the agent sent tracked actions, Vorec skips video-based click detection** — it already knows what was clicked, when, and where.
+
+4. **CLI polls** until narration is ready → shows the editor URL.
+
+**Without tracked actions**, Vorec would have to watch the video and guess where clicks happened (slower, less accurate, same cost). The agent's tracked actions are what make the narration precise.
 
 ### 11. Clean up
 
