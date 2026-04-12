@@ -4,9 +4,9 @@
 
 [![npm](https://img.shields.io/npm/v/@vorec/cli)](https://www.npmjs.com/package/@vorec/cli)
 [![Claude Code Plugin](https://img.shields.io/badge/Claude_Code-Plugin-blueviolet)](https://vorec.ai)
-[![Plugin Version](https://img.shields.io/badge/plugin-v7.1.0-success)](https://github.com/MustaphaSteph/vorec-plugins)
+[![Plugin Version](https://img.shields.io/badge/plugin-v7.2.0-success)](https://github.com/MustaphaSteph/vorec-plugins)
 
-## ✨ What's new in v7.1.0
+## ✨ What's new in v7.2.0
 
 - **Less talk, more action** — the agent acts on your request immediately instead of asking a wall of setup questions
 - **Record any website, not just your own code** — works whether you have the project open or you're recording a live site

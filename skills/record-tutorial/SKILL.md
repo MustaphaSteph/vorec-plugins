@@ -117,7 +117,7 @@ If routes are protected, load [./rules/auth.md](./rules/auth.md).
 Load [./rules/hero-script.md](./rules/hero-script.md) for the canonical template with:
 - Matching viewport + screencast size (1920×1080)
 - `slowScroll`, `glideMove`, `glideClick`, `slowType`, `hoverTour` helpers
-- Action log emission via `VOREC_PHASE:` lines
+- Action tracking via `window.__vorec_actions` (extracted after recording)
 - Render-flush before `screencast.stop()`
 
 If **visible cursors = Yes**, also load [./rules/cursor-pack.md](./rules/cursor-pack.md) — the hero script gets an extra cursor-injection block that embeds Vorec's bundled SVG cursors as base64 data URLs.
@@ -138,6 +138,18 @@ playwright-cli close-all
 playwright-cli open <TARGET_URL>   # never about:blank — avoids white start frame
 playwright-cli resize 1920 1080
 playwright-cli run-code --filename=./hero-script.js
+```
+
+**Extract tracked actions** (the hero script stores them on `window.__vorec_actions`):
+```bash
+mkdir -p .vorec
+playwright-cli run-code "async page => JSON.stringify(await page.evaluate(() => window.__vorec_actions || []))" 2>/dev/null | node -e "
+  let buf='';process.stdin.on('data',d=>buf+=d);process.stdin.on('end',()=>{
+    const m=buf.match(/\[[\s\S]*\]/);
+    if(m){require('fs').writeFileSync('.vorec/tracked-actions.json',JSON.stringify(JSON.parse(m[0]),null,2));console.log(JSON.parse(m[0]).length+' actions tracked')}
+    else{console.error('No actions found');process.exit(1)}
+  });
+"
 ```
 
 Convert to MP4 and optionally trim dead time (see [./rules/hero-script.md](./rules/hero-script.md)).
@@ -197,7 +209,7 @@ If not uploaded: share the video path.
 9. **Matching viewport and screencast size** — always 1920×1080 to avoid the content-in-quadrant bug
 10. **Open the target URL directly** via `playwright-cli open <url>` — never `about:blank` (avoids white start frame)
 11. **Use semantic locators** — `getByRole`, `getByLabel`, `getByPlaceholder`, exact matches when needed
-12. **Only valid action types** in the log — `click`, `type`, `narrate`, `hover`, `scroll`, `select`, `wait`, `navigate`
+12. **Only valid action types** in `track()` calls — `click`, `type`, `narrate`, `hover`, `scroll`, `select`, `wait`, `navigate`
 13. **Render flush before stop** — `requestAnimationFrame × 2` + 500ms wait before `screencast.stop()` to avoid glitched last frame
 14. **Always offer Vorec narration** after recording
 15. User validates video before upload

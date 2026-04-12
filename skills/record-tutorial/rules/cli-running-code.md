@@ -108,34 +108,37 @@ Common errors:
 - `TypeError: Cannot read properties of null` — an element wasn't found; check your locators
 - `TimeoutError: locator.click: Timeout` — an overlay is intercepting; dismiss popups first
 
-## Capturing logs via stdout
+## Tracking data between run-code calls
 
-Hero scripts can emit data via `console.log`. The wrapper script greps it out:
+⚠️ **`console.log` inside `run-code` does NOT appear in stdout.** The output only contains the script source and the return value. Do NOT use `console.log` to emit data.
+
+Instead, store data on `window` and extract with a second `run-code` call:
 
 ```js
+// hero-script.js — stores actions on window
 async page => {
+  const actions = [];
   const T0 = Date.now();
-  const log = (type, description) => {
-    const t = (Date.now() - T0) / 1000;
-    console.log(`VOREC_PHASE:${JSON.stringify({ type, description, t })}`);
+  const track = (type, description, target) => {
+    actions.push({ type, description, target, t: +((Date.now() - T0) / 1000).toFixed(2) });
   };
 
-  log('narrate', 'Recording starts');
+  track('narrate', 'Recording starts');
   await page.goto('https://example.com');
-  log('click', 'Click submit');
+  track('click', 'Click submit');
   await page.click('button[type="submit"]');
+
+  // Save to window for extraction
+  await page.evaluate((a) => { window.__vorec_actions = a; }, actions);
 }
 ```
 
-Then extract with bash:
+Then extract with a second call:
 ```bash
-playwright-cli run-code --filename=hero.js 2>&1 | \
-  grep "VOREC_PHASE:" | \
-  sed 's/VOREC_PHASE://' | \
-  jq -s '.' > tracked-actions.json
+playwright-cli run-code "async page => JSON.stringify(await page.evaluate(() => window.__vorec_actions || []))"
 ```
 
-This becomes the tracked actions JSON uploaded to Vorec alongside the MP4.
+The return value of the async arrow function IS printed to stdout. Use this to capture structured data from hero scripts. See [./hero-script.md](./hero-script.md) for the full extraction pipeline.
 
 ## Browser session persistence
 
