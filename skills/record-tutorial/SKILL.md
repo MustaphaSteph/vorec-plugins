@@ -107,10 +107,12 @@ If routes are protected, load [./rules/auth.md](./rules/auth.md).
 
 ### 6. Ask preferences
 > 1. **Language?** (default: English)
-> 2. **Style?** Tutorial / Professional / Conversational / Storytelling / Concise / Exact
+> 2. **Narration style?** (default: Tutorial) — see [./rules/narration-styles.md](./rules/narration-styles.md)
 > 3. **Visible cursors?** (default: No)
 >    - **No** — record with the browser's own cursor; Vorec adds cursor effects in post-production
 >    - **Yes** — Vorec's cursor pack is used (big animated arrow/pointer/text with click shrink feedback)
+
+Load [./rules/narration-styles.md](./rules/narration-styles.md) to help the user pick a style. If they don't care, use `tutorial`.
 
 ### 7. Write the recording script
 
@@ -226,7 +228,8 @@ If not uploaded: share the video path.
 ### Workflow rules
 - [./rules/connected.md](./rules/connected.md) — Connected mode (codebase-driven)
 - [./rules/explore.md](./rules/explore.md) — Explore mode (page-driven)
-- [./rules/hero-script.md](./rules/hero-script.md) — Canonical recording template
+- [./rules/hero-script.md](./rules/hero-script.md) — Canonical recording template + action types
+- [./rules/narration-styles.md](./rules/narration-styles.md) — All 8 narration styles with examples
 - [./rules/cursor-pack.md](./rules/cursor-pack.md) — Visible cursor injection (opt-in)
 
 ### playwright-cli reference

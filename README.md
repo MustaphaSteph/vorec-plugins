@@ -145,9 +145,11 @@ Log in once, Vorec reuses your session. No passwords stored.
 | Style | Best for |
 |-------|----------|
 | Tutorial | How-to guides, onboarding, product docs |
-| Professional | Enterprise demos, investor pitches |
+| Professional | Enterprise demos, workplace training, SOPs |
 | Conversational | Team walkthroughs, internal demos |
 | Storytelling | Marketing videos, feature launches, Product Hunt |
+| Persuasive | Sales demos, investor pitches, product showcases |
+| Academic | Educational content, courses, learning platforms |
 | Concise | Quick reference, power-user guides |
 | Exact | Technical documentation, API docs |
 
