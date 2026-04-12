@@ -27,19 +27,19 @@ Before anything else, load [./rules/agent-behavior.md](./rules/agent-behavior.md
 
 **These rules override everything else.** If a step below tells you to ask a question, first check agent-behavior.md to see if you can answer it with a default.
 
-## Step 0: Pick a mode
+## Step 0: Detect the mode
 
-Ask the user **one** question before anything else:
+**Auto-detect — don't ask the user unless you're unsure:**
 
-> **Is this a project I can read the source code of, or a site where I need to explore the page?**
->
-> - **Connected** — I have the codebase and can read components for selectors, validation, and success states
-> - **Explore** — I don't have the code; I'll discover the page via snapshots and semantic locators
+- User mentions an external URL (padelmake.com, stripe.com, etc.) → **Explore mode**
+- User mentions their own project and you can see the codebase → **Connected mode**
+- User says "record my app" while you're in a project directory → **Connected mode**
+- Not sure → ask ONE question: "Is this your project (I can read the code) or an external site?"
 
-**If Connected:** continue with Step 1 below — this is the default workflow.
-**If Explore:** load [./rules/explore.md](./rules/explore.md) and follow that instead, then return here at Step 8 (Record and verify).
+**Connected:** you have the source code — read components for selectors, validation, success states.
+**Explore:** you don't have the code — discover the page via snapshots and semantic locators. Load [./rules/explore.md](./rules/explore.md).
 
-Both modes end with the same Vorec upload pipeline (Step 9+). Don't skip the upload step regardless of mode.
+Both modes follow the same workflow below and end with the same upload pipeline.
 
 ## Prerequisites
 
@@ -86,55 +86,60 @@ npx @vorec/cli@latest check
 ```
 If this fails, stop and ask for a valid API key. Do not proceed.
 
-### 2. Understand the flow
-Ask: What's the goal? Who's watching? Anything to explain?
+### 2. Understand what to record
 
-### 3. Gather context
+The user already told you what to record. Confirm it back to them in plain language:
 
-**Connected mode:**
-Deep-scan the codebase. Load [./rules/connected.md](./rules/connected.md).
+> "Got it — I'll record a step-by-step guide of [what they asked for] on [site/app]."
 
-**Explore mode:**
-Explore the live page via `playwright-cli snapshot`. Load [./rules/explore.md](./rules/explore.md).
+If anything is unclear, ask **one** specific question:
+> "Should I include [specific part] in the recording, or just [other part]?"
 
-Both modes extract the same things: selectors, valid test data, expected results, wait conditions, error states.
+Do NOT ask generic questions like "What's the goal?" or "Who's watching?" — just start.
 
-### 4. Find app URL & wait strategy
+### 3. Check the page first — don't assume login
 
-**Local apps:** From `package.json` scripts or config, determine dev server URL and port.
+**Before doing anything with auth, check if the page is publicly accessible:**
 
-**Hosted/embedded apps** (Shopify, Salesforce, HubSpot, etc.):
-- Read the app config for the host URL
-- The recording URL is the **host platform URL** where the app is installed
-- Example: `https://admin.shopify.com/store/my-store/apps/my-app`
-- The app renders in an **iframe** — load [./rules/playwright.md](./rules/playwright.md) for iframe handling
+```bash
+playwright-cli open <URL>
+playwright-cli snapshot
+```
 
-**Wait strategy** — choose based on framework:
-- `load` — default, works for most
-- `domcontentloaded` — React/Vue/Next.js SPAs
-- `networkidle` — static sites only
-- `commit` — extremely slow apps
+Look at the snapshot:
+- **Public page with content visible?** → No login needed. Continue to Step 4.
+- **Login page or redirect to auth?** → Login required. Load [./rules/auth.md](./rules/auth.md).
+- **Some content visible but action requires auth?** → Ask the user: "Do I need to log in for [specific action]?"
 
-Check for WebSockets, SSE, analytics, service workers — if present, avoid `networkidle`.
+**NEVER assume login is needed.** Most public websites (marketing sites, docs, tools) don't require auth. Only handle auth when you SEE a login wall or the user tells you it's needed.
 
-### 5. Handle auth
+### 4. Explore the page
 
-If routes are protected, load [./rules/auth.md](./rules/auth.md).
+**Connected mode:** Deep-scan the codebase. Load [./rules/connected.md](./rules/connected.md).
 
-### 6. Ask preferences
-> 1. **Language?** (default: English)
-> 2. **Narration style?** (default: Tutorial) — see [./rules/narration-styles.md](./rules/narration-styles.md)
-> 3. **Recording quality?** (default: 4K)
->    - **4K** — 3840×2160, sharpest text and UI (recommended)
->    - **2K** — 2560×1440, good balance of quality and file size
->    - **1080p** — 1920×1080, smaller files, standard HD
-> 4. **Visible cursors?** (default: No)
->    - **No** — record with the browser's own cursor; Vorec adds cursor effects in post-production
->    - **Yes** — Vorec's cursor pack is used (big animated arrow/pointer/text with click shrink feedback)
+**Explore mode:** Use snapshots to discover the page structure:
+```bash
+playwright-cli snapshot
+```
+Load [./rules/explore.md](./rules/explore.md) for semantic locators and page discovery.
 
-Load [./rules/narration-styles.md](./rules/narration-styles.md) to help the user pick a style. If they don't care, use `tutorial`.
+Find: selectors for elements to interact with, valid test data, expected results, wait conditions.
 
-### 7. Build the recording script
+### 5. Ask preferences (ONE message, max 2-3 questions)
+
+Ask in a single message. Use defaults for anything the user didn't mention:
+
+> Before I start recording, a few quick options:
+> 1. **Quality?** 4K (default) / 2K / 1080p
+> 2. **Narration style?** Tutorial (default) / Professional / Conversational / Storytelling / Persuasive / Academic / Concise / Exact
+> 3. **Visible cursor in recording?** No (default) / Yes
+>
+> Or just say "go" and I'll use the defaults (4K, Tutorial, no cursor).
+
+If the user says "go" or doesn't answer a question, use the defaults. Don't ask again.
+See [./rules/narration-styles.md](./rules/narration-styles.md) for style descriptions.
+
+### 6. Build the recording script
 
 Tell the user what you're about to do:
 > I'm writing the recording script now. It will open a browser, walk through the flow, and capture a high-quality video with every action tracked.
@@ -164,7 +169,7 @@ For error recovery: [./rules/validation.md](./rules/validation.md)
 >
 > Ready? I'll start recording now.
 
-### 8. Record the video
+### 7. Record the video
 
 ```bash
 mkdir -p .vorec recordings
@@ -180,7 +185,7 @@ When it finishes:
 
 Ask user to validate the video before uploading.
 
-### 9. Upload to Vorec
+### 8. Upload to Vorec
 
 After the user validates the recording, ask:
 
@@ -202,7 +207,7 @@ npx @vorec/cli@latest run vorec.json --skip-record --video <VIDEO> --tracked-act
 Tell the user:
 > Uploading video and action data to Vorec now...
 
-### 10. Clean up
+### 9. Clean up
 
 ```bash
 rm -f hero-script.mjs vorec.json
@@ -211,7 +216,7 @@ rm -rf .vorec/tracked-actions.json
 
 Keep the recordings directory if the user chose not to upload.
 
-### 11. Share the result
+### 10. Share the result
 
 If uploaded:
 > Your tutorial is ready! Open the editor here: [EDITOR_URL]
@@ -226,7 +231,8 @@ If not uploaded:
 3. **Act first, ask later** — do blocking actions (install tools, open browser) then announce. Don't ask permission.
 4. **Never batch 3+ questions** — max 2 at a time, prefer defaults
 5. **Always use `--headed`** for `playwright-cli open` when the user needs to see/interact (login, session capture)
-6. **Pick a mode first** (Connected or Explore) — don't skip Step 0
+6. **Auto-detect mode** — external URL = Explore, own project = Connected. Don't ask unless genuinely unsure.
+7. **Never assume login** — check the page first with a snapshot. Only handle auth if you SEE a login wall.
 7. **Use `playwright-cli` for exploration**, standalone hero script (`node hero-script.mjs`) for recording
 8. **4K quality by default** — ask user for preferred quality (4K / 2K / 1080p)
 9. **Scroll to the element, not past it** — use `scrollToElement`, never blind pixel scrolling
