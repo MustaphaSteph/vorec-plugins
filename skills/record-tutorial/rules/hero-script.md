@@ -18,20 +18,54 @@ This is the **recording script** that both Connected and Explore modes produce. 
 
 ## Action types for `track()` calls
 
-| Type | When to use | Example `track()` call |
-|------|-------------|----------------------|
-| `click` | Click a button, link, tab, checkbox, toggle | `track('click', 'Open settings panel', 'settings-btn')` |
-| `type` | Type text into an input field | `track('type', 'Enter email address', 'email-input')` |
-| `select` | Pick from a dropdown/select | `track('select', 'Choose monthly plan', 'plan-dropdown')` |
-| `hover` | Hover to reveal tooltip/menu | `track('hover', 'Hover over user avatar', 'avatar')` |
-| `scroll` | Scroll to reveal content | `track('scroll', 'Scroll to pricing section')` |
-| `wait` | Pause for animation/loading | `track('wait', 'Wait for dashboard to load')` |
-| `navigate` | Navigate to a new page/URL | `track('navigate', 'Go to billing page', '/billing')` |
-| `narrate` | Describe scene — NO interaction | `track('narrate', 'The dashboard shows 3 active projects')` |
+```js
+track(type, description, target, coords, { context, typed_text, selected_value })
+```
 
-**`description`** = what the user is doing (for timeline labels + Gemini narration context).
-**`target`** = short element identifier (optional, for Vorec click markers).
-**`coordinates`** = auto-captured by helpers (`glideClick`, `slowType`, `hoverTour`) from `boundingBox()`. Normalized to 0-1000. Used for click markers, auto-zoom, and cursor effects in Vorec.
+| Type | When to use | Helper |
+|------|-------------|--------|
+| `click` | Click a button, link, tab, checkbox, toggle | `glideClick(locator, description, target, context)` |
+| `type` | Type text into an input field | `slowType(locator, text, description, target, context)` |
+| `select` | Pick from a dropdown/select | Manual `track()` with `{ context, selected_value }` |
+| `hover` | Hover to reveal tooltip/menu | Manual `track()` with `{ context }` |
+| `scroll` | Scroll to reveal content | Manual `track()` with `{ context }` |
+| `wait` | Pause for animation/loading | Manual `track()` with `{ context }` |
+| `navigate` | Navigate to a new page/URL | Manual `track()` with `{ context }` |
+| `narrate` | Describe scene — NO interaction | `hoverTour(locator, description)` or manual `track()` |
+
+### Fields explained
+
+| Field | What it's for | Example |
+|-------|--------------|---------|
+| **`description`** | Short label shown on timeline (5-10 words) | `"Click the Create Project button"` |
+| **`target`** | Element identifier for Vorec click markers | `"create-btn"`, `"email-input"` |
+| **`context`** | **Rich scene description for AI narration** (1-2 sentences). Describe what happens, what appears on screen, and why this step matters. | `"Clicks the blue Create Project button in the top right. A dialog appears with title and template fields."` |
+| **`typed_text`** | What was typed (auto-set by `slowType`) | `"demo@example.com"` |
+| **`selected_value`** | What was picked from dropdown | `"Monthly"` |
+| **`coordinates`** | Auto-captured by helpers from `boundingBox()`. Normalized 0-1000. | `{ x: 850, y: 120 }` |
+
+### Writing good `context` — this is what makes narration great
+
+Gemini uses `context` to write the voice-over script. Without it, narration is generic ("Click the button"). With it, narration explains what's happening and why.
+
+**Bad context (or no context):**
+```js
+glideClick(btn, 'Click Create', 'create-btn')
+// → Gemini narration: "Click the Create button."
+```
+
+**Good context:**
+```js
+glideClick(btn, 'Click Create Project', 'create-btn',
+  'Clicks the blue Create Project button in the top-right corner. A creation dialog slides in with fields for project title and template selection.')
+// → Gemini narration: "Now let's create our first project. Click the Create Project button in the top right — you'll see a dialog where we can give it a name and choose a template."
+```
+
+**Rules for context:**
+1. Describe what you SEE, not just what you click
+2. Say what appears AFTER the action (modal opens, page changes, data loads)
+3. Mention WHY this step matters if it's not obvious
+4. 1-2 sentences max — Gemini expands it into natural narration
 
 ## The canonical template
 
@@ -54,12 +88,15 @@ async page => {
   const VP = { w: 1920, h: 1080 };
   const __actions = [];
   const T0 = Date.now();
-  const track = (type, description, target, coords) => {
+  const track = (type, description, target, coords, extra) => {
     __actions.push({
       type, description, target,
       timestamp: +((Date.now() - T0) / 1000).toFixed(2),
-      // Normalized 0-1000 coordinates for Vorec click markers + auto-zoom
       coordinates: coords || { x: 500, y: 500 },
+      // context = rich scene description for AI narration (1-2 sentences)
+      // typed_text = what was typed (for 'type' actions)
+      // selected_value = what was picked (for 'select' actions)
+      ...extra,
     });
   };
   // Convert boundingBox center to Vorec's 0-1000 coordinate space
@@ -92,32 +129,35 @@ async page => {
   };
 
   // Glide + click with real coordinate tracking.
-  const glideClick = async (locator, description, target) => {
+  // context = rich description for AI narration (what happens after the click)
+  const glideClick = async (locator, description, target, context) => {
     const box = await glideMove(locator);
     if (typeof window !== 'undefined' && window.__vc?.clickPulse) {
       await page.evaluate(() => window.__vc.clickPulse());
       await page.waitForTimeout(120);
     }
-    track('click', description, target, toCoords(box));
+    track('click', description, target, toCoords(box), { context });
     await locator.click();
     await page.waitForTimeout(400);
   };
 
   // Human-like typing with real coordinate tracking.
-  const slowType = async (locator, text, description, target) => {
+  // context = rich description for AI narration (what this input does)
+  const slowType = async (locator, text, description, target, context) => {
     const box = await glideMove(locator);
     await locator.click();
     await page.waitForTimeout(300);
-    track('type', description, target, toCoords(box));
+    track('type', description, target, toCoords(box), { context, typed_text: text });
     for (const ch of text) {
       await locator.page().keyboard.type(ch, { delay: 70 + Math.random() * 90 });
     }
   };
 
   // Hover over an element to "explain" it without clicking.
+  // description = what this element is; used as both label AND context
   const hoverTour = async (locator, description, ms = 1500) => {
     const box = await glideMove(locator);
-    track('narrate', description, null, toCoords(box));
+    track('narrate', description, null, toCoords(box), { context: description });
     await page.waitForTimeout(ms);
   };
 
@@ -127,11 +167,23 @@ async page => {
   await page.waitForTimeout(2000);
 
   // Example actions — replace with your flow
-  track('scroll', 'Scroll down to sign-up form');
+  track('scroll', 'Scroll to sign-up form', null, null, {
+    context: 'Scrolling down to reveal the sign-up form at the bottom of the landing page.',
+  });
   await slowScroll(200);
-  await hoverTour(page.getByPlaceholder('you@example.com'), 'Email field');
-  await slowType(page.getByPlaceholder('you@example.com'), 'demo@example.com', 'Enter email address', 'email');
-  await glideClick(page.getByRole('button', { name: 'Submit' }), 'Click submit button', 'submit');
+
+  await hoverTour(page.getByPlaceholder('you@example.com'), 'The email field accepts any valid email address for account creation.');
+
+  await slowType(
+    page.getByPlaceholder('you@example.com'), 'demo@example.com',
+    'Enter email address', 'email',
+    'Types a demo email address into the signup form. This will be used as the account login.',
+  );
+
+  await glideClick(
+    page.getByRole('button', { name: 'Submit' }), 'Click submit button', 'submit',
+    'Clicks the Submit button to create the account. A success message appears confirming registration.',
+  );
 
   // ── Wait for success state ───────────────────────────────
   // In Connected mode, use the exact DOM element from the component source.
@@ -193,15 +245,42 @@ playwright-cli run-code "async page => JSON.stringify(await page.evaluate(() => 
 The resulting JSON matches the format Vorec's `agent-api/create-project` expects:
 ```json
 [
-  { "type": "narrate", "description": "Recording starts", "target": "intro", "timestamp": 0, "coordinates": { "x": 500, "y": 500 } },
-  { "type": "narrate", "description": "Email field", "target": null, "timestamp": 2.1, "coordinates": { "x": 480, "y": 420 } },
-  { "type": "type", "description": "Enter email address", "target": "email", "timestamp": 4.5, "coordinates": { "x": 480, "y": 420 } },
-  { "type": "click", "description": "Click submit button", "target": "submit", "timestamp": 8.2, "coordinates": { "x": 510, "y": 580 } },
-  { "type": "narrate", "description": "Flow complete", "target": null, "timestamp": 12.0, "coordinates": { "x": 500, "y": 500 } }
+  {
+    "type": "narrate", "description": "Recording starts", "target": "intro",
+    "timestamp": 0, "coordinates": { "x": 500, "y": 500 },
+    "context": "The landing page loads showing the hero section with a sign-up form."
+  },
+  {
+    "type": "type", "description": "Enter email address", "target": "email",
+    "timestamp": 4.5, "coordinates": { "x": 480, "y": 420 },
+    "context": "Types a demo email into the signup form. This will be the account login.",
+    "typed_text": "demo@example.com"
+  },
+  {
+    "type": "click", "description": "Click submit button", "target": "submit",
+    "timestamp": 8.2, "coordinates": { "x": 510, "y": 580 },
+    "context": "Clicks Submit to create the account. A success message confirms registration."
+  },
+  {
+    "type": "narrate", "description": "Flow complete", "target": null,
+    "timestamp": 12.0, "coordinates": { "x": 500, "y": 500 },
+    "context": "The signup flow is complete. The user now has an account and can log in."
+  }
 ]
 ```
 
-**Coordinates** are normalized to 0-1000 (from `boundingBox()` center / viewport size × 1000). Vorec uses them for click markers on the timeline, auto-zoom targets, and cursor effects.
+### How Vorec uses each field
+
+| Field | Stored as | Used for |
+|-------|-----------|----------|
+| `type` | `interaction_type` | Color-coded click dots on timeline |
+| `description` | `description` | Timeline label + fallback for narration |
+| `target` | `element_name` | Click marker tooltip |
+| `timestamp` | `timestamp_seconds` | Position on timeline + narration timing |
+| `coordinates` | `coordinates_x/y` | Click markers, auto-zoom targets, cursor effects |
+| `context` | `ui_change` | **Fed to Gemini as narration source** — this is what makes voice-over rich |
+| `typed_text` | Built into description | Narration knows what was typed |
+| `selected_value` | Built into description | Narration knows what was picked |
 
 **Only valid action types:** `click`, `type`, `narrate`, `hover`, `scroll`, `select`, `wait`, `navigate`. Anything else gets rejected by the agent-api.
 
