@@ -215,13 +215,49 @@ After the user validates the recording, ask:
 > - **Timeline editor** — adjust timing, trim, re-record
 > - **Export** — up to 4K, 60fps
 
-If yes:
+If yes, write a `vorec.json` manifest:
+
+```json
+{
+  "title": "How to generate a tournament on PadelMake",
+  "url": "https://padelmake.com",
+  "language": "en",
+  "narrationStyle": "tutorial",
+  "actions": [
+    { "type": "narrate", "description": "Homepage overview" },
+    { "type": "click", "selector": "button.create", "description": "Click Create Tournament" },
+    { "type": "type", "selector": "#name", "text": "Summer Cup", "description": "Enter tournament name" }
+  ]
+}
+```
+
+**Manifest fields:**
+| Field | Required | What it does |
+|-------|----------|-------------|
+| `title` | Yes | Project name in Vorec |
+| `url` | Yes | The URL that was recorded |
+| `language` | No | Narration language (default: `en`) |
+| `narrationStyle` | No | Narration tone (default: `tutorial`) |
+| `videoContext` | No | Extra context for AI narration (e.g. "This is a padel tournament app") |
+| `actions` | Yes | Minimal action list for manifest validation (the real action data comes from `--tracked-actions`) |
+
+Then upload:
 ```bash
-npx @vorec/cli@latest run vorec.json --skip-record --video <VIDEO> --tracked-actions .vorec/tracked-actions.json
+npx @vorec/cli@latest run vorec.json --skip-record \
+  --video ./recordings/output.mp4 \
+  --tracked-actions .vorec/tracked-actions.json
 ```
 
 Tell the user:
 > Uploading video and action data to Vorec now...
+
+**What happens behind the scenes:**
+1. CLI sends tracked actions (with coordinates, context, timestamps) to `create-project`
+2. CLI uploads video to Vorec storage via presigned URL
+3. CLI triggers `generate-video` — Vorec AI writes narration using the tracked actions as context
+4. CLI polls until narration is ready, then shows the editor URL
+
+The tracked actions from `.vorec/tracked-actions.json` are the key — they tell Vorec exactly what was clicked, when, where on screen, and why. Vorec skips video-based click detection and goes straight to writing narration.
 
 ### 11. Clean up
 
