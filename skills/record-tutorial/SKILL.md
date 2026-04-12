@@ -124,7 +124,11 @@ If routes are protected, load [./rules/auth.md](./rules/auth.md).
 ### 6. Ask preferences
 > 1. **Language?** (default: English)
 > 2. **Narration style?** (default: Tutorial) — see [./rules/narration-styles.md](./rules/narration-styles.md)
-> 3. **Visible cursors?** (default: No)
+> 3. **Recording quality?** (default: 4K)
+>    - **4K** — 3840×2160, sharpest text and UI (recommended)
+>    - **2K** — 2560×1440, good balance of quality and file size
+>    - **1080p** — 1920×1080, smaller files, standard HD
+> 4. **Visible cursors?** (default: No)
 >    - **No** — record with the browser's own cursor; Vorec adds cursor effects in post-production
 >    - **Yes** — Vorec's cursor pack is used (big animated arrow/pointer/text with click shrink feedback)
 

@@ -61,7 +61,7 @@ When the user asks to record a flow, **assume these defaults and proceed**. Only
 | Thing | Default | When to ask |
 |---|---|---|
 | **API key** | **MUST have before anything else** | Always — do not proceed without it |
-| Quality | **4K** (1920×1080 viewport + DPR 2 = 3840×2160 output) | Never — 4K is always the default |
+| Quality | **4K** (1920×1080 viewport + DPR 2 = 3840×2160 output) | User prefers 2K or 1080p |
 | Scope | Minimum-viable (just the core action, no deep follow-up) | User explicitly says "full walkthrough" |
 | Language | English | User writes in another language |
 | Style | Tutorial | User picks from the style list |

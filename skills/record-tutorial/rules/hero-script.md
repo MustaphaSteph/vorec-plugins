@@ -105,17 +105,26 @@ import { mkdirSync, writeFileSync } from 'fs';
 
 mkdirSync('./recordings', { recursive: true });
 
+// ── Quality presets ──────────────────────────────────────────
+// Change QUALITY to '4k', '2k', or '1080p' based on user preference.
+const QUALITY = '4k';
+const PRESETS = {
+  '4k':    { dpr: 2, w: 3840, h: 2160, bitrate: '8M' },
+  '2k':    { dpr: 1.5, w: 2880, h: 1620, bitrate: '6M' },
+  '1080p': { dpr: 1, w: 1920, h: 1080, bitrate: '4M' },
+};
+const Q = PRESETS[QUALITY];
+
 const browser = await chromium.launch({ headless: true });
 const context = await browser.newContext({
   viewport: { width: 1920, height: 1080 },
-  deviceScaleFactor: 2,
+  deviceScaleFactor: Q.dpr,
 });
 const page = await context.newPage();
 await page.goto('TARGET_URL', { waitUntil: 'domcontentloaded' });
 
 // ── High-quality recording via CDP frames → FFmpeg ──────────
 // CDP sends lossless PNG frames → piped to FFmpeg in real-time
-// Result: 4K H.264 MP4 at 8 Mbit/s (vs screencast's 1 Mbit/s VP8)
 const FPS = 30;
 const cdp = await context.newCDPSession(page);
 const ffmpeg = spawn('ffmpeg', [
@@ -123,7 +132,7 @@ const ffmpeg = spawn('ffmpeg', [
   '-f', 'image2pipe', '-framerate', String(FPS), '-i', '-',
   '-c:v', 'libx264', '-preset', 'slow', '-crf', '18', '-tune', 'animation',
   '-pix_fmt', 'yuv420p', '-movflags', '+faststart',
-  '-b:v', '8M',
+  '-b:v', Q.bitrate,
   './recordings/output.mp4',
 ], { stdio: ['pipe', 'pipe', 'pipe'] });
 ffmpeg.stderr.on('data', () => {}); // suppress FFmpeg logs
@@ -136,7 +145,7 @@ cdp.on('Page.screencastFrame', async ({ data, sessionId }) => {
 });
 await cdp.send('Page.startScreencast', {
   format: 'png', quality: 100,
-  maxWidth: 3840, maxHeight: 2160,
+  maxWidth: Q.w, maxHeight: Q.h,
   everyNthFrame: 1,
 });
 
@@ -379,20 +388,21 @@ The resulting JSON matches the format Vorec's `agent-api/create-project` expects
 
 **Why this matters:** When Vorec receives tracked actions, it skips video-based click detection entirely. The agent already knows what was clicked, when, and why — so Vorec only needs to write narration scripts using the action descriptions as context. This is faster, cheaper, and more accurate.
 
-## Video quality settings
+## Video quality presets
 
 The hero script records directly to H.264 MP4 via CDP frames → FFmpeg. No WebM intermediate — no double compression.
 
-| Setting | Value | Why |
-|---------|-------|-----|
-| Frame source | CDP `Page.startScreencast` with `format: 'png'` | Lossless frames — no quality loss at capture |
-| Resolution | 3840×2160 (4K) via DPR 2 | Sharp text and UI at any zoom level |
-| Codec | H.264 (`libx264`) | Universal playback |
-| CRF | 18 | Visually lossless (lower = better, 18-23 range) |
-| Bitrate | 8 Mbit/s target | 8× more than Playwright's hardcoded 1 Mbit/s |
-| Preset | `slow` | Better compression at same quality |
-| Tune | `animation` | Optimized for UI content |
-| FPS | 30 | Smooth enough for tutorials, half the file size of 60fps |
+Set `QUALITY` at the top of the hero script based on user preference:
+
+| Preset | Resolution | DPR | Bitrate | Best for |
+|--------|-----------|-----|---------|----------|
+| `'4k'` (default) | 3840×2160 | 2 | 8 Mbit/s | Product demos, marketing, investor pitches |
+| `'2k'` | 2880×1620 | 1.5 | 6 Mbit/s | Tutorials, onboarding, docs |
+| `'1080p'` | 1920×1080 | 1 | 4 Mbit/s | Internal demos, quick recordings |
+
+All presets use: lossless PNG frames, H.264 codec, CRF 18, slow preset, animation tune, 30 FPS.
+
+Viewport is always 1920×1080 — only DPR changes. Content stays the same size, just sharper pixels.
 
 ## Dead-time trim (optional)
 
