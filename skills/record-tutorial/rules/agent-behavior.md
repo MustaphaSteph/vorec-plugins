@@ -60,13 +60,14 @@ When the user asks to record a flow, **assume these defaults and proceed**. Only
 
 | Thing | Default | When to ask |
 |---|---|---|
+| **API key** | **MUST have before anything else** | Always — do not proceed without it |
+| Quality | **4K** (1920×1080 viewport + DPR 2 = 3840×2160 output) | Never — 4K is always the default |
 | Scope | Minimum-viable (just the core action, no deep follow-up) | User explicitly says "full walkthrough" |
-| Viewport | 1920×1080 (4K quality via DPR 2 — content stays normal size) | Never change viewport for quality — only DPR changes pixel sharpness |
 | Language | English | User writes in another language |
 | Style | Tutorial | User picks from the style list |
 | Visible cursors | No | User says "yes cursors" |
 | Dead-time trim | Yes | User says "keep all the pauses" |
-| Test data | Generated fresh (unique email, Strong password from code rules) | User provides specific values |
+| Test data | Generated fresh (unique email, strong password from code rules) | User provides specific values |
 | Session | Use existing if valid, otherwise capture fresh | — |
 
 ## 🎯 Rule 5 — Default to headed when the user needs to see anything

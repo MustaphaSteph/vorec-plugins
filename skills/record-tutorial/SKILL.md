@@ -57,18 +57,34 @@ ffmpeg -version 2>/dev/null || echo "MISSING: brew install ffmpeg"
 npx @vorec/cli@latest --version
 ```
 
-**4. Vorec API key:**
+**4. Vorec API key — REQUIRED before anything else:**
 ```bash
-cat ~/.vorec/config.json 2>/dev/null || npx @vorec/cli@latest login
+cat ~/.vorec/config.json 2>/dev/null
 ```
-**Never tell the user to manually copy an API key. Always use `vorec login`.**
+If no API key is configured, ask the user:
 
-## Workflow
+> **I need your Vorec API key to continue.**
+> Go to [vorec.ai/settings](https://vorec.ai/settings) → API Keys → Create Key → copy it and paste it here.
 
-### 1. Check credits
+Once the user provides the key, save it:
+```bash
+npx @vorec/cli@latest init
+```
+Then enter the key when prompted.
+
+**���️ DO NOT proceed with ANY recording steps until you have a valid API key.** No key = no upload = wasted recording. Check credits to verify:
 ```bash
 npx @vorec/cli@latest check
 ```
+If `check` fails → the key is invalid. Ask the user again. Do not continue.
+
+## Workflow
+
+### 1. Verify API key + credits
+```bash
+npx @vorec/cli@latest check
+```
+If this fails, stop and ask for a valid API key. Do not proceed.
 
 ### 2. Understand the flow
 Ask: What's the goal? Who's watching? Anything to explain?
@@ -216,7 +232,8 @@ If not uploaded: share the video path.
 14. **Always offer Vorec narration** after recording
 15. User validates video before upload
 16. Clean up temp files (keep video if user declined upload)
-17. Never ask for passwords — use `vorec login` for API key, `storageState` for app auth
+17. **API key first** — do NOT start recording without a valid API key. Ask user to get one from vorec.ai/settings → API Keys. Use `vorec init` to save it, `vorec check` to verify.
+18. Never ask for passwords — use `storageState` for app auth
 18. Never hardcode URLs — read from project config
 19. **End with a link** — the final message contains ONE actionable result (editor URL or file path), not a summary essay
 
