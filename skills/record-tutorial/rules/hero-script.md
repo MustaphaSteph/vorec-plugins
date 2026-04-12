@@ -40,32 +40,55 @@ track(type, description, target, coords, { context, typed_text, selected_value }
 | **`description`** | Short label shown on timeline (5-10 words) | `"Click the Create Project button"` |
 | **`target`** | Element identifier for Vorec click markers | `"create-btn"`, `"email-input"` |
 | **`context`** | **Rich scene description for AI narration** (1-2 sentences). Describe what happens, what appears on screen, and why this step matters. | `"Clicks the blue Create Project button in the top right. A dialog appears with title and template fields."` |
-| **`typed_text`** | What was typed (auto-set by `slowType`) | `"demo@example.com"` |
+| **`typed_text`** | What was typed (auto-set by `slowType`) | `"sarah.demo@gmail.com"` |
 | **`selected_value`** | What was picked from dropdown | `"Monthly"` |
 | **`coordinates`** | Auto-captured by helpers from `boundingBox()`. Normalized 0-1000. | `{ x: 850, y: 120 }` |
+| **`primary`** | Mark as a KEY action — gets a **gold star** on the timeline. Use for the most important steps (page state changes, goal completions, zoom-worthy moments). Most flows have 2-4 primary actions. | `true` |
 
 ### Writing good `context` — this is what makes narration great
 
-Gemini uses `context` to write the voice-over script. Without it, narration is generic ("Click the button"). With it, narration explains what's happening and why.
+Vorec's AI uses `context` to write the voice-over script. Without it, narration is generic ("Click the button"). With it, narration explains what's happening and why.
 
 **Bad context (or no context):**
 ```js
 glideClick(btn, 'Click Create', 'create-btn')
-// → Gemini narration: "Click the Create button."
+// → Vorec narration: "Click the Create button."
 ```
 
 **Good context:**
 ```js
 glideClick(btn, 'Click Create Project', 'create-btn',
   'Clicks the blue Create Project button in the top-right corner. A creation dialog slides in with fields for project title and template selection.')
-// → Gemini narration: "Now let's create our first project. Click the Create Project button in the top right — you'll see a dialog where we can give it a name and choose a template."
+// → Vorec narration: "Now let's create our first project. Click the Create Project button in the top right — you'll see a dialog where we can give it a name and choose a template."
 ```
 
 **Rules for context:**
 1. Describe what you SEE, not just what you click
 2. Say what appears AFTER the action (modal opens, page changes, data loads)
 3. Mention WHY this step matters if it's not obvious
-4. 1-2 sentences max — Gemini expands it into natural narration
+4. 1-2 sentences max — Vorec expands it into natural narration
+
+### Marking primary actions (gold stars)
+
+Set `primary: true` on the most important actions in the flow. These get a **gold star** on Vorec's timeline instead of a regular dot, and Vorec uses them as the main anchors for narration segments.
+
+**When to mark as primary:**
+- The action that completes a goal (submit, save, publish, confirm)
+- The action that changes the page state (navigate, open modal, switch tab)
+- The action you'd zoom into for a product demo
+- Usually 2-4 primary actions per flow
+
+**When NOT to mark as primary:**
+- Typing into a field (the submit is more important)
+- Scrolling (it's a transition, not a goal)
+- Narrate pauses (no interaction happened)
+
+```js
+// Set primary after a glideClick call:
+await glideClick(submitBtn, 'Submit the form', 'submit-btn',
+  'Clicks Submit. The account is created and a welcome page appears.');
+__actions[__actions.length - 1].primary = true;
+```
 
 ## The canonical template
 
@@ -96,6 +119,7 @@ async page => {
       // context = rich scene description for AI narration (1-2 sentences)
       // typed_text = what was typed (for 'type' actions)
       // selected_value = what was picked (for 'select' actions)
+      // primary = true marks this as a KEY action (gets gold star on timeline)
       ...extra,
     });
   };
@@ -175,15 +199,18 @@ async page => {
   await hoverTour(page.getByPlaceholder('you@example.com'), 'The email field accepts any valid email address for account creation.');
 
   await slowType(
-    page.getByPlaceholder('you@example.com'), 'demo@example.com',
+    page.getByPlaceholder('you@example.com'), 'sarah.demo@gmail.com',
     'Enter email address', 'email',
     'Types a demo email address into the signup form. This will be used as the account login.',
   );
 
+  // primary: true → gold star on timeline (this is the key action of the flow)
   await glideClick(
     page.getByRole('button', { name: 'Submit' }), 'Click submit button', 'submit',
     'Clicks the Submit button to create the account. A success message appears confirming registration.',
   );
+  // Mark the last click as primary (key action)
+  __actions[__actions.length - 1].primary = true;
 
   // ── Wait for success state ───────────────────────────────
   // In Connected mode, use the exact DOM element from the component source.
@@ -254,12 +281,13 @@ The resulting JSON matches the format Vorec's `agent-api/create-project` expects
     "type": "type", "description": "Enter email address", "target": "email",
     "timestamp": 4.5, "coordinates": { "x": 480, "y": 420 },
     "context": "Types a demo email into the signup form. This will be the account login.",
-    "typed_text": "demo@example.com"
+    "typed_text": "sarah.demo@gmail.com"
   },
   {
     "type": "click", "description": "Click submit button", "target": "submit",
     "timestamp": 8.2, "coordinates": { "x": 510, "y": 580 },
-    "context": "Clicks Submit to create the account. A success message confirms registration."
+    "context": "Clicks Submit to create the account. A success message confirms registration.",
+    "primary": true
   },
   {
     "type": "narrate", "description": "Flow complete", "target": null,
@@ -278,13 +306,14 @@ The resulting JSON matches the format Vorec's `agent-api/create-project` expects
 | `target` | `element_name` | Click marker tooltip |
 | `timestamp` | `timestamp_seconds` | Position on timeline + narration timing |
 | `coordinates` | `coordinates_x/y` | Click markers, auto-zoom targets, cursor effects |
-| `context` | `ui_change` | **Fed to Gemini as narration source** — this is what makes voice-over rich |
+| `context` | `ui_change` | **Fed to Vorec AI as narration source** — this is what makes voice-over rich |
 | `typed_text` | Built into description | Narration knows what was typed |
 | `selected_value` | Built into description | Narration knows what was picked |
+| `primary` | `primary_click_index` on segment | **Gold star on timeline** — Vorec picks `primary_click` per narration segment based on action importance. Marking `primary: true` + writing strong `context` influences which clicks get stars. Stars are used for auto-zoom targets and article screenshots. |
 
 **Only valid action types:** `click`, `type`, `narrate`, `hover`, `scroll`, `select`, `wait`, `navigate`. Anything else gets rejected by the agent-api.
 
-**Why this matters:** When Vorec receives tracked actions, it skips Gemini click detection entirely (Phase 2 + Phase 3). The agent already knows what was clicked, when, and why — so Gemini only writes narration scripts using the action descriptions as context. This is faster, cheaper, and more accurate than video-based click detection.
+**Why this matters:** When Vorec receives tracked actions, it skips video-based click detection entirely. The agent already knows what was clicked, when, and why — so Vorec only needs to write narration scripts using the action descriptions as context. This is faster, cheaper, and more accurate.
 
 ## Convert WebM → MP4 (visually lossless)
 

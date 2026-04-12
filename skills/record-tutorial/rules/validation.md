@@ -16,7 +16,7 @@ Read frontend AND backend code to understand:
 
 ## Generate valid data
 
-- Email → realistic, passes regex (e.g., `demo.user@example.com`)
+- Email → realistic, passes regex (e.g., `sarah.demo@gmail.com`)
 - Password → meets all rules (e.g., `DemoPass2026!` if min 8 + special char required)
 - Unique fields → check if test data already exists
 - Dropdowns → read actual option values from code

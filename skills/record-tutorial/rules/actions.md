@@ -12,7 +12,7 @@ Every tracked action needs **`description`** (short timeline label) and **`conte
 | Field | Length | Purpose | Example |
 |-------|--------|---------|---------|
 | `description` | 5-10 words | Timeline label, what the user does | `"Click the Create Project button"` |
-| `context` | 1-2 sentences | **Fed to Gemini for narration.** Describe what happens, what appears on screen, why it matters. | `"Clicks the blue Create Project button. A dialog slides in with title and template fields."` |
+| `context` | 1-2 sentences | **Fed to Vorec AI for narration.** Describe what happens, what appears on screen, why it matters. | `"Clicks the blue Create Project button. A dialog slides in with title and template fields."` |
 
 **Good descriptions:** "Open the create dialog", "Enter the project name"
 **Bad descriptions:** "button:has-text('Create')", "input[type='email']"
@@ -20,7 +20,7 @@ Every tracked action needs **`description`** (short timeline label) and **`conte
 The description is the intent, not the selector.
 
 **Good context:** "Clicks the New Project button in the top-right corner. A creation dialog appears with fields for project title, template selection, and a color picker."
-**Bad context:** "Click button" (too vague — Gemini can't write useful narration from this)
+**Bad context:** "Click button" (too vague — Vorec can't write useful narration from this)
 
 ## Action Types
 
@@ -54,7 +54,7 @@ Not just clicks. If the user types text → `type` action with `typed_text`. Dro
 ## How Vorec uses tracked actions
 
 1. **Timeline** — each action appears as a color-coded dot at its `timestamp`
-2. **Narration** — Gemini reads `context` to write voice-over scripts for each segment
+2. **Narration** — Vorec AI reads `context` to write voice-over scripts for each segment
 3. **Auto-zoom** — click `coordinates` become zoom targets (centered on the element)
 4. **Cursor effects** — click ripples render at `coordinates` position
 5. **Click markers** — `description` shown as tooltip, `target` as element label

@@ -50,7 +50,7 @@ Refs change per page state. Semantic locators are stable:
 ```js
 // BEST — semantic, works across page states
 page.getByRole('button', { name: 'Create account' })
-page.getByPlaceholder('you@example.com')
+page.getByPlaceholder('you@gmail.com')
 page.getByLabel('Email')
 page.getByText('Sign up for free')
 
@@ -150,7 +150,7 @@ For signup flows, use a unique email per run so you don't hit "email already reg
 ```js
 // Timestamp digits (most sites accept this even if they normalize dots/+)
 const unique = Date.now().toString().slice(-6);
-const testEmail = `tutorial.${unique}@example.com`;
+const testEmail = `tutorial.${unique}@gmail.com`;
 
 // Or for Gmail: dots don't count, so use digits
 const gmailEmail = `tutorial${unique}@gmail.com`;
