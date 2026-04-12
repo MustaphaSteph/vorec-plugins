@@ -125,23 +125,37 @@ Load [./rules/explore.md](./rules/explore.md) for semantic locators and page dis
 
 Find: selectors for elements to interact with, valid test data, expected results, wait conditions.
 
-### 5. Ask Vorec preferences
+### 5. What language?
 
-These are for Vorec's AI narration — ask in ONE message:
+Ask:
+> **What language should the narration be in?** (default: English)
 
-> Two things before I record:
-> 1. **What language?** (default: English)
-> 2. **What narration style?** Tutorial / Professional / Conversational / Storytelling / Persuasive / Academic / Concise / Exact (default: Tutorial)
+If the user already specified a language or it's obvious from context, skip this question.
 
-That's it. Don't ask about quality (always 4K) or cursors (always off) unless the user brings it up. If the user says "go" or "defaults", use English + Tutorial.
+### 6. What narration style?
 
-See [./rules/narration-styles.md](./rules/narration-styles.md) if the user needs help picking a style.
+Ask:
+> **What narration style do you want?**
+> - **Tutorial** (default) — friendly instructor, step-by-step
+> - **Professional** — structured workplace training
+> - **Conversational** — casual, like showing a friend
+> - **Storytelling** — narrative arc, marketing-style
+> - **Persuasive** — sales demo, investor pitch
+> - **Academic** — educational, explains concepts
+> - **Concise** — short and direct, power-user guide
+> - **Exact** — one sentence per click, technical docs
 
-**Advanced options** (only if the user asks):
+See [./rules/narration-styles.md](./rules/narration-styles.md) for detailed descriptions and examples.
+
+If the user says "default" or doesn't care, use **Tutorial**.
+
+### 7. Recording quality + cursors (only if user asks)
+
+These have good defaults — don't ask unless the user brings it up:
 - **Quality:** 4K (default) / 2K / 1080p
 - **Visible cursors:** No (default) / Yes
 
-### 6. Build the recording script
+### 8. Build the recording script
 
 Tell the user what you're about to do:
 > I'm writing the recording script now. It will open a browser, walk through the flow, and capture a high-quality video with every action tracked.
@@ -171,7 +185,7 @@ For error recovery: [./rules/validation.md](./rules/validation.md)
 >
 > Ready? I'll start recording now.
 
-### 7. Record the video
+### 9. Record the video
 
 ```bash
 mkdir -p .vorec recordings
@@ -187,7 +201,7 @@ When it finishes:
 
 Ask user to validate the video before uploading.
 
-### 8. Upload to Vorec
+### 10. Upload to Vorec
 
 After the user validates the recording, ask:
 
@@ -209,7 +223,7 @@ npx @vorec/cli@latest run vorec.json --skip-record --video <VIDEO> --tracked-act
 Tell the user:
 > Uploading video and action data to Vorec now...
 
-### 9. Clean up
+### 11. Clean up
 
 ```bash
 rm -f hero-script.mjs vorec.json
@@ -218,7 +232,7 @@ rm -rf .vorec/tracked-actions.json
 
 Keep the recordings directory if the user chose not to upload.
 
-### 10. Share the result
+### 12. Share the result
 
 If uploaded:
 > Your tutorial is ready! Open the editor here: [EDITOR_URL]
