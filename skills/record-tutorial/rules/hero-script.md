@@ -15,6 +15,7 @@ This is the **recording script** that both Connected and Explore modes produce. 
 4. **Action tracking uses valid types only** — see table below. Never invent new types.
 5. **Helpers must be inside the function body** — `playwright-cli run-code` expects a single async arrow function. No top-level `const` or `import`.
 6. **Every action must call `track()`** — not just clicks. If the user types → `track('type', ...)`. Dropdown → `track('select', ...)`. Vorec needs the full workflow.
+7. **Scroll TO the element, not past it** — use `scrollToElement(locator)` to bring the next target into view. Never blindly scroll a fixed pixel amount. The recording should always focus on the element the user is about to interact with.
 
 ## Action types for `track()` calls
 
@@ -28,7 +29,7 @@ track(type, description, target, coords, { context, typed_text, selected_value }
 | `type` | Type text into an input field | `slowType(locator, text, description, target, context)` |
 | `select` | Pick from a dropdown/select | Manual `track()` with `{ context, selected_value }` |
 | `hover` | Hover to reveal tooltip/menu | Manual `track()` with `{ context }` |
-| `scroll` | Scroll to reveal content | Manual `track()` with `{ context }` |
+| `scroll` | Scroll to reveal content | `scrollToElement(locator, description)` — auto-tracks |
 | `wait` | Pause for animation/loading | Manual `track()` with `{ context }` |
 | `navigate` | Navigate to a new page/URL | Manual `track()` with `{ context }` |
 | `narrate` | Describe scene — NO interaction | `hoverTour(locator, description)` or manual `track()` |
@@ -133,8 +134,42 @@ async page => {
 
   // ── Helpers ──────────────────────────────────────────────
 
+  // Smooth scroll to bring a target element into view. Scrolls just enough
+  // to center the element vertically — NEVER scrolls past it.
+  // Use this instead of blindly scrolling a fixed pixel amount.
+  const scrollToElement = async (locator, description) => {
+    // First check if element is already in viewport
+    const box = await locator.boundingBox();
+    if (box && box.y >= 0 && box.y + box.height <= VP.h) return; // already visible
+
+    // Scroll element to center of viewport with smooth animation
+    await locator.evaluate(el => {
+      const rect = el.getBoundingClientRect();
+      const targetY = window.scrollY + rect.top - window.innerHeight / 2 + rect.height / 2;
+      const distance = targetY - window.scrollY;
+      const steps = 20;
+      const stepY = distance / steps;
+      let i = 0;
+      return new Promise(resolve => {
+        const tick = () => {
+          if (i++ >= steps) return resolve();
+          window.scrollBy(0, stepY);
+          requestAnimationFrame(tick);
+        };
+        tick();
+      });
+    });
+    await page.waitForTimeout(400);
+    if (description) {
+      track('scroll', description, null, toCoords(await locator.boundingBox()), {
+        context: description,
+      });
+    }
+  };
+
   // Smooth pixel-level scroll — 20 small wheel events with jitter.
-  // Better than scrollBy({behavior:'smooth'}) for recordings.
+  // Use scrollToElement() instead when you have a target element.
+  // Only use slowScroll for general page exploration (no specific target).
   const slowScroll = async (totalY, steps = 20) => {
     const stepY = totalY / steps;
     for (let i = 0; i < steps; i++) {
@@ -144,8 +179,11 @@ async page => {
   };
 
   // Glide cursor to an element over 35 animation frames (smooth cursor movement).
+  // Auto-scrolls to bring the element into view first if needed.
   // Returns the boundingBox so callers can track coordinates.
   const glideMove = async (locator) => {
+    // Scroll into view if off-screen (smooth, stops at the element)
+    await scrollToElement(locator);
     const box = await locator.boundingBox();
     if (box) await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2, { steps: 35 });
     await page.waitForTimeout(500);
@@ -191,12 +229,11 @@ async page => {
   await page.waitForTimeout(2000);
 
   // Example actions — replace with your flow
-  track('scroll', 'Scroll to sign-up form', null, null, {
-    context: 'Scrolling down to reveal the sign-up form at the bottom of the landing page.',
-  });
-  await slowScroll(200);
+  // scrollToElement brings the target into view and stops — no blind scrolling
+  const emailField = page.getByPlaceholder('you@example.com');
+  await scrollToElement(emailField, 'Scroll to the sign-up form');
 
-  await hoverTour(page.getByPlaceholder('you@example.com'), 'The email field accepts any valid email address for account creation.');
+  await hoverTour(emailField, 'The email field accepts any valid email address for account creation.');
 
   await slowType(
     page.getByPlaceholder('you@example.com'), 'sarah.demo@gmail.com',
