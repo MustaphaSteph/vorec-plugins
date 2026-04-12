@@ -91,5 +91,5 @@ If any of these are true, switch to [./explore.md](./explore.md):
 After your script is written, both Connected and Explore follow the same steps:
 - [./hero-script.md](./hero-script.md) — write the recording script
 - [./cursor-pack.md](./cursor-pack.md) — optional visible cursors
-- [./cli-running-code.md](./cli-running-code.md) — run the script
+- Run with `node hero-script.mjs`
 - Upload to Vorec via `vorec run --skip-record` (see main SKILL.md Step 10)

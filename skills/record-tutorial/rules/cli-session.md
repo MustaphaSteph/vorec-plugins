@@ -33,15 +33,17 @@ playwright-cli open --headed https://vorec.ai/login
 
 ## Default session (what Vorec uses)
 
-Most Vorec recordings use the default session — no `-s` flag needed:
+For Explore mode page discovery, use the default session:
 
 ```bash
 playwright-cli close-all                    # stop everything first
 playwright-cli open https://target.com      # opens default session
-playwright-cli resize 1920 1080
-playwright-cli run-code --filename=hero.js
-playwright-cli close                         # stop the default session
+playwright-cli snapshot                      # discover page elements
+playwright-cli click e42                     # test interactions
+playwright-cli close                         # stop the session
 ```
+
+**Note:** The recording itself runs as a standalone Node.js script (`node hero-script.mjs`) — it launches its own browser. `playwright-cli` sessions are for exploration only.
 
 ## Named sessions (for complex flows)
 
@@ -110,44 +112,29 @@ playwright-cli open https://example.com  # uses "recording" session automaticall
 
 ## Common patterns for Vorec
 
-### Pattern 1 — Clean start (recommended for every recording)
-
-```bash
-playwright-cli close-all
-playwright-cli open <TARGET_URL>
-playwright-cli resize 1920 1080
-playwright-cli run-code --filename=./hero-script.js
-```
-
-### Pattern 2 — Interactive reconnaissance (Explore mode)
+### Pattern 1 — Page exploration (Explore mode)
 
 ```bash
 playwright-cli close-all
 playwright-cli open https://target.com
-
-# Explore manually
 playwright-cli --raw snapshot | grep -iE "signup|login"
 playwright-cli click e42
 playwright-cli --raw snapshot | grep -iE "form field"
-
-# Once you know the flow, write the hero script and run it
-playwright-cli run-code --filename=./hero-script.js
+# Once you know the flow → write hero-script.mjs and run with node
 ```
 
-### Pattern 3 — Auth capture then recording
+### Pattern 2 — Auth capture then recording
 
 ```bash
 # First: capture auth (save storageState)
 playwright-cli close-all
-playwright-cli open --persistent https://app.example.com/login
-# ... user logs in manually in the real browser ...
+playwright-cli open --headed --persistent https://app.example.com/login
+# ... user logs in manually in the visible browser ...
 playwright-cli state-save .vorec/storageState.json
 playwright-cli close
 
-# Second: record using the saved auth
-# (The hero script loads storageState at the start)
-playwright-cli open https://app.example.com
-playwright-cli run-code --filename=./hero-script.js
+# Second: run the recording (hero script loads storageState)
+node hero-script.mjs
 ```
 
 See [./auth.md](./auth.md) for the full auth capture workflow.
@@ -155,6 +142,6 @@ See [./auth.md](./auth.md) for the full auth capture workflow.
 ## Related files
 
 - [./cli-commands.md](./cli-commands.md) — Core commands (open, click, snapshot, resize)
-- [./cli-video.md](./cli-video.md) — Video recording API
-- [./cli-running-code.md](./cli-running-code.md) — `run-code` for hero scripts
+- [./cli-video.md](./cli-video.md) — Video recording quality (CDP frames → FFmpeg)
+- [./cli-running-code.md](./cli-running-code.md) — Inline scripts for page exploration
 - [./auth.md](./auth.md) — Storage state + session capture

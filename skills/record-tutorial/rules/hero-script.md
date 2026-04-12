@@ -242,7 +242,7 @@ await cdp.send('Page.startScreencast', {
   // context = rich description for AI narration (what happens after the click)
   const glideClick = async (locator, description, target, context) => {
     const box = await glideMove(locator);
-    if (typeof window !== 'undefined' && window.__vc?.clickPulse) {
+    if (await page.evaluate(() => !!window.__vc?.clickPulse)) {
       await page.evaluate(() => window.__vc.clickPulse());
       await page.waitForTimeout(120);
     }

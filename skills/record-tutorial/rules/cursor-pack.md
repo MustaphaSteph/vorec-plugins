@@ -65,17 +65,9 @@ console.log('const HOTSPOTS = ' + JSON.stringify(hotspots) + ';');
 " > /tmp/cursor-consts.js
 ```
 
-### Step 3 — Inject the constants at the top of the hero script body
+### Step 3 — Add the constants to the recording script
 
-```bash
-# Prepend cursor consts inside the async function body (not at top level)
-sed -i.bak 's|async page => {|async page => {\n  __CURSOR_CONSTS__|' hero-script.js
-# Replace placeholder with actual const definitions
-sed -i.bak "/__CURSOR_CONSTS__/r /tmp/cursor-consts.js" hero-script.js
-sed -i.bak 's|__CURSOR_CONSTS__||' hero-script.js
-```
-
-Or simpler — the agent writes the hero script in one pass with the cursor constants already inline at the top of the function body.
+Write the cursor constants directly into `hero-script.mjs` at the top of the file, before any page interactions. The agent writes the full script in one pass — no sed injection needed.
 
 ## The cursor injection block (goes inside the hero script)
 
@@ -187,7 +179,7 @@ The `glideClick` helper (from `hero-script.md`) already checks for `window.__vc?
 ```js
 const glideClick = async (locator, description, target) => {
   await glideMove(locator);
-  if (typeof window !== 'undefined' && window.__vc?.clickPulse) {
+  if (await page.evaluate(() => !!window.__vc?.clickPulse)) {
     await page.evaluate(() => window.__vc.clickPulse());
     await page.waitForTimeout(120);
   }
@@ -210,7 +202,7 @@ If the cursor pack is loaded, every click fires a ~160ms shrink-and-return anima
 
 - **No hover rings** (green glow around clickable elements) — removed for cleaner look, Vorec adds highlight effects in post-production
 - **No click ripples** (purple ring overlay) — replaced by the shrink animation
-- **No chapter cards** (`page.screencast.showChapter`) — Vorec adds intro slides and section markers in post-production
+- **No chapter cards** — Vorec adds intro slides and section markers in post-production
 - **No step numbers** (numbered badges on clicks) — Vorec adds them in post if needed
 
 Everything the cursor pack does is just cursor-level visual feedback. All post-production effects (zoom, spotlight, callouts, branding) come from Vorec after upload.

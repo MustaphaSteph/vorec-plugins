@@ -168,4 +168,4 @@ You're ready to write the hero script. Load [./hero-script.md](./hero-script.md)
 
 ## Both modes converge
 
-Explore mode ends at the same place as Connected mode: write a hero script, run it, convert to MP4, upload to Vorec. Return to the main `SKILL.md` at **Step 7 (Write the recording script)** when you're done exploring.
+Explore mode ends at the same place as Connected mode: write the recording script, run it (`node hero-script.mjs`), upload the MP4 to Vorec. Return to the main `SKILL.md` at **Step 8 (Build the recording script)** when you're done exploring.

@@ -5,7 +5,7 @@ description: playwright-cli core commands — open, click, snapshot, resize, etc
 
 # playwright-cli — Core Commands
 
-`playwright-cli` is the CLI front-end for Playwright. It runs a persistent browser session you can drive command-by-command, and it supports hero scripts via `run-code`.
+`playwright-cli` is the CLI front-end for Playwright. It runs a persistent browser session you can drive command-by-command, and it supports page exploration via snapshots, clicks, and inline scripts.
 
 > This file is adapted from Microsoft's official [playwright-cli skill](https://github.com/microsoft/playwright-cli/blob/main/skills/playwright-cli/SKILL.md) (Apache 2.0). Bundled for reference inside the Vorec record-tutorial plugin.
 
@@ -63,8 +63,8 @@ playwright-cli reload
 playwright-cli click e15            # click by ref from snapshot
 playwright-cli dblclick e7          # double-click
 playwright-cli type "hello world"   # type into currently focused element
-playwright-cli fill e5 "user@example.com"  # fill an input
-playwright-cli fill e5 "user@example.com" --submit  # fill then press Enter
+playwright-cli fill e5 "user@gmail.com"  # fill an input
+playwright-cli fill e5 "user@gmail.com" --submit  # fill then press Enter
 playwright-cli select e9 "option-value"  # select dropdown option
 playwright-cli check e12            # check a checkbox
 playwright-cli uncheck e12
@@ -122,7 +122,7 @@ By default, use refs from the snapshot. But in hero scripts, prefer semantic Pla
 // BEST — semantic, stable across page states
 page.getByRole('button', { name: 'Submit' })
 page.getByLabel('Email')
-page.getByPlaceholder('you@example.com')
+page.getByPlaceholder('you@gmail.com')
 page.getByText('Sign up')
 page.getByTestId('submit-btn')
 
@@ -184,6 +184,6 @@ playwright-cli delete-data
 
 ## Related files
 
-- [./cli-video.md](./cli-video.md) — Video recording API (page.screencast, video-start/stop, chapters, overlays)
-- [./cli-running-code.md](./cli-running-code.md) — Running hero scripts via `run-code`
+- [./cli-video.md](./cli-video.md) — Video recording quality (CDP frames → FFmpeg)
+- [./cli-running-code.md](./cli-running-code.md) — Running inline scripts for page exploration
 - [./cli-session.md](./cli-session.md) — Multi-session management (named sessions, close-all, kill-all)
