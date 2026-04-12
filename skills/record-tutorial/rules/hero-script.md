@@ -9,7 +9,7 @@ This is the **recording script** that both Connected and Explore modes produce. 
 
 ## Critical rules
 
-1. **Viewport and screencast size MUST match** — always 1920×1080. Mismatched sizes cause the content-in-top-left-quadrant bug.
+1. **Screencast size MUST match actual pixel output** — viewport 1920×1080 with DPR 2 = screencast 3840×2160. If sizes don't match, content appears in top-left quadrant only.
 2. **Open the target URL directly** via `playwright-cli open <url>` before running the hero script. Never `about:blank` (avoids white start frame).
 3. **Render flush before stop** — `requestAnimationFrame × 2` + 500ms wait before `screencast.stop()` to avoid a glitched last frame.
 4. **Action tracking uses valid types only** — see table below. Never invent new types.
@@ -95,11 +95,18 @@ __actions[__actions.length - 1].primary = true;
 
 ```js
 async page => {
-  // ── Screencast setup ──────────────────────────────────────
+  // ── Screencast setup (4K quality, 1080p layout) ───────────
+  // Viewport = 1920×1080 (content stays normal size)
+  // DPR 2 = renders at 3840×2160 (4K sharp pixels)
+  // Screencast size MUST match actual pixel output (DPR × viewport)
   await page.setViewportSize({ width: 1920, height: 1080 });
+  const cdp = await page.context().newCDPSession(page);
+  await cdp.send('Emulation.setDeviceMetricsOverride', {
+    width: 1920, height: 1080, deviceScaleFactor: 2, mobile: false,
+  });
   await page.screencast.start({
     path: './recordings/output.webm',
-    size: { width: 1920, height: 1080 },
+    size: { width: 3840, height: 2160 },
     fps: 60,
   });
 
@@ -415,8 +422,8 @@ Typical result: 80-90% of dead time removed, video length drops from ~60s to ~10
 | "Screencast is already started" | Previous run crashed. `playwright-cli close-all` and retry. |
 | Glitched last frame | Add `waitForLoadState('networkidle')` + `requestAnimationFrame` × 2 before stop. |
 | Strict mode violation on locator | Use `{ exact: true }` or `.first()` or scope to a container. |
-| Content in top-left quadrant (black padding) | Viewport and screencast size don't match. Set both to 1920×1080. |
-| Content looks zoomed out | Don't use huge viewports. 1920×1080 is the sweet spot. |
+| Content in top-left quadrant (black padding) | Screencast size doesn't match actual pixel output. With DPR 2: viewport 1920×1080 → screencast 3840×2160. |
+| Content looks zoomed out / tiny | Don't change viewport size for quality. Keep 1920×1080 viewport, use DPR 2 for sharp pixels. |
 | White frame at start of video | You opened `about:blank`. Open the target URL directly instead. |
 | `networkidle` hangs forever | Replace with `domcontentloaded`. Sites with WebSockets never go idle. |
 | Cart has leftover items | Clear cart before recording via `goto /cart/` and clicking remove buttons. |
