@@ -1,11 +1,13 @@
 ---
-name: hero-script
-description: The canonical recording script template with smooth scrolls, cursor glide, and human typing
+name: recording-script
+description: The recording script template — captures video, tracks actions, and outputs MP4 + tracked actions JSON
 ---
 
-# Hero Script Template
+# Recording Script
 
-This is the **recording script** that both Connected and Explore modes produce. It runs inside the already-open `playwright-cli` browser via `playwright-cli run-code --filename=./hero-script.js`.
+This is the **recording script** that the agent writes for each tutorial. It opens a browser, walks through the flow, records a high-quality video, and tracks every action with coordinates and context.
+
+The script is a standalone Node.js file (`hero-script.mjs`) — run it with `node hero-script.mjs`.
 
 ## Critical rules
 

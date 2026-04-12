@@ -118,20 +118,39 @@ If you hit something you can't decide, ask **ONE specific question** — not fiv
 ✅ **Do:**
 > "The cart has 3 items from an earlier session. Clear them or record as-is?"
 
-## 🎯 Rule 8 — Announce what you're doing as you do it
+## 🎯 Rule 8 — Tell the user what you're doing at every step
 
-Give the user a 1-sentence status update before each significant action:
+The user should always know what's happening. Give clear status updates in plain language — not technical jargon.
 
-- "Opening browser at vorec.ai/login in headed mode."
-- "Running the hero script — this takes about 30 seconds."
-- "Converting WebM to MP4..."
-- "Uploading to Vorec..."
-- "Done. Editor URL: https://vorec.ai/editor?project=..."
+**Before writing the script:**
+> "I'm writing the recording script now. It will open a browser, fill in the signup form, click Submit, and capture the whole flow as a video."
 
-Not:
+**Before recording:**
+> "Here's the plan:
+> 1. Open vorec.ai/signup
+> 2. Enter email and password
+> 3. Click Create Account
+> 4. Wait for the welcome page
+>
+> Ready? Starting the recording now."
+
+**During recording:**
+> "Recording in progress — the script is walking through the signup flow now."
+
+**After recording:**
+> "Done! Recorded 15 seconds with 6 tracked actions. Please review the video."
+
+**During upload:**
+> "Uploading video and action data to Vorec..."
+
+**After upload:**
+> "Your tutorial is ready! Open the editor: https://vorec.ai/editor?project=abc"
+
+**Never say:**
 - "Let me think about the next step..."
 - "I'm about to run a command. Is that okay?"
 - "Here's what I'm going to do in detail: first I'll..."
+- Technical details like "Running CDP frame capture with DPR 2..."
 
 ## 🎯 Rule 9 — On failure, fix silently when you can
 

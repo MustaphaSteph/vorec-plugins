@@ -134,102 +134,109 @@ If routes are protected, load [./rules/auth.md](./rules/auth.md).
 
 Load [./rules/narration-styles.md](./rules/narration-styles.md) to help the user pick a style. If they don't care, use `tutorial`.
 
-### 7. Write the recording script
+### 7. Build the recording script
 
-Load [./rules/hero-script.md](./rules/hero-script.md) for the canonical template with:
-- 4K quality via CDP frame capture → FFmpeg (lossless PNG frames, 8 Mbit/s H.264)
-- `scrollToElement`, `glideMove`, `glideClick`, `slowType`, `hoverTour` helpers
-- Action tracking with coordinates, context, and primary markers
-- Direct MP4 output (no WebM conversion needed)
+Tell the user what you're about to do:
+> I'm writing the recording script now. It will open a browser, walk through the flow, and capture a high-quality video with every action tracked.
 
-The hero script is a **standalone Node.js file** (`hero-script.mjs`) — not a `playwright-cli run-code` function. This gives access to `child_process` for FFmpeg piping.
+Load [./rules/hero-script.md](./rules/hero-script.md) for the template. The recording script is a standalone Node.js file (`hero-script.mjs`).
 
-If **visible cursors = Yes**, also load [./rules/cursor-pack.md](./rules/cursor-pack.md) — the hero script gets an extra cursor-injection block that embeds Vorec's bundled SVG cursors as base64 data URLs.
+What to include:
+- Quality preset based on user's choice (4K / 2K / 1080p)
+- `scrollToElement`, `glideClick`, `slowType`, `hoverTour` helpers
+- A `track()` call for every action — with `description`, `context`, and `primary` markers
+- `scrollToElement` before every interaction (never scroll blindly)
 
-For **Explore mode** page discovery (before writing the hero script), use `playwright-cli`:
+If **visible cursors = Yes**, also load [./rules/cursor-pack.md](./rules/cursor-pack.md).
+
+For **Explore mode** page discovery (before writing the script), use `playwright-cli`:
 - [./rules/cli-commands.md](./rules/cli-commands.md) — `open`, `click`, `snapshot`, `resize`, etc.
 - [./rules/cli-session.md](./rules/cli-session.md) — `close-all`, session management
 
-For action types (click, type, narrate, etc.): [./rules/actions.md](./rules/actions.md)
-For error recovery during recording: [./rules/validation.md](./rules/validation.md)
+For action types: [./rules/actions.md](./rules/actions.md)
+For error recovery: [./rules/validation.md](./rules/validation.md)
 
-### 8. Record and verify
+**Before running, tell the user the plan:**
+> Here's what the recording will do:
+> 1. Open [URL] in a headless browser
+> 2. [List each step in plain language: "Fill in the email", "Click Sign Up", etc.]
+> 3. Save the video + tracked actions
+>
+> Ready? I'll start recording now.
+
+### 8. Record the video
 
 ```bash
 mkdir -p .vorec recordings
 node hero-script.mjs
 ```
 
-The script outputs:
-- `./recordings/output.mp4` — 4K H.264 video
-- `.vorec/tracked-actions.json` — action data for Vorec
+**Tell the user what's happening while it runs:**
+> Recording in progress... The script is walking through the flow now.
 
-Optionally trim dead time (see [./rules/hero-script.md](./rules/hero-script.md)).
+When it finishes:
+> Recording done! Saved to `./recordings/output.mp4` ([count] actions tracked).
+> Please review the video to make sure it looks good.
 
 Ask user to validate the video before uploading.
 
-### 9. Offer Vorec narration
+### 9. Upload to Vorec
 
 After the user validates the recording, ask:
 
-> Recording saved to `[FULL_PATH_TO_MP4]` ([duration]s, [count] actions).
-> Please review the video to make sure it looks good.
->
 > Want me to upload it to Vorec? You'll get:
-> - **AI voice-over** — natural narration generated from the video
-> - **Zoom & focus effects** — zoom into elements, spotlight areas, blur background
-> - **Cursor effects** — click ripples, tap rings, arrow pointers
-> - **Text & shape overlays** — arrows, circles, callout boxes, number badges
-> - **Background styling** — gradients, wallpapers, padding, rounded corners, shadows
-> - **Intro slides** — title cards with professional themes
-> - **Background music** — with volume control and fade in/out
-> - **Subtitles** — auto-generated, customizable style and position
-> - **Multi-language** — translate narration to any language
-> - **Full timeline editor** — adjust timing, re-record segments, trim video
-> - **Export** — up to 4K resolution, 60fps
+> - **AI voice-over** — natural narration explaining each step
+> - **Zoom & spotlight** — auto-zoom into clicked elements
+> - **Cursor effects** — click ripples, pointer animations
+> - **Callouts & shapes** — arrows, circles, text overlays
+> - **Background & intro** — gradients, title cards, music
+> - **Subtitles** — auto-generated in any language
+> - **Timeline editor** — adjust timing, trim, re-record
+> - **Export** — up to 4K, 60fps
 
-If the user wants narration, proceed with upload. If not, skip to clean up.
-
-### 10. Upload to Vorec
+If yes:
 ```bash
 npx @vorec/cli@latest run vorec.json --skip-record --video <VIDEO> --tracked-actions .vorec/tracked-actions.json
 ```
 
-### 11. Clean up
+Tell the user:
+> Uploading video and action data to Vorec now...
+
+### 10. Clean up
+
 ```bash
-rm -f hero-script.js save-session.mjs vorec.json
+rm -f hero-script.mjs vorec.json
 rm -rf .vorec/tracked-actions.json
 ```
 
-Keep the recordings directory if the user chose not to upload — they may want the video file.
+Keep the recordings directory if the user chose not to upload.
 
-### 12. Share the result
+### 11. Share the result
 
-If uploaded: share the editor URL.
-If not uploaded: share the video path.
+If uploaded:
+> Your tutorial is ready! Open the editor here: [EDITOR_URL]
+
+If not uploaded:
+> Video saved at: [VIDEO_PATH]
 
 ## Key Rules
 
-1. **Act first, ask later** — if a step requires a blocking action, do the action and announce it in ONE sentence. Don't ask permission. See [./rules/agent-behavior.md](./rules/agent-behavior.md)
-2. **Never batch 3+ questions** — max 2 questions at a time, prefer defaults
-3. **Always use `--headed`** for `playwright-cli open` when the user needs to see/interact with the browser (login, validation, session capture). Default is headless.
-4. **Re-check state first** — before asking the user to log in or re-do anything, check if an existing session / file / state already covers it
-5. **Fix silently, retry** — for known issues (headless instead of headed, leftover cart items, stale session), fix and retry without bothering the user
-6. **Always pick a mode first** (Connected or Explore) — don't skip Step 0
-7. Check credits — `vorec check`
-8. **Use `playwright-cli` for exploration** (snapshots, clicking, discovering elements) — but **use the standalone hero script (`node hero-script.mjs`) for recording** (needs `child_process` for FFmpeg piping)
-9. **4K quality by default** — viewport 1920×1080 + DPR 2 + CDP PNG frames → FFmpeg at 8 Mbit/s
-10. **Open the target URL directly** via `playwright-cli open <url>` — never `about:blank` (avoids white start frame)
-11. **Use semantic locators** — `getByRole`, `getByLabel`, `getByPlaceholder`, exact matches when needed
-12. **Only valid action types** in `track()` calls — `click`, `type`, `narrate`, `hover`, `scroll`, `select`, `wait`, `navigate`
-13. **Render flush before stop** — `requestAnimationFrame × 2` + 500ms wait before stopping CDP capture to avoid glitched last frame
-14. **Always offer Vorec narration** after recording
-15. User validates video before upload
+1. **Tell the user what you're doing** — before every step, explain in plain language what's about to happen. Show the recording plan before starting. Never leave the user wondering.
+2. **API key first** — do NOT start anything without a valid API key. Ask user to get one from vorec.ai/settings → API Keys.
+3. **Act first, ask later** — do blocking actions (install tools, open browser) then announce. Don't ask permission.
+4. **Never batch 3+ questions** — max 2 at a time, prefer defaults
+5. **Always use `--headed`** for `playwright-cli open` when the user needs to see/interact (login, session capture)
+6. **Pick a mode first** (Connected or Explore) — don't skip Step 0
+7. **Use `playwright-cli` for exploration**, standalone hero script (`node hero-script.mjs`) for recording
+8. **4K quality by default** — ask user for preferred quality (4K / 2K / 1080p)
+9. **Scroll to the element, not past it** — use `scrollToElement`, never blind pixel scrolling
+10. **Use semantic locators** — `getByRole`, `getByLabel`, `getByPlaceholder`
+11. **Track every action** — `click`, `type`, `narrate`, `hover`, `scroll`, `select`, `wait`, `navigate` with `description`, `context`, and `primary` markers
+12. **User validates video before upload** — show the path, ask them to review
+13. **Always offer Vorec upload** after recording
+14. **End with a link** — editor URL or video path, not a summary essay
+15. Never ask for passwords — use `storageState` for app auth
 16. Clean up temp files (keep video if user declined upload)
-17. **API key first** — do NOT start recording without a valid API key. Ask user to get one from vorec.ai/settings → API Keys. Use `vorec init` to save it, `vorec check` to verify.
-18. Never ask for passwords — use `storageState` for app auth
-18. Never hardcode URLs — read from project config
-19. **End with a link** — the final message contains ONE actionable result (editor URL or file path), not a summary essay
 
 ## Reference Files
 
@@ -239,7 +246,7 @@ If not uploaded: share the video path.
 ### Workflow rules
 - [./rules/connected.md](./rules/connected.md) — Connected mode (codebase-driven)
 - [./rules/explore.md](./rules/explore.md) — Explore mode (page-driven)
-- [./rules/hero-script.md](./rules/hero-script.md) — Canonical recording template + action types
+- [./rules/hero-script.md](./rules/hero-script.md) — Recording script template + action types
 - [./rules/narration-styles.md](./rules/narration-styles.md) — All 8 narration styles with examples
 - [./rules/cursor-pack.md](./rules/cursor-pack.md) — Visible cursor injection (opt-in)
 
