@@ -99,7 +99,9 @@ Do NOT ask generic questions like "What's the goal?" or "Who's watching?" — ju
 
 ### 3. Check the page first — don't assume login
 
-**Before doing anything with auth, check if the page is publicly accessible:**
+**Everything runs in the background — no visible browser.** The user never sees a browser window unless they need to log in. Recording, exploration, and uploading all happen headless.
+
+Check if the page is publicly accessible:
 
 ```bash
 playwright-cli open <URL>
@@ -108,7 +110,7 @@ playwright-cli snapshot
 
 Look at the snapshot:
 - **Public page with content visible?** → No login needed. Continue to Step 4.
-- **Login page or redirect to auth?** → Login required. Load [./rules/auth.md](./rules/auth.md).
+- **Login page or redirect to auth?** → Login required. Open browser in **headed mode** (`--headed`) so user can log in. Load [./rules/auth.md](./rules/auth.md).
 - **Some content visible but action requires auth?** → Ask the user: "Do I need to log in for [specific action]?"
 
 **NEVER assume login is needed.** Most public websites (marketing sites, docs, tools) don't require auth. Only handle auth when you SEE a login wall or the user tells you it's needed.
