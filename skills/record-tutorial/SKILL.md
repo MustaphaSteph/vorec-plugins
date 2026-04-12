@@ -133,18 +133,18 @@ Load [./rules/narration-styles.md](./rules/narration-styles.md) to help the user
 ### 7. Write the recording script
 
 Load [./rules/hero-script.md](./rules/hero-script.md) for the canonical template with:
-- Matching viewport + screencast size (1920×1080)
-- `slowScroll`, `glideMove`, `glideClick`, `slowType`, `hoverTour` helpers
-- Action tracking via `window.__vorec_actions` (extracted after recording)
-- Render-flush before `screencast.stop()`
+- 4K quality via CDP frame capture → FFmpeg (lossless PNG frames, 8 Mbit/s H.264)
+- `scrollToElement`, `glideMove`, `glideClick`, `slowType`, `hoverTour` helpers
+- Action tracking with coordinates, context, and primary markers
+- Direct MP4 output (no WebM conversion needed)
+
+The hero script is a **standalone Node.js file** (`hero-script.mjs`) — not a `playwright-cli run-code` function. This gives access to `child_process` for FFmpeg piping.
 
 If **visible cursors = Yes**, also load [./rules/cursor-pack.md](./rules/cursor-pack.md) — the hero script gets an extra cursor-injection block that embeds Vorec's bundled SVG cursors as base64 data URLs.
 
-For `playwright-cli` command syntax:
+For **Explore mode** page discovery (before writing the hero script), use `playwright-cli`:
 - [./rules/cli-commands.md](./rules/cli-commands.md) — `open`, `click`, `snapshot`, `resize`, etc.
-- [./rules/cli-video.md](./rules/cli-video.md) — `video-start`, `video-stop`, `page.screencast`
-- [./rules/cli-running-code.md](./rules/cli-running-code.md) — `run-code` for hero scripts
-- [./rules/cli-session.md](./rules/cli-session.md) — `close-all`, `resize`, session management
+- [./rules/cli-session.md](./rules/cli-session.md) — `close-all`, session management
 
 For action types (click, type, narrate, etc.): [./rules/actions.md](./rules/actions.md)
 For error recovery during recording: [./rules/validation.md](./rules/validation.md)
@@ -152,25 +152,15 @@ For error recovery during recording: [./rules/validation.md](./rules/validation.
 ### 8. Record and verify
 
 ```bash
-playwright-cli close-all
-playwright-cli open <TARGET_URL>   # never about:blank — avoids white start frame
-playwright-cli resize 1920 1080
-playwright-cli run-code --filename=./hero-script.js
+mkdir -p .vorec recordings
+node hero-script.mjs
 ```
 
-**Extract tracked actions** (the hero script stores them on `window.__vorec_actions`):
-```bash
-mkdir -p .vorec
-playwright-cli run-code "async page => JSON.stringify(await page.evaluate(() => window.__vorec_actions || []))" 2>/dev/null | node -e "
-  let buf='';process.stdin.on('data',d=>buf+=d);process.stdin.on('end',()=>{
-    const m=buf.match(/\[[\s\S]*\]/);
-    if(m){require('fs').writeFileSync('.vorec/tracked-actions.json',JSON.stringify(JSON.parse(m[0]),null,2));console.log(JSON.parse(m[0]).length+' actions tracked')}
-    else{console.error('No actions found');process.exit(1)}
-  });
-"
-```
+The script outputs:
+- `./recordings/output.mp4` — 4K H.264 video
+- `.vorec/tracked-actions.json` — action data for Vorec
 
-Convert to MP4 and optionally trim dead time (see [./rules/hero-script.md](./rules/hero-script.md)).
+Optionally trim dead time (see [./rules/hero-script.md](./rules/hero-script.md)).
 
 Ask user to validate the video before uploading.
 
@@ -223,12 +213,12 @@ If not uploaded: share the video path.
 5. **Fix silently, retry** — for known issues (headless instead of headed, leftover cart items, stale session), fix and retry without bothering the user
 6. **Always pick a mode first** (Connected or Explore) — don't skip Step 0
 7. Check credits — `vorec check`
-8. **Use `playwright-cli`** — not raw Playwright library. It handles sessions, snapshots, and video recording natively
-9. **Matching viewport and screencast size** — always 1920×1080 to avoid the content-in-quadrant bug
+8. **Use `playwright-cli` for exploration** (snapshots, clicking, discovering elements) — but **use the standalone hero script (`node hero-script.mjs`) for recording** (needs `child_process` for FFmpeg piping)
+9. **4K quality by default** — viewport 1920×1080 + DPR 2 + CDP PNG frames → FFmpeg at 8 Mbit/s
 10. **Open the target URL directly** via `playwright-cli open <url>` — never `about:blank` (avoids white start frame)
 11. **Use semantic locators** — `getByRole`, `getByLabel`, `getByPlaceholder`, exact matches when needed
 12. **Only valid action types** in `track()` calls — `click`, `type`, `narrate`, `hover`, `scroll`, `select`, `wait`, `navigate`
-13. **Render flush before stop** — `requestAnimationFrame × 2` + 500ms wait before `screencast.stop()` to avoid glitched last frame
+13. **Render flush before stop** — `requestAnimationFrame × 2` + 500ms wait before stopping CDP capture to avoid glitched last frame
 14. **Always offer Vorec narration** after recording
 15. User validates video before upload
 16. Clean up temp files (keep video if user declined upload)

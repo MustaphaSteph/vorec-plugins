@@ -9,13 +9,13 @@ This is the **recording script** that both Connected and Explore modes produce. 
 
 ## Critical rules
 
-1. **Screencast size MUST match actual pixel output** — viewport 1920×1080 with DPR 2 = screencast 3840×2160. If sizes don't match, content appears in top-left quadrant only.
-2. **Open the target URL directly** via `playwright-cli open <url>` before running the hero script. Never `about:blank` (avoids white start frame).
-3. **Render flush before stop** — `requestAnimationFrame × 2` + 500ms wait before `screencast.stop()` to avoid a glitched last frame.
+1. **4K quality by default** — viewport 1920×1080 + `deviceScaleFactor: 2` = 3840×2160 output. CDP frame capture with PNG → FFmpeg at 8 Mbit/s.
+2. **Navigate to the target URL directly** — `page.goto(url)`. Never leave the page on `about:blank` (avoids white start frame).
+3. **Render flush before stop** — `requestAnimationFrame × 2` + 500ms wait before stopping CDP capture to avoid a glitched last frame.
 4. **Action tracking uses valid types only** — see table below. Never invent new types.
-5. **Helpers must be inside the function body** — `playwright-cli run-code` expects a single async arrow function. No top-level `const` or `import`.
-6. **Every action must call `track()`** — not just clicks. If the user types → `track('type', ...)`. Dropdown → `track('select', ...)`. Vorec needs the full workflow.
-7. **Scroll TO the element, not past it** — use `scrollToElement(locator)` to bring the next target into view. Never blindly scroll a fixed pixel amount. The recording should always focus on the element the user is about to interact with.
+5. **Every action must call `track()`** — not just clicks. If the user types → `track('type', ...)`. Dropdown → `track('select', ...)`. Vorec needs the full workflow.
+6. **Scroll TO the element, not past it** — use `scrollToElement(locator)` to bring the next target into view. Never blindly scroll a fixed pixel amount. Always focus on the element the user is about to interact with.
+7. **The hero script is a standalone Node.js file** (`hero-script.mjs`) — NOT a `playwright-cli run-code` function. This gives access to `child_process` for FFmpeg piping.
 
 ## Action types for `track()` calls
 
@@ -93,22 +93,52 @@ __actions[__actions.length - 1].primary = true;
 
 ## The canonical template
 
+The hero script is a **standalone Node.js file** (not a `playwright-cli run-code` function). This gives us access to `child_process` for piping lossless CDP frames directly to FFmpeg — no 1 Mbit/s screencast bottleneck.
+
+Run it with: `node hero-script.mjs`
+
 ```js
-async page => {
-  // ── Screencast setup (4K quality, 1080p layout) ───────────
-  // Viewport = 1920×1080 (content stays normal size)
-  // DPR 2 = renders at 3840×2160 (4K sharp pixels)
-  // Screencast size MUST match actual pixel output (DPR × viewport)
-  await page.setViewportSize({ width: 1920, height: 1080 });
-  const cdp = await page.context().newCDPSession(page);
-  await cdp.send('Emulation.setDeviceMetricsOverride', {
-    width: 1920, height: 1080, deviceScaleFactor: 2, mobile: false,
-  });
-  await page.screencast.start({
-    path: './recordings/output.webm',
-    size: { width: 3840, height: 2160 },
-    fps: 60,
-  });
+// hero-script.mjs — standalone Node.js recording script
+import { chromium } from 'playwright';
+import { spawn } from 'child_process';
+import { mkdirSync, writeFileSync } from 'fs';
+
+mkdirSync('./recordings', { recursive: true });
+
+const browser = await chromium.launch({ headless: true });
+const context = await browser.newContext({
+  viewport: { width: 1920, height: 1080 },
+  deviceScaleFactor: 2,
+});
+const page = await context.newPage();
+await page.goto('TARGET_URL', { waitUntil: 'domcontentloaded' });
+
+// ── High-quality recording via CDP frames → FFmpeg ──────────
+// CDP sends lossless PNG frames → piped to FFmpeg in real-time
+// Result: 4K H.264 MP4 at 8 Mbit/s (vs screencast's 1 Mbit/s VP8)
+const FPS = 30;
+const cdp = await context.newCDPSession(page);
+const ffmpeg = spawn('ffmpeg', [
+  '-y',
+  '-f', 'image2pipe', '-framerate', String(FPS), '-i', '-',
+  '-c:v', 'libx264', '-preset', 'slow', '-crf', '18', '-tune', 'animation',
+  '-pix_fmt', 'yuv420p', '-movflags', '+faststart',
+  '-b:v', '8M',
+  './recordings/output.mp4',
+], { stdio: ['pipe', 'pipe', 'pipe'] });
+ffmpeg.stderr.on('data', () => {}); // suppress FFmpeg logs
+
+let recording = true;
+cdp.on('Page.screencastFrame', async ({ data, sessionId }) => {
+  if (!recording) return;
+  ffmpeg.stdin.write(Buffer.from(data, 'base64'));
+  await cdp.send('Page.screencastFrameAck', { sessionId });
+});
+await cdp.send('Page.startScreencast', {
+  format: 'png', quality: 100,
+  maxWidth: 3840, maxHeight: 2160,
+  everyNthFrame: 1,
+});
 
   // ── Action tracking (for Vorec narration) ────────────────
   // Actions are collected in a local array during recording,
@@ -265,53 +295,43 @@ async page => {
   await page.waitForTimeout(3000);
   track('narrate', 'Flow complete');
 
-  // ── Render flush before stop ─────────────────────────────
-  // Avoids glitched/corrupted last frame of the recording.
+  // ── Stop recording ────────────────────────────────────────
   await page.evaluate(() => new Promise(r =>
     requestAnimationFrame(() => requestAnimationFrame(r))
   ));
   await page.waitForTimeout(500);
-  await page.screencast.stop();
+  recording = false;
+  await cdp.send('Page.stopScreencast');
+  ffmpeg.stdin.end();
+  await new Promise(r => ffmpeg.on('close', r));
 
-  // ── Save tracked actions to page context ─────────────────
-  // Stored on window so a second run-code call can extract them.
-  await page.evaluate((a) => { window.__vorec_actions = a; }, __actions);
+  // ── Save tracked actions ─────────────────────────────────
+  writeFileSync('.vorec/tracked-actions.json', JSON.stringify(__actions, null, 2));
+  console.log(`${__actions.length} actions tracked → .vorec/tracked-actions.json`);
+
+  await browser.close();
+  console.log('Recording saved → ./recordings/output.mp4');
 }
 ```
 
 ## Running the script
 
 ```bash
-playwright-cli close-all
-playwright-cli open <TARGET_URL>     # opens target directly — no white frame
-playwright-cli resize 1920 1080
-playwright-cli run-code --filename=./hero-script.js
+mkdir -p .vorec recordings
+node hero-script.mjs
 ```
 
-## Extracting tracked actions
+The script:
+1. Launches Chromium with DPR 2 (4K rendering)
+2. Opens the target URL directly (no white frame)
+3. Starts CDP frame capture → pipes lossless PNGs to FFmpeg in real-time
+4. Runs the flow (clicks, types, scrolls)
+5. Stops recording → FFmpeg finalizes the MP4
+6. Saves tracked actions to `.vorec/tracked-actions.json`
 
-After the hero script finishes, the tracked actions are stored on `window.__vorec_actions`. Extract them with a second `run-code` call:
-
-```bash
-mkdir -p .vorec
-playwright-cli run-code "async page => JSON.stringify(await page.evaluate(() => window.__vorec_actions || []))" 2>/dev/null | node -e "
-  let buf = '';
-  process.stdin.on('data', d => buf += d);
-  process.stdin.on('end', () => {
-    const m = buf.match(/\[[\s\S]*\]/);
-    if (m) {
-      const actions = JSON.parse(m[0]);
-      require('fs').writeFileSync('.vorec/tracked-actions.json', JSON.stringify(actions, null, 2));
-      console.log(actions.length + ' actions tracked');
-    } else {
-      console.error('No actions found — check hero script track() calls');
-      process.exit(1);
-    }
-  });
-"
-```
-
-**Why two run-code calls?** `console.log` inside `playwright-cli run-code` does NOT appear in stdout — only the script source and return value do. Storing actions on `window` and extracting separately is the reliable approach.
+Output:
+- `./recordings/output.mp4` — 4K H.264 video (8 Mbit/s, CRF 18)
+- `.vorec/tracked-actions.json` — action data for Vorec
 
 The resulting JSON matches the format Vorec's `agent-api/create-project` expects:
 ```json
@@ -359,21 +379,20 @@ The resulting JSON matches the format Vorec's `agent-api/create-project` expects
 
 **Why this matters:** When Vorec receives tracked actions, it skips video-based click detection entirely. The agent already knows what was clicked, when, and why — so Vorec only needs to write narration scripts using the action descriptions as context. This is faster, cheaper, and more accurate.
 
-## Convert WebM → MP4 (visually lossless)
+## Video quality settings
 
-```bash
-ffmpeg -y -i ./recordings/output.webm \
-  -c:v libx264 -preset slower -crf 15 -tune animation \
-  -pix_fmt yuv420p -movflags +faststart \
-  ./recordings/output.mp4
-```
+The hero script records directly to H.264 MP4 via CDP frames → FFmpeg. No WebM intermediate — no double compression.
 
-Settings:
-- `-crf 15` — visually lossless (lower = better, 17 is standard, 15 is premium)
-- `-preset slower` — better compression at same quality
-- `-tune animation` — UI-content-aware compression
-- `-pix_fmt yuv420p` — universal compatibility
-- `-movflags +faststart` — plays while downloading
+| Setting | Value | Why |
+|---------|-------|-----|
+| Frame source | CDP `Page.startScreencast` with `format: 'png'` | Lossless frames — no quality loss at capture |
+| Resolution | 3840×2160 (4K) via DPR 2 | Sharp text and UI at any zoom level |
+| Codec | H.264 (`libx264`) | Universal playback |
+| CRF | 18 | Visually lossless (lower = better, 18-23 range) |
+| Bitrate | 8 Mbit/s target | 8× more than Playwright's hardcoded 1 Mbit/s |
+| Preset | `slow` | Better compression at same quality |
+| Tune | `animation` | Optimized for UI content |
+| FPS | 30 | Smooth enough for tutorials, half the file size of 60fps |
 
 ## Dead-time trim (optional)
 
@@ -419,11 +438,10 @@ Typical result: 80-90% of dead time removed, video length drops from ~60s to ~10
 
 | Failure | Fix |
 |---|---|
-| "Screencast is already started" | Previous run crashed. `playwright-cli close-all` and retry. |
-| Glitched last frame | Add `waitForLoadState('networkidle')` + `requestAnimationFrame` × 2 before stop. |
+| FFmpeg "pipe broken" | Previous recording process still running. Kill it: `pkill -f 'ffmpeg.*output.mp4'` |
+| Glitched last frame | Add `requestAnimationFrame` × 2 + 500ms wait before `Page.stopScreencast`. |
 | Strict mode violation on locator | Use `{ exact: true }` or `.first()` or scope to a container. |
-| Content in top-left quadrant (black padding) | Screencast size doesn't match actual pixel output. With DPR 2: viewport 1920×1080 → screencast 3840×2160. |
-| Content looks zoomed out / tiny | Don't change viewport size for quality. Keep 1920×1080 viewport, use DPR 2 for sharp pixels. |
+| Content looks zoomed out / tiny | Don't change viewport size for quality. Keep 1920×1080 viewport, use `deviceScaleFactor: 2` for sharp pixels. |
 | White frame at start of video | You opened `about:blank`. Open the target URL directly instead. |
 | `networkidle` hangs forever | Replace with `domcontentloaded`. Sites with WebSockets never go idle. |
 | Cart has leftover items | Clear cart before recording via `goto /cart/` and clicking remove buttons. |
