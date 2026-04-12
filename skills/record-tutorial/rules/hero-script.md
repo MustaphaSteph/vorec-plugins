@@ -31,6 +31,7 @@ This is the **recording script** that both Connected and Explore modes produce. 
 
 **`description`** = what the user is doing (for timeline labels + Gemini narration context).
 **`target`** = short element identifier (optional, for Vorec click markers).
+**`coordinates`** = auto-captured by helpers (`glideClick`, `slowType`, `hoverTour`) from `boundingBox()`. Normalized to 0-1000. Used for click markers, auto-zoom, and cursor effects in Vorec.
 
 ## The canonical template
 
@@ -50,11 +51,23 @@ async page => {
   // A second run-code call extracts them to a JSON file.
   // NOTE: console.log does NOT reach stdout in playwright-cli run-code,
   //       so we MUST use this window-based approach instead.
+  const VP = { w: 1920, h: 1080 };
   const __actions = [];
   const T0 = Date.now();
-  const track = (type, description, target) => {
-    __actions.push({ type, description, target, t: +((Date.now() - T0) / 1000).toFixed(2) });
+  const track = (type, description, target, coords) => {
+    __actions.push({
+      type, description, target,
+      timestamp: +((Date.now() - T0) / 1000).toFixed(2),
+      // Normalized 0-1000 coordinates for Vorec click markers + auto-zoom
+      coordinates: coords || { x: 500, y: 500 },
+    });
   };
+  // Convert boundingBox center to Vorec's 0-1000 coordinate space
+  const toCoords = (box) => box ? {
+    x: Math.round(((box.x + box.width / 2) / VP.w) * 1000),
+    y: Math.round(((box.y + box.height / 2) / VP.h) * 1000),
+  } : { x: 500, y: 500 };
+
   track('narrate', 'Recording starts', 'intro');
 
   // ── Helpers ──────────────────────────────────────────────
@@ -70,40 +83,41 @@ async page => {
   };
 
   // Glide cursor to an element over 35 animation frames (smooth cursor movement).
+  // Returns the boundingBox so callers can track coordinates.
   const glideMove = async (locator) => {
     const box = await locator.boundingBox();
-    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2, { steps: 35 });
+    if (box) await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2, { steps: 35 });
     await page.waitForTimeout(500);
+    return box;
   };
 
-  // Glide + click with optional cursor shrink animation (if cursor pack is loaded).
+  // Glide + click with real coordinate tracking.
   const glideClick = async (locator, description, target) => {
-    await glideMove(locator);
+    const box = await glideMove(locator);
     if (typeof window !== 'undefined' && window.__vc?.clickPulse) {
       await page.evaluate(() => window.__vc.clickPulse());
       await page.waitForTimeout(120);
     }
-    track('click', description, target);
+    track('click', description, target, toCoords(box));
     await locator.click();
     await page.waitForTimeout(400);
   };
 
-  // Human-like typing with jittered keystrokes (60-140ms).
+  // Human-like typing with real coordinate tracking.
   const slowType = async (locator, text, description, target) => {
-    await glideMove(locator);
+    const box = await glideMove(locator);
     await locator.click();
     await page.waitForTimeout(300);
-    track('type', description, target);
+    track('type', description, target, toCoords(box));
     for (const ch of text) {
       await locator.page().keyboard.type(ch, { delay: 70 + Math.random() * 90 });
     }
   };
 
-  // Hover over an element to "explain" it without clicking. Used in the
-  // optional "explain first" phase of Explore mode recordings.
+  // Hover over an element to "explain" it without clicking.
   const hoverTour = async (locator, description, ms = 1500) => {
-    await glideMove(locator);
-    track('narrate', description);
+    const box = await glideMove(locator);
+    track('narrate', description, null, toCoords(box));
     await page.waitForTimeout(ms);
   };
 
@@ -179,13 +193,15 @@ playwright-cli run-code "async page => JSON.stringify(await page.evaluate(() => 
 The resulting JSON matches the format Vorec's `agent-api/create-project` expects:
 ```json
 [
-  { "type": "narrate", "description": "Recording starts", "target": "intro", "t": 0 },
-  { "type": "narrate", "description": "Email field", "target": "email", "t": 2.1 },
-  { "type": "type", "description": "Enter email address", "target": "email", "t": 4.5 },
-  { "type": "click", "description": "Click submit button", "target": "submit", "t": 8.2 },
-  { "type": "narrate", "description": "Flow complete", "target": null, "t": 12.0 }
+  { "type": "narrate", "description": "Recording starts", "target": "intro", "timestamp": 0, "coordinates": { "x": 500, "y": 500 } },
+  { "type": "narrate", "description": "Email field", "target": null, "timestamp": 2.1, "coordinates": { "x": 480, "y": 420 } },
+  { "type": "type", "description": "Enter email address", "target": "email", "timestamp": 4.5, "coordinates": { "x": 480, "y": 420 } },
+  { "type": "click", "description": "Click submit button", "target": "submit", "timestamp": 8.2, "coordinates": { "x": 510, "y": 580 } },
+  { "type": "narrate", "description": "Flow complete", "target": null, "timestamp": 12.0, "coordinates": { "x": 500, "y": 500 } }
 ]
 ```
+
+**Coordinates** are normalized to 0-1000 (from `boundingBox()` center / viewport size × 1000). Vorec uses them for click markers on the timeline, auto-zoom targets, and cursor effects.
 
 **Only valid action types:** `click`, `type`, `narrate`, `hover`, `scroll`, `select`, `wait`, `navigate`. Anything else gets rejected by the agent-api.
 
@@ -222,7 +238,7 @@ PRE, POST = 0.8, 2.0   # keep this long before/after each action
 segs = []
 for a in actions:
     if a['type'] in ('start', 'stop'): continue
-    segs.append([max(0, a['t'] - PRE), a['t'] + POST])
+    segs.append([max(0, a['timestamp'] - PRE), a['timestamp'] + POST])
 
 # Merge overlapping segments
 segs.sort()
