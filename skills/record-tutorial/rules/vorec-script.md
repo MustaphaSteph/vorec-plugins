@@ -25,6 +25,15 @@ The script is a standalone Node.js file (`vorec-script.mjs`) — run it with `no
 ### Pacing — this is what makes a tutorial watchable
 8. **Load pacing rules** — read [./pacing.md](./pacing.md) for timing. Use the per-style timing table to set `waitForTimeout` values and typing delays. Never hardcode — match the user's chosen narration style.
 
+### Writing long scripts (10+ actions)
+These rules prevent drift when the script gets big:
+
+9. **Max 1 narrate before the first click on each page** — orient the viewer once, then start interacting. Don't stack 3-5 narrate blocks before clicking anything.
+10. **description and context must be DIFFERENT** — `description` is a short label (5-15 words). `context` is a rich narration source (1-2 sentences). Never copy one into the other.
+11. **Every tracked action must have context** — no empty context fields. If you're adding 7 players, each `track('type', ...)` needs context. For repeated actions, vary the context (e.g. "Adding our second player" → "Five players in, two more to go").
+12. **Always use `slowType` for tracked type actions** — never use manual `keyboard.type` with different delays. The `slowType` helper handles timing consistently. No exceptions.
+13. **Use loops for repeated actions, but keep context unique** — for adding multiple items (players, rows, products), use a loop but give at least the first and last items full context, and every 3rd item a progress update.
+
 ## Action types for `track()` calls
 
 ```js
