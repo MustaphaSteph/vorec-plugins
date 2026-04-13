@@ -1,22 +1,24 @@
 ---
 name: recording-quality
-description: How Vorec records video — page.screencast for real-time + FFmpeg re-encode for quality
+description: How Vorec records video — recordVideo for real-time + FFmpeg lanczos upscale for quality
 ---
 
 # Video Recording
 
-Vorec records video using Playwright's `page.screencast` API which captures the browser in **real-time** — all pauses, typing, and animations appear at their actual speed. The WebM output is then re-encoded with FFmpeg for higher quality.
+Vorec records video using Playwright's `recordVideo` API which captures the browser in **real-time** — all pauses, typing, and animations appear at their actual speed. The WebM output is then upscaled and re-encoded with FFmpeg.
+
+**Note:** `page.screencast` is a playwright-cli extension (only works inside `playwright-cli run-code`). The standalone vorec script uses `recordVideo` instead (standard Playwright API).
 
 ## How it works
 
 ```
-page.screencast → real-time WebM (VP8) → FFmpeg re-encode → H.264 MP4
+recordVideo → real-time WebM (VP8) → FFmpeg lanczos upscale → H.264 MP4
 ```
 
-1. `page.screencast.start()` — records the browser window in real-time
-2. All `waitForTimeout` pauses are captured (the video matches what a viewer would see)
-3. `page.screencast.stop()` — saves WebM file
-4. FFmpeg re-encodes WebM → MP4 with better quality settings
+1. `browser.newContext({ recordVideo: { dir, size } })` — records in real-time
+2. All `waitForTimeout` pauses are captured (video matches what a viewer would see)
+3. `context.close()` — saves and finalizes the WebM file
+4. FFmpeg upscales with lanczos + re-encodes to H.264 MP4
 5. Delete the intermediate WebM
 
 ## Quality presets

@@ -12,9 +12,9 @@ The script is a standalone Node.js file (`vorec-script.mjs`) — run it with `no
 ## Critical rules
 
 ### Recording quality
-1. **4K quality by default** — record at 1920×1080 with DPR 2 (sharp pixels), then upscale to 4K with FFmpeg lanczos. Real-time recording, no frame drops.
+1. **4K quality by default** — record at 1920×1080 with DPR 2 via `recordVideo`, then upscale to 4K with FFmpeg lanczos.
 2. **Navigate to the target URL directly** — `page.goto(url)`. Never leave the page on `about:blank` (avoids white start frame).
-3. **Render flush before stop** — `requestAnimationFrame × 2` + 500ms wait before `page.screencast.stop()` to avoid a glitched last frame.
+3. **Render flush before stop** — `requestAnimationFrame × 2` + 500ms wait before closing the context to avoid a glitched last frame.
 4. **The vorec script is a standalone Node.js file** (`vorec-script.mjs`) — run with `node vorec-script.mjs`.
 
 ### Action tracking
@@ -111,7 +111,7 @@ __actions[__actions.length - 1].primary = true;
 
 ## The canonical template
 
-The vorec script is a **standalone Node.js file**. It uses `page.screencast` for real-time recording (pauses are captured correctly), then re-encodes with FFmpeg for high quality.
+The vorec script is a **standalone Node.js file**. It uses Playwright's `recordVideo` for real-time recording (pauses are captured correctly), then upscales and re-encodes with FFmpeg.
 
 Run it with: `node vorec-script.mjs`
 
@@ -127,25 +127,21 @@ mkdirSync(OUTPUT_DIR, { recursive: true });
 // ── Recording setup ─────────────────────────────────────────
 // Record at 1080p with DPR 2 (retina-sharp rendering internally).
 // Then upscale to 4K with FFmpeg lanczos after recording.
-// This avoids frame drops (4K CDP can't keep up) while keeping
-// text and UI crisp because DPR 2 renders at 2x pixel density.
+// Uses recordVideo (standard Playwright API) — NOT page.screencast
+// (which only exists in playwright-cli run-code, not standalone scripts).
 const QUALITY = '4k'; // '4k', '2k', or '1080p'
 
 const browser = await chromium.launch({ headless: true });
 const context = await browser.newContext({
   viewport: { width: 1920, height: 1080 },
   deviceScaleFactor: 2, // always 2 — renders sharp text/UI internally
+  recordVideo: {
+    dir: OUTPUT_DIR,
+    size: { width: 1920, height: 1080 },
+  },
 });
 const page = await context.newPage();
 await page.goto('TARGET_URL', { waitUntil: 'domcontentloaded' });
-
-// ── Real-time recording via page.screencast ─────────────────
-// Records at 1920×1080 in real-time — all pauses captured in video.
-// Upscaled to 4K after with FFmpeg lanczos (sharp, no blur).
-await page.screencast.start({
-  path: `${OUTPUT_DIR}/raw.webm`,
-  size: { width: 1920, height: 1080 },
-});
 
   // ── Action tracking (for Vorec narration) ────────────────
   // Actions are collected in a local array during recording,
@@ -307,12 +303,16 @@ await page.screencast.start({
   });
 
   // ── Stop recording ────────────────────────────────────────
+  // Render flush to avoid glitched last frame
   await page.evaluate(() => new Promise(r =>
     requestAnimationFrame(() => requestAnimationFrame(r))
   ));
   await page.waitForTimeout(500);
-  await page.screencast.stop();
 
+  // recordVideo saves the file when the context closes.
+  // Get the video path BEFORE closing (page.video() needs the page alive).
+  const rawVideo = await page.video().path();
+  await context.close();
   await browser.close();
 
   // ── Upscale + re-encode ───────────────────────────────────
@@ -323,12 +323,12 @@ await page.screencast.start({
   const scaleFilter = targetSize ? `-vf "scale=${targetSize}:flags=lanczos"` : '';
 
   console.log(`Re-encoding to ${QUALITY} MP4...`);
-  execSync(`ffmpeg -y -i "${OUTPUT_DIR}/raw.webm" \
+  execSync(`ffmpeg -y -i "${rawVideo}" \
     ${scaleFilter} \
     -c:v libx264 -preset slow -crf 18 -tune animation \
     -pix_fmt yuv420p -movflags +faststart \
     "${OUTPUT_DIR}/output.mp4"`, { stdio: 'pipe' });
-  execSync(`rm "${OUTPUT_DIR}/raw.webm"`);
+  execSync(`rm "${rawVideo}"`);
 
   // ── Save tracked actions ─────────────────────────────────
   writeFileSync(`${OUTPUT_DIR}/tracked-actions.json`, JSON.stringify(__actions, null, 2));
@@ -345,9 +345,9 @@ node .vorec/<project-slug>/vorec-script.mjs
 The script:
 1. Launches Chromium with DPR 2 (retina-sharp rendering)
 2. Opens the target URL directly (no white frame)
-3. Starts `page.screencast` (real-time recording at 1920×1080)
-4. Runs the flow (clicks, types, scrolls — all pauses captured in video)
-5. Stops recording → FFmpeg upscales to 4K with lanczos + re-encodes to MP4
+3. `recordVideo` captures the browser in real-time (all pauses appear in video)
+4. Runs the flow (clicks, types, scrolls)
+5. Closes context → FFmpeg upscales to 4K with lanczos + re-encodes to MP4
 6. Saves tracked actions
 
 Output (inside `.vorec/<project-slug>/`):
@@ -415,7 +415,7 @@ DPR 2 is always on — even 1080p gets retina-sharp rendering. The upscale works
 
 ## No dead-time trimming needed
 
-The recording script controls all timing directly — every `waitForTimeout` is intentional (giving the viewer time to read, waiting for animations, holding after clicks). Since `page.screencast` records in real-time, these pauses appear naturally in the video. No post-processing trim needed — get the pacing right in the script.
+The recording script controls all timing directly — every `waitForTimeout` is intentional (giving the viewer time to read, waiting for animations, holding after clicks). Since `recordVideo` records in real-time, these pauses appear naturally in the video. No post-processing trim needed — get the pacing right in the script.
 
 ## Common failures and fixes
 

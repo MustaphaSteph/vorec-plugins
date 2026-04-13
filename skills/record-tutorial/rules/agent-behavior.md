@@ -155,7 +155,7 @@ The user should always know what's happening. Give clear status updates in plain
 - "Let me think about the next step..."
 - "I'm about to run a command. Is that okay?"
 - "Here's what I'm going to do in detail: first I'll..."
-- Technical details like "Running page.screencast with DPR 2 and lanczos upscale..."
+- Technical details like "Running recordVideo with DPR 2 and lanczos upscale..."
 
 ## 🎯 Rule 9 — On failure, fix silently when you can
 
