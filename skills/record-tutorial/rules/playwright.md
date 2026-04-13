@@ -5,8 +5,8 @@ description: Playwright techniques for reliable browser automation and recording
 
 # Playwright Best Practices
 
-> **For Vorec recordings**, write a standalone Node.js recording script (`hero-script.mjs`) using the Playwright library.
-> See [./hero-script.md](./hero-script.md) for the template with scrollToElement, glideClick, slowType helpers.
+> **For Vorec recordings**, write a standalone Node.js recording script (`vorec-script.mjs`) using the Playwright library.
+> See [./vorec-script.md](./vorec-script.md) for the template with scrollToElement, glideClick, slowType helpers.
 > Use `playwright-cli` for **page exploration only** — see [./cli-commands.md](./cli-commands.md) and [./cli-session.md](./cli-session.md).
 >
 > The patterns below apply to the recording script and any Playwright code.

@@ -8,10 +8,25 @@ description: >
 
 # Record Tutorial with Vorec
 
-Record a screen session that Vorec turns into a narrated tutorial automatically.
+## What is Vorec?
 
-**Your role:** Drive a browser through the flow → record it → upload to Vorec.
-**Vorec's role:** Watch the video, write narration, generate voice-over, add effects.
+Vorec (vorec.ai) turns screen recordings into narrated tutorial videos. You record a flow — Vorec adds AI voice-over, zoom effects, cursor animations, subtitles, and a full video editor.
+
+## Your role as the AI agent
+
+You are the **recorder**. You:
+1. Open a browser (headless, user never sees it)
+2. Walk through the flow the user asked for (click buttons, fill forms, navigate pages)
+3. Capture a high-quality video with every action tracked (what was clicked, when, where, and why)
+4. Upload the video + tracked actions to Vorec
+
+Vorec then:
+1. Reads your tracked actions (descriptions, context, coordinates)
+2. Writes narration scripts that explain each step
+3. Places click markers, zoom targets, and cursor effects using your coordinates
+4. Gives the user an editor URL where they can preview, edit, and export
+
+**The better your action tracking (name, description, context), the better Vorec's narration will be.** You are the eyes — Vorec is the voice.
 
 **Work cleanly:** Temp files created fresh, deleted after upload. User sees only the editor URL.
 
@@ -162,7 +177,7 @@ These have good defaults — don't ask unless the user brings it up:
 Tell the user what you're about to do:
 > I'm writing the recording script now. It will open a browser, walk through the flow, and capture a high-quality video with every action tracked.
 
-Load [./rules/hero-script.md](./rules/hero-script.md) for the template. The recording script is a standalone Node.js file (`hero-script.mjs`).
+Load [./rules/vorec-script.md](./rules/vorec-script.md) for the template. The recording script is a standalone Node.js file (`vorec-script.mjs`).
 
 What to include:
 - Quality preset based on user's choice (4K / 2K / 1080p)
@@ -191,7 +206,7 @@ For error recovery: [./rules/validation.md](./rules/validation.md)
 
 ```bash
 mkdir -p .vorec recordings
-node hero-script.mjs
+node vorec-script.mjs
 ```
 
 **Tell the user what's happening while it runs:**
@@ -264,7 +279,7 @@ Tell the user:
 ### 11. Clean up
 
 ```bash
-rm -f hero-script.mjs vorec.json
+rm -f vorec-script.mjs vorec.json
 rm -rf .vorec/tracked-actions.json
 ```
 
@@ -287,7 +302,7 @@ If not uploaded:
 5. **Always use `--headed`** for `playwright-cli open` when the user needs to see/interact (login, session capture)
 6. **Auto-detect mode** — external URL = Explore, own project = Connected. Don't ask unless genuinely unsure.
 7. **Never assume login** — check the page first with a snapshot. Only handle auth if you SEE a login wall.
-7. **Use `playwright-cli` for exploration**, standalone hero script (`node hero-script.mjs`) for recording
+7. **Use `playwright-cli` for exploration**, standalone vorec script (`node vorec-script.mjs`) for recording
 8. **4K quality by default** — ask user for preferred quality (4K / 2K / 1080p)
 9. **Scroll to the element, not past it** — use `scrollToElement`, never blind pixel scrolling
 10. **Use semantic locators** — `getByRole`, `getByLabel`, `getByPlaceholder`
@@ -306,14 +321,14 @@ If not uploaded:
 ### Workflow rules
 - [./rules/connected.md](./rules/connected.md) — Connected mode (codebase-driven)
 - [./rules/explore.md](./rules/explore.md) — Explore mode (page-driven)
-- [./rules/hero-script.md](./rules/hero-script.md) — Recording script template + action types
+- [./rules/vorec-script.md](./rules/vorec-script.md) — Recording script template + action types
 - [./rules/narration-styles.md](./rules/narration-styles.md) — All 8 narration styles with examples
 - [./rules/cursor-pack.md](./rules/cursor-pack.md) — Visible cursor injection (opt-in)
 
 ### playwright-cli reference
 - [./rules/cli-commands.md](./rules/cli-commands.md) — Core commands
 - [./rules/cli-video.md](./rules/cli-video.md) — Video recording API
-- [./rules/cli-running-code.md](./rules/cli-running-code.md) — Running hero scripts
+- [./rules/cli-running-code.md](./rules/cli-running-code.md) — Running vorec scripts
 - [./rules/cli-session.md](./rules/cli-session.md) — Session management
 
 ### Existing references

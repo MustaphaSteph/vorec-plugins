@@ -5,7 +5,7 @@ description: Visible cursor injection with auto-morph and click shrink animation
 
 # Cursor Pack (Opt-in)
 
-When the user answered **Yes** to "visible cursors?" in Step 6 of the main workflow, this rule is loaded. The hero script gets an extra cursor-injection block that:
+When the user answered **Yes** to "visible cursors?" in Step 6 of the main workflow, this rule is loaded. The vorec script gets an extra cursor-injection block that:
 
 - Shows a big, visible cursor overlay on top of every page
 - Auto-morphs between arrow / pointer / text / grabbing / crosshair based on what element is under the mouse (uses the CSS `cursor` property of the hovered element)
@@ -28,9 +28,9 @@ Vorec ships 5 SVG cursors with the plugin at `skills/record-tutorial/cursors/`:
 
 Plus `hotspots.json` mapping each cursor to its "tip" pixel (the coordinate inside the image that aligns with the mouse position).
 
-## How the hero script loads them
+## How the vorec script loads them
 
-`playwright-cli run-code` doesn't allow `require` or dynamic imports. So the cursor SVGs must be **baked into the hero script as base64 data URLs at script generation time**.
+`playwright-cli run-code` doesn't allow `require` or dynamic imports. So the cursor SVGs must be **baked into the vorec script as base64 data URLs at script generation time**.
 
 ### Step 1 — Read the SVG files from the plugin
 
@@ -67,11 +67,11 @@ console.log('const HOTSPOTS = ' + JSON.stringify(hotspots) + ';');
 
 ### Step 3 — Add the constants to the recording script
 
-Write the cursor constants directly into `hero-script.mjs` at the top of the file, before any page interactions. The agent writes the full script in one pass — no sed injection needed.
+Write the cursor constants directly into `vorec-script.mjs` at the top of the file, before any page interactions. The agent writes the full script in one pass — no sed injection needed.
 
-## The cursor injection block (goes inside the hero script)
+## The cursor injection block (goes inside the vorec script)
 
-Add this to the hero script AFTER the constants and BEFORE any page interactions:
+Add this to the vorec script AFTER the constants and BEFORE any page interactions:
 
 ```js
 // Inject visible cursor with auto-morph + click shrink animation
@@ -174,7 +174,7 @@ page.on('load', () => injectCursor().catch(() => {}));
 
 ## How `glideClick` triggers the shrink animation
 
-The `glideClick` helper (from `hero-script.md`) already checks for `window.__vc?.clickPulse`:
+The `glideClick` helper (from `vorec-script.md`) already checks for `window.__vc?.clickPulse`:
 
 ```js
 const glideClick = async (locator, description, target) => {

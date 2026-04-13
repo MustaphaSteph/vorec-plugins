@@ -43,7 +43,7 @@ playwright-cli click e42                     # test interactions
 playwright-cli close                         # stop the session
 ```
 
-**Note:** The recording itself runs as a standalone Node.js script (`node hero-script.mjs`) — it launches its own browser. `playwright-cli` sessions are for exploration only.
+**Note:** The recording itself runs as a standalone Node.js script (`node vorec-script.mjs`) — it launches its own browser. `playwright-cli` sessions are for exploration only.
 
 ## Named sessions (for complex flows)
 
@@ -120,7 +120,7 @@ playwright-cli open https://target.com
 playwright-cli --raw snapshot | grep -iE "signup|login"
 playwright-cli click e42
 playwright-cli --raw snapshot | grep -iE "form field"
-# Once you know the flow → write hero-script.mjs and run with node
+# Once you know the flow → write vorec-script.mjs and run with node
 ```
 
 ### Pattern 2 — Auth capture then recording
@@ -133,8 +133,8 @@ playwright-cli open --headed --persistent https://app.example.com/login
 playwright-cli state-save .vorec/storageState.json
 playwright-cli close
 
-# Second: run the recording (hero script loads storageState)
-node hero-script.mjs
+# Second: run the recording (vorec script loads storageState)
+node vorec-script.mjs
 ```
 
 See [./auth.md](./auth.md) for the full auth capture workflow.

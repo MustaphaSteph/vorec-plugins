@@ -7,7 +7,7 @@ description: The recording script template — captures video, tracks actions, a
 
 This is the **recording script** that the agent writes for each tutorial. It opens a browser, walks through the flow, records a high-quality video, and tracks every action with coordinates and context.
 
-The script is a standalone Node.js file (`hero-script.mjs`) — run it with `node hero-script.mjs`.
+The script is a standalone Node.js file (`vorec-script.mjs`) — run it with `node vorec-script.mjs`.
 
 ## Critical rules
 
@@ -17,12 +17,12 @@ The script is a standalone Node.js file (`hero-script.mjs`) — run it with `nod
 4. **Action tracking uses valid types only** — see table below. Never invent new types.
 5. **Every action must call `track()`** — not just clicks. If the user types → `track('type', ...)`. Dropdown → `track('select', ...)`. Vorec needs the full workflow.
 6. **Scroll TO the element, not past it** — use `scrollToElement(locator)` to bring the next target into view. Never blindly scroll a fixed pixel amount. Always focus on the element the user is about to interact with.
-7. **The hero script is a standalone Node.js file** (`hero-script.mjs`) — NOT a `playwright-cli run-code` function. This gives access to `child_process` for FFmpeg piping.
+7. **The vorec script is a standalone Node.js file** (`vorec-script.mjs`) — NOT a `playwright-cli run-code` function. This gives access to `child_process` for FFmpeg piping.
 
 ## Action types for `track()` calls
 
 ```js
-track(type, description, target, coords, { context, typed_text, selected_value })
+track(type, name, description, target, coords, { context, typed_text, selected_value })
 ```
 
 | Type | When to use | Helper |
@@ -96,12 +96,12 @@ __actions[__actions.length - 1].primary = true;
 
 ## The canonical template
 
-The hero script is a **standalone Node.js file** (not a `playwright-cli run-code` function). This gives us access to `child_process` for piping lossless CDP frames directly to FFmpeg — no 1 Mbit/s screencast bottleneck.
+The vorec script is a **standalone Node.js file** (not a `playwright-cli run-code` function). This gives us access to `child_process` for piping lossless CDP frames directly to FFmpeg — no 1 Mbit/s screencast bottleneck.
 
-Run it with: `node hero-script.mjs`
+Run it with: `node vorec-script.mjs`
 
 ```js
-// hero-script.mjs — standalone Node.js recording script
+// vorec-script.mjs — standalone Node.js recording script
 import { chromium } from 'playwright';
 import { spawn } from 'child_process';
 import { mkdirSync, writeFileSync } from 'fs';
@@ -333,7 +333,7 @@ await cdp.send('Page.startScreencast', {
 
 ```bash
 mkdir -p .vorec recordings
-node hero-script.mjs
+node vorec-script.mjs
 ```
 
 The script:
@@ -397,9 +397,9 @@ The resulting JSON matches the format Vorec's `agent-api/create-project` expects
 
 ## Video quality presets
 
-The hero script records directly to H.264 MP4 via CDP frames → FFmpeg. No WebM intermediate — no double compression.
+The vorec script records directly to H.264 MP4 via CDP frames → FFmpeg. No WebM intermediate — no double compression.
 
-Set `QUALITY` at the top of the hero script based on user preference:
+Set `QUALITY` at the top of the vorec script based on user preference:
 
 | Preset | Resolution | DPR | Bitrate | Best for |
 |--------|-----------|-----|---------|----------|

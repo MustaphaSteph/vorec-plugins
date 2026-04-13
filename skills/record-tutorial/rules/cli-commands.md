@@ -114,9 +114,9 @@ playwright-cli snapshot "#main-content"
 playwright-cli snapshot --depth=4
 ```
 
-### Element targeting (in hero scripts)
+### Element targeting (in vorec scripts)
 
-By default, use refs from the snapshot. But in hero scripts, prefer semantic Playwright locators:
+By default, use refs from the snapshot. But in vorec scripts, prefer semantic Playwright locators:
 
 ```js
 // BEST — semantic, stable across page states

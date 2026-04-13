@@ -62,5 +62,5 @@ await cdp.send('Page.stopScreencast');
 
 ## Related files
 
-- [./hero-script.md](./hero-script.md) — Recording script template with full CDP setup
+- [./vorec-script.md](./vorec-script.md) — Recording script template with full CDP setup
 - [./cli-commands.md](./cli-commands.md) — playwright-cli commands for page exploration

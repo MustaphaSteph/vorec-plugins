@@ -7,7 +7,7 @@ description: Running inline scripts via playwright-cli run-code for page explora
 
 `playwright-cli run-code` executes JavaScript inside the current browser session. Use it in **Explore mode** to inspect pages, test selectors, and discover elements before writing the recording script.
 
-**Note:** The recording script itself is a standalone Node.js file (`hero-script.mjs`) — NOT a `run-code` function. See [./hero-script.md](./hero-script.md).
+**Note:** The recording script itself is a standalone Node.js file (`vorec-script.mjs`) — NOT a `run-code` function. See [./vorec-script.md](./vorec-script.md).
 
 ## Basic usage
 
@@ -80,4 +80,4 @@ import { chromium } from 'playwright';
 ## Related files
 
 - [./cli-commands.md](./cli-commands.md) — Core commands (open, click, snapshot)
-- [./hero-script.md](./hero-script.md) — Recording script template (standalone Node.js)
+- [./vorec-script.md](./vorec-script.md) — Recording script template (standalone Node.js)

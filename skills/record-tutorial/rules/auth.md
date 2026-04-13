@@ -93,10 +93,10 @@ Agent: Opening browser for login.
 User: done
 
 Agent: Session saved. Recording now.
-       (runs the hero script — already has sensible defaults)
+       (runs the vorec script — already has sensible defaults)
 ```
 
-## Capture session with a hero script (alternative)
+## Capture session with a vorec script (alternative)
 
 If you want to do it inside a Playwright script instead of CLI commands (for example, to wait on a specific redirect URL):
 

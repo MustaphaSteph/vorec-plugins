@@ -32,7 +32,7 @@ playwright-cli resize 1920 1080
 playwright-cli --raw snapshot | grep -E "relevant|keywords|here"
 ```
 
-The snapshot is an accessibility tree. Each interactive element has a `ref=eXX` you can use with other `playwright-cli` commands. Or — better — use the `name` attribute with Playwright's semantic locators in your hero script.
+The snapshot is an accessibility tree. Each interactive element has a `ref=eXX` you can use with other `playwright-cli` commands. Or — better — use the `name` attribute with Playwright's semantic locators in your vorec script.
 
 **Filter the snapshot aggressively.** The full snapshot is huge. Always grep for what you need:
 ```bash
@@ -91,7 +91,7 @@ playwright-cli --raw snapshot | grep -iE "checkout|valider"
 Without source code, you have to observe what the success state looks like. Do a dry run first:
 1. Manually click through the flow via playwright-cli commands
 2. Watch what element appears on success (heading text, URL change, toast message)
-3. Use that element as your `waitFor` in the hero script
+3. Use that element as your `waitFor` in the vorec script
 
 **Examples:**
 ```js
@@ -134,7 +134,7 @@ The user knows the flow. If you're unsure about a step, ask:
 Most sites have cookie banners that intercept clicks. Check for them early:
 
 ```js
-// In your hero script
+// In your vorec script
 const cookieBanner = page.locator('[class*="cookie"], [class*="consent"], [id*="cookie"]');
 if (await cookieBanner.count() > 0) {
   const accept = cookieBanner.getByRole('button', { name: /accept|agree|ok|got it/i });
@@ -156,7 +156,7 @@ const testEmail = `tutorial.${unique}@gmail.com`;
 const gmailEmail = `tutorial${unique}@gmail.com`;
 ```
 
-## After exploration → write the hero script
+## After exploration → write the vorec script
 
 Once you have:
 - The list of elements you need to click/type into
@@ -164,8 +164,8 @@ Once you have:
 - The success state to wait for
 - Any overlays/popups to dismiss first
 
-You're ready to write the hero script. Load [./hero-script.md](./hero-script.md) for the canonical template and all the helpers (slowScroll, glideClick, slowType, etc.).
+You're ready to write the vorec script. Load [./vorec-script.md](./vorec-script.md) for the canonical template and all the helpers (slowScroll, glideClick, slowType, etc.).
 
 ## Both modes converge
 
-Explore mode ends at the same place as Connected mode: write the recording script, run it (`node hero-script.mjs`), upload the MP4 to Vorec. Return to the main `SKILL.md` at **Step 8 (Build the recording script)** when you're done exploring.
+Explore mode ends at the same place as Connected mode: write the recording script, run it (`node vorec-script.mjs`), upload the MP4 to Vorec. Return to the main `SKILL.md` at **Step 8 (Build the recording script)** when you're done exploring.

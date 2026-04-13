@@ -9,7 +9,7 @@ Use this mode when you have the project's source code in front of you. Read the 
 
 ## Deep-scan the codebase
 
-**This is your main advantage over Explore mode.** Before writing any hero script, analyze the project.
+**This is your main advantage over Explore mode.** Before writing any vorec script, analyze the project.
 
 ### Project structure
 - Read `package.json` — framework, dependencies, scripts, dev server port
@@ -61,9 +61,9 @@ From this you know:
 - Valid password: `VorecDemo2026!` (12 chars + upper + digit + special = Strong)
 - Unique email per run: use digits in local-part since Gmail strips dots and `+suffix`
 
-## Writing the hero script
+## Writing the vorec script
 
-Once you have the selectors and validation rules, write the hero script using the canonical template from [./hero-script.md](./hero-script.md). Every selector comes from the source code — **no snapshots, no guessing**.
+Once you have the selectors and validation rules, write the vorec script using the canonical template from [./vorec-script.md](./vorec-script.md). Every selector comes from the source code — **no snapshots, no guessing**.
 
 ### The big win
 - **Zero runtime exploration tokens** — no `playwright-cli snapshot` needed
@@ -89,7 +89,7 @@ If any of these are true, switch to [./explore.md](./explore.md):
 ## Both modes converge
 
 After your script is written, both Connected and Explore follow the same steps:
-- [./hero-script.md](./hero-script.md) — write the recording script
+- [./vorec-script.md](./vorec-script.md) — write the recording script
 - [./cursor-pack.md](./cursor-pack.md) — optional visible cursors
-- Run with `node hero-script.mjs`
+- Run with `node vorec-script.mjs`
 - Upload to Vorec via `vorec run --skip-record` (see main SKILL.md Step 10)
