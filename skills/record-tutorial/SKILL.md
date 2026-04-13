@@ -161,23 +161,27 @@ See [./rules/narration-styles.md](./rules/narration-styles.md) for style descrip
 
 ### 6. Create the project folder
 
-Each recording gets its own folder under `.vorec/`. Use a short slug from the title:
+Each recording gets its own unique folder under `.vorec/`. Use a slug + timestamp so different sessions never collide:
 
 ```bash
-# Example: "How to Create a Tournament" → padelmake-tournament
-mkdir -p .vorec/<project-slug>
+# Format: <slug>-<YYYYMMDD-HHMMSS>
+# Example: padelmake-tournament-20260413-153022
+mkdir -p .vorec/<slug>-<timestamp>
 ```
 
 All files for this recording go inside:
 ```
-.vorec/<project-slug>/
+.vorec/padelmake-tournament-20260413-153022/
 ├── vorec-script.mjs      # the recording script
 ├── output.mp4             # the recorded video
 ├── tracked-actions.json   # action data for Vorec
 └── vorec.json             # manifest for upload
 ```
 
-This way multiple recordings don't overwrite each other.
+This way:
+- Multiple recordings of the same flow don't overwrite each other
+- Different sessions working in the same project stay separate
+- The user can see which recording is which by the timestamp
 
 ### 7. Show the recording plan
 
