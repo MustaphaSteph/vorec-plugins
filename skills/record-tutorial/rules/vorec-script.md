@@ -141,16 +141,14 @@ const context = await browser.newContext({
   },
 });
 const page = await context.newPage();
-// T0 starts here — same moment recordVideo begins capturing.
-// This ensures action timestamps match the video's internal clock.
-const T0 = Date.now();
 await page.goto('TARGET_URL', { waitUntil: 'domcontentloaded' });
 
   // ── Action tracking (for Vorec narration) ────────────────
-  // Actions are collected in a local array during recording,
-  // then written to tracked-actions.json after recording stops.
+  // Timestamps are relative — they get scaled to match the actual
+  // video duration after recording (see "Sync action timestamps" below).
   const VP = { w: 1920, h: 1080 };
   const __actions = [];
+  const T0 = Date.now();
   const track = (type, name, description, target, coords, extra) => {
     __actions.push({
       type,
@@ -332,6 +330,22 @@ await page.goto('TARGET_URL', { waitUntil: 'domcontentloaded' });
     -pix_fmt yuv420p -movflags +faststart \
     "${OUTPUT_DIR}/output.mp4"`, { stdio: 'pipe' });
   execSync(`rm "${rawVideo}"`);
+
+  // ── Sync action timestamps to video duration ─────────────
+  // Date.now() and recordVideo are two separate clocks that drift.
+  // Use the final MP4 duration as source of truth and scale all
+  // timestamps so they fit inside the video exactly.
+  const probe = execSync(
+    `ffprobe -v error -show_entries format=duration -of csv=p=0 "${OUTPUT_DIR}/output.mp4"`,
+    { encoding: 'utf8' },
+  );
+  const videoDuration = parseFloat(probe.trim());
+  const lastAction = __actions[__actions.length - 1]?.timestamp || 0;
+  if (videoDuration > 0 && lastAction > 0) {
+    const scale = (videoDuration - 1) / lastAction; // 1s margin before video end
+    for (const a of __actions) a.timestamp = +(a.timestamp * scale).toFixed(2);
+    console.log(`Synced timestamps: video=${videoDuration.toFixed(1)}s, scale=${scale.toFixed(3)}`);
+  }
 
   // ── Save tracked actions ─────────────────────────────────
   writeFileSync(`${OUTPUT_DIR}/tracked-actions.json`, JSON.stringify(__actions, null, 2));
