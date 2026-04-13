@@ -23,11 +23,11 @@ The script is a standalone Node.js file (`vorec-script.mjs`) — run it with `no
 7. **Scroll TO the element, not past it** — use `scrollToElement(locator)` to bring the next target into view. Never blindly scroll a fixed pixel amount.
 
 ### Pacing — this is what makes a tutorial watchable
-8. **Explain while doing, not before** — don't stack multiple `hoverTour` or `narrate` blocks before the first click. Explain each element AS you interact with it. The `context` field on each `glideClick`/`slowType` does the explaining — you don't need a separate narration pass.
-9. **Never use `fill()` for visible actions** — if a `type` action is tracked and the viewer should see it, ALWAYS use `slowType`. Use `fill()` only for hidden setup (dismissing dialogs, clearing fields). Every tracked `type` action must show the text being typed on screen.
-10. **Interact with what you narrate** — don't drop `narrate` pauses over empty space. If you're explaining settings, hover over the actual elements (courts, rounds, scoring). Every narration should point at something real on screen.
-11. **Even pacing across steps** — no single page should take more than 2× the time of another step. If the homepage takes 8 seconds, adding 7 players shouldn't take 4 seconds.
-12. **One hover max per page before acting** — at most one `hoverTour` to orient the viewer, then start clicking. The `context` on each `glideClick`/`slowType` carries the explanation — you don't need extra narrate actions for every element.
+8. **Explain while doing, not before** — don't stack multiple `hoverTour` or `narrate` blocks before the first interaction. Explain each element AS you interact with it. The `context` field on each `glideClick`/`slowType` carries the explanation.
+9. **Never use `fill()` for visible actions** — if a `type` action is tracked, ALWAYS use `slowType` so the viewer sees the text appearing. Use `fill()` only for hidden setup (dismissing dialogs, clearing fields that aren't part of the tutorial).
+10. **Interact with what you narrate** — don't drop `narrate` pauses over empty space. If you're explaining something, hover over the actual element. Every narration should point at something visible on screen.
+11. **Even pacing across steps** — no step should take more than 2× the time of another. If the flow has 5 steps, each step should get roughly similar screen time. Don't rush through the important parts.
+12. **One hover max per page before acting** — at most one `hoverTour` to orient the viewer, then start interacting. The `context` on each action carries the explanation — you don't need extra narrate actions for every element.
 
 ## Action types for `track()` calls
 
