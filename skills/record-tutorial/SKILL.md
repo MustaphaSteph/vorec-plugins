@@ -192,10 +192,36 @@ All files for this recording go inside:
 
 This way multiple recordings don't overwrite each other.
 
-### 9. Build the recording script
+### 9. Show the recording plan
 
-Tell the user what you're about to do:
-> I'm writing the recording script now. It will open a browser, walk through the flow, and capture a high-quality video with every action tracked.
+**Before writing any code, present the full plan to the user.** List every step with what you'll do, how long it will take, and the timing from [./rules/pacing.md](./rules/pacing.md).
+
+Format:
+
+> Here's the recording plan ([style] style, [quality]):
+>
+> **Step 1 — [Page/section name] ([Xs])**
+> - [What you'll do: hover, click, type, narrate]
+> - [What you'll do next]
+>
+> **Step 2 — [Page/section name] ([Xs])**
+> - [What you'll do]
+>
+> ...
+>
+> **Total: ~[X] seconds (~[M:SS])**
+>
+> Want me to adjust anything before I start recording?
+
+**Wait for the user to confirm or adjust.** They might say:
+- "Skip step 2" → remove it
+- "Step 5 is too long" → reduce actions
+- "Add a step showing the settings" → add it
+- "Looks good, go" → proceed
+
+This is the user's last chance to change the flow before recording. Don't skip this step.
+
+### 10. Build the recording script
 
 Load [./rules/vorec-script.md](./rules/vorec-script.md) for the template. Write the script to `.vorec/<project-slug>/vorec-script.mjs`.
 
@@ -204,7 +230,8 @@ What to include:
 - `scrollToElement`, `glideClick`, `slowType`, `hoverTour` helpers
 - A `track()` call for every action — with `name`, `description`, `context`, and `primary` markers
 - `scrollToElement` before every interaction (never scroll blindly)
-- Output paths pointing to the project folder (`.vorec/<project-slug>/output.mp4` and `.vorec/<project-slug>/tracked-actions.json`)
+- Timing from [./rules/pacing.md](./rules/pacing.md) matched to the narration style
+- Output paths pointing to the project folder
 
 If **visible cursors = Yes**, also load [./rules/cursor-pack.md](./rules/cursor-pack.md).
 
@@ -215,15 +242,10 @@ For **Explore mode** page discovery (before writing the script), use `playwright
 For action types: [./rules/actions.md](./rules/actions.md)
 For error recovery: [./rules/validation.md](./rules/validation.md)
 
-**Before running, tell the user the plan:**
-> Here's what the recording will do:
-> 1. Open [URL] in a headless browser
-> 2. [List each step in plain language: "Fill in the email", "Click Sign Up", etc.]
-> 3. Save the video + tracked actions
->
-> Ready? I'll start recording now.
+Tell the user:
+> Writing the recording script now...
 
-### 10. Record the video
+### 11. Record the video
 
 ```bash
 node .vorec/<project-slug>/vorec-script.mjs
@@ -238,7 +260,7 @@ When it finishes:
 
 Ask user to validate the video before uploading.
 
-### 11. Upload to Vorec
+### 12. Upload to Vorec
 
 After the user validates the recording, ask:
 
@@ -296,7 +318,7 @@ Tell the user:
 
 **Without tracked actions**, Vorec would have to watch the video and guess where clicks happened (slower, less accurate, same cost). The agent's tracked actions are what make the narration precise.
 
-### 12. Clean up
+### 13. Clean up
 
 After successful upload, remove the script and manifest (keep the video):
 ```bash
@@ -305,7 +327,7 @@ rm -f .vorec/<project-slug>/vorec-script.mjs .vorec/<project-slug>/vorec.json .v
 
 Keep `output.mp4` — the user may want it. If the user declined upload, keep everything.
 
-### 13. Share the result
+### 14. Share the result
 
 If uploaded:
 > Your tutorial is ready! Open the editor here: [EDITOR_URL]
