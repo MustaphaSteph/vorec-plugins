@@ -110,6 +110,31 @@ Before moving to the next action, check:
 - [ ] For type actions — did I mention WHAT was typed and WHY?
 - [ ] For repeated actions — does this context add new information?
 
+## Demo data vs real choices
+
+When recording, the agent fills forms with demo data. Vorec's narration must distinguish between data the agent made up (examples) and real choices the user would actually make.
+
+| Signal | What it means | How to write context |
+|--------|--------------|---------------------|
+| Agent TYPED text with keyboard | Demo data — the value doesn't matter, the field does | `"Types a project name into the title field. You can use any name here — this is where your project appears in the dashboard."` |
+| Agent CLICKED to choose from options | Real choice — the option matters | `"Selects the Pro plan. This unlocks advanced features like custom domains and team collaboration."` |
+| Button or menu name clicked | Real UI element — always mention it | `"Clicks Export. A dropdown shows PDF, PNG, and SVG options."` |
+
+**Rules:**
+1. **Typed text = demo data** → narrate the PURPOSE of the field, not the specific value. Say "enter your project name" not "type 'My Project'"
+2. **Clicked from a list = real choice** → mention what was selected and why it matters
+3. **When in doubt → go generic** — safer to say "fill in the field" than dictate a specific value the viewer should copy
+
+**In the context field:**
+
+Bad: `"Types 'Q4 Marketing Site' as the project name."`
+Good: `"Types a name for the project. This is how it appears in your dashboard — pick something descriptive for your team."`
+
+Bad: `"Types 'sarah@gmail.com' into the email field."`  
+Good: `"Enters an email address. This will be the account login — use your real email here."`
+
+Good (for a real choice): `"Selects 'Monthly' billing. This charges once a month instead of annually — you can switch later in settings."`
+
 ## How Vorec uses your context
 
 Vorec's AI reads each action like this:
