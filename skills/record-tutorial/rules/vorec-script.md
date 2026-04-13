@@ -11,13 +11,23 @@ The script is a standalone Node.js file (`vorec-script.mjs`) — run it with `no
 
 ## Critical rules
 
+### Recording quality
 1. **4K quality by default** — viewport 1920×1080 + `deviceScaleFactor: 2` = 3840×2160 output. CDP frame capture with PNG → FFmpeg at 8 Mbit/s.
 2. **Navigate to the target URL directly** — `page.goto(url)`. Never leave the page on `about:blank` (avoids white start frame).
 3. **Render flush before stop** — `requestAnimationFrame × 2` + 500ms wait before stopping CDP capture to avoid a glitched last frame.
-4. **Action tracking uses valid types only** — see table below. Never invent new types.
+4. **The vorec script is a standalone Node.js file** (`vorec-script.mjs`) — run with `node vorec-script.mjs`.
+
+### Action tracking
 5. **Every action must call `track()`** — not just clicks. If the user types → `track('type', ...)`. Dropdown → `track('select', ...)`. Vorec needs the full workflow.
-6. **Scroll TO the element, not past it** — use `scrollToElement(locator)` to bring the next target into view. Never blindly scroll a fixed pixel amount. Always focus on the element the user is about to interact with.
-7. **The vorec script is a standalone Node.js file** (`vorec-script.mjs`) — NOT a `playwright-cli run-code` function. This gives access to `child_process` for FFmpeg piping.
+6. **Action tracking uses valid types only** — see table below. Never invent new types.
+7. **Scroll TO the element, not past it** — use `scrollToElement(locator)` to bring the next target into view. Never blindly scroll a fixed pixel amount.
+
+### Pacing — this is what makes a tutorial watchable
+8. **Explain while doing, not before** — don't stack multiple `hoverTour` or `narrate` blocks before the first click. Explain each element AS you interact with it. The `context` field on each `glideClick`/`slowType` does the explaining — you don't need a separate narration pass.
+9. **Never use `fill()` for visible actions** — if a `type` action is tracked and the viewer should see it, ALWAYS use `slowType`. Use `fill()` only for hidden setup (dismissing dialogs, clearing fields). Every tracked `type` action must show the text being typed on screen.
+10. **Interact with what you narrate** — don't drop `narrate` pauses over empty space. If you're explaining settings, hover over the actual elements (courts, rounds, scoring). Every narration should point at something real on screen.
+11. **Even pacing across steps** — no single page should take more than 2× the time of another step. If the homepage takes 8 seconds, adding 7 players shouldn't take 4 seconds.
+12. **One hover max per page before acting** — at most one `hoverTour` to orient the viewer, then start clicking. The `context` on each `glideClick`/`slowType` carries the explanation — you don't need extra narrate actions for every element.
 
 ## Action types for `track()` calls
 
