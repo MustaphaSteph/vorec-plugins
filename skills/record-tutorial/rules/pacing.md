@@ -14,7 +14,7 @@ The recording script controls video timing. Every pause must give the viewer eno
 - **Hold 3s after page transitions** — after navigation or URL change, let the page render
 - **Explain while doing, not before** — don't stack narrate blocks before the first click. One hover max per page to orient, then start interacting
 - **Interact with what you narrate** — never drop a narrate pause over empty space. Hover over the actual element you're describing
-- **Even pacing across steps** — no step should take 2x longer than another
+- **Even pacing across steps** — no step should take more than 2x the time of another step
 
 ## Per-style timing
 
