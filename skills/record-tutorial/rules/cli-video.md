@@ -29,14 +29,22 @@ page.screencast → real-time WebM (VP8) → FFmpeg re-encode → H.264 MP4
 
 Viewport is always 1920×1080. DPR controls pixel sharpness.
 
-## FFmpeg re-encode settings
+## FFmpeg upscale + re-encode
 
 ```bash
+# 4K output (default):
+ffmpeg -y -i raw.webm -vf "scale=3840:2160:flags=lanczos" -c:v libx264 -preset slow -crf 18 -tune animation -pix_fmt yuv420p -movflags +faststart output.mp4
+
+# 2K output:
+ffmpeg -y -i raw.webm -vf "scale=2560:1440:flags=lanczos" -c:v libx264 -preset slow -crf 18 -tune animation -pix_fmt yuv420p -movflags +faststart output.mp4
+
+# 1080p output (no upscale, just re-encode):
 ffmpeg -y -i raw.webm -c:v libx264 -preset slow -crf 18 -tune animation -pix_fmt yuv420p -movflags +faststart output.mp4
 ```
 
 | Setting | Value | Why |
 |---------|-------|-----|
+| Upscale | `lanczos` | Preserves sharp edges (text, buttons, icons) |
 | Codec | `libx264` (H.264) | Universal playback |
 | CRF | 18 | Visually lossless |
 | Preset | `slow` | Better compression at same quality |

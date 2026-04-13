@@ -184,6 +184,6 @@ playwright-cli delete-data
 
 ## Related files
 
-- [./cli-video.md](./cli-video.md) — Video recording quality (CDP frames → FFmpeg)
+- [./cli-video.md](./cli-video.md) — Video recording quality (page.screencast → FFmpeg)
 - [./cli-running-code.md](./cli-running-code.md) — Running inline scripts for page exploration
 - [./cli-session.md](./cli-session.md) — Multi-session management (named sessions, close-all, kill-all)

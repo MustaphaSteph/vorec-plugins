@@ -58,7 +58,7 @@ From this you know:
 - Exact placeholders for `getByPlaceholder()` — no guessing
 - Exact button text for `getByRole('button', { name: 'Create account' })`
 - Exact success state to `waitFor(getByRole('heading', { name: 'Check your email' }))`
-- Valid password: `VorecDemo2026!` (12 chars + upper + digit + special = Strong)
+- Valid password: `StrongPass2026!` (12 chars + upper + digit + special = Strong)
 - Unique email per run: use digits in local-part since Gmail strips dots and `+suffix`
 
 ## Writing the vorec script

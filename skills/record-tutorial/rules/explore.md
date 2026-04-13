@@ -60,17 +60,17 @@ page.getByText('Sign up for free')
 
 ### Step 4 — Handle ambiguous matches
 
-If `getByRole('link', { name: '1000 V Bucks' })` matches BOTH the product option AND a cart sidebar line, disambiguate:
+If `getByRole('link', { name: 'Premium Plan' })` matches BOTH the product option AND a cart sidebar line, disambiguate:
 
 ```js
 // Use exact match
-page.getByRole('link', { name: '1000 V Bucks', exact: true })
+page.getByRole('link', { name: 'Premium Plan', exact: true })
 
 // Or scope to a container
-page.locator('.product-variations').getByRole('link', { name: '1000 V Bucks' })
+page.locator('.product-variations').getByRole('link', { name: 'Premium Plan' })
 
 // Or use .first()
-page.getByRole('link', { name: '1000 V Bucks' }).first()
+page.getByRole('link', { name: 'Premium Plan' }).first()
 ```
 
 ### Step 5 — E-commerce gotcha: empty-state hides elements

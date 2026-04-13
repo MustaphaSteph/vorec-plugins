@@ -142,6 +142,6 @@ See [./auth.md](./auth.md) for the full auth capture workflow.
 ## Related files
 
 - [./cli-commands.md](./cli-commands.md) — Core commands (open, click, snapshot, resize)
-- [./cli-video.md](./cli-video.md) — Video recording quality (CDP frames → FFmpeg)
+- [./cli-video.md](./cli-video.md) — Video recording quality (page.screencast → FFmpeg)
 - [./cli-running-code.md](./cli-running-code.md) — Inline scripts for page exploration
 - [./auth.md](./auth.md) — Storage state + session capture

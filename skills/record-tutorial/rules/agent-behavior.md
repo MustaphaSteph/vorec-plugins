@@ -54,21 +54,26 @@ Keep updates to **1-2 sentences**. The user wants a video, not a lecture.
 ✅ **Do:**
 > "No valid session yet. Opening Chromium for login now."
 
-## 🎯 Rule 4 — Prefer sensible defaults
+## 🎯 Rule 4 — Prefer sensible defaults, but ALWAYS ask recording preferences
 
-When the user asks to record a flow, **assume these defaults and proceed**. Only ask if the user explicitly says otherwise or the default is wrong for the task.
+For technical decisions (mode detection, wait strategy, selectors), use defaults and proceed. Don't ask.
 
-| Thing | Default | When to ask |
+**But ALWAYS ask the recording preferences** (Step 5 in SKILL.md) before building the script:
+- Language, narration style, quality, cursors
+
+These affect the entire recording (pacing, context writing tone, output resolution). The user must confirm or say "defaults" before you start.
+
+| Thing | Default | Ask? |
 |---|---|---|
-| **API key** | **MUST have before anything else** | Always — do not proceed without it |
-| Quality | **4K** (1920×1080 viewport + DPR 2 = 3840×2160 output) | User prefers 2K or 1080p |
-| Scope | Minimum-viable (just the core action, no deep follow-up) | User explicitly says "full walkthrough" |
-| Language | English | User writes in another language |
-| Style | Tutorial | User picks from the style list |
-| Visible cursors | No | User says "yes cursors" |
-| Dead-time trim | Yes | User says "keep all the pauses" |
-| Test data | Generated fresh (unique email, strong password from code rules) | User provides specific values |
-| Session | Use existing if valid, otherwise capture fresh | — |
+| **API key** | MUST have | Always |
+| **Language** | English | **Always ask** |
+| **Narration style** | Tutorial | **Always ask** |
+| **Quality** | 4K | **Always ask** |
+| **Visible cursors** | No | **Always ask** |
+| Mode (Connected/Explore) | Auto-detect | Only if unsure |
+| Scope | Minimum-viable | Only if user says "full walkthrough" |
+| Test data | Generated fresh | Only if user provides specific values |
+| Session | Reuse if valid | Never ask |
 
 ## 🎯 Rule 5 — Default to headed when the user needs to see anything
 
@@ -150,7 +155,7 @@ The user should always know what's happening. Give clear status updates in plain
 - "Let me think about the next step..."
 - "I'm about to run a command. Is that okay?"
 - "Here's what I'm going to do in detail: first I'll..."
-- Technical details like "Running CDP frame capture with DPR 2..."
+- Technical details like "Running page.screencast with DPR 2 and lanczos upscale..."
 
 ## 🎯 Rule 9 — On failure, fix silently when you can
 

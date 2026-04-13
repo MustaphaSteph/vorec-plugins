@@ -42,14 +42,14 @@ track(type, name, description, target, coords, { context, typed_text, selected_v
 
 | Type | When to use | Helper |
 |------|-------------|--------|
-| `click` | Click a button, link, tab, checkbox, toggle | `glideClick(locator, description, target, context)` |
-| `type` | Type text into an input field | `slowType(locator, text, description, target, context)` |
+| `click` | Click a button, link, tab, checkbox, toggle | `glideClick(locator, name, description, target, context)` |
+| `type` | Type text into an input field | `slowType(locator, text, name, description, target, context)` |
 | `select` | Pick from a dropdown/select | Manual `track()` with `{ context, selected_value }` |
 | `hover` | Hover to reveal tooltip/menu | Manual `track()` with `{ context }` |
-| `scroll` | Scroll to reveal content | `scrollToElement(locator, description)` — auto-tracks |
+| `scroll` | Scroll to reveal content | `scrollToElement(locator, name, description)` — auto-tracks |
 | `wait` | Pause for animation/loading | Manual `track()` with `{ context }` |
 | `navigate` | Navigate to a new page/URL | Manual `track()` with `{ context }` |
-| `narrate` | Describe scene — NO interaction | `hoverTour(locator, description)` or manual `track()` |
+| `narrate` | Describe scene — NO interaction | `hoverTour(locator, name, description)` or manual `track()` |
 
 ### Fields explained
 
@@ -174,7 +174,9 @@ await page.screencast.start({
     y: Math.round(((box.y + box.height / 2) / VP.h) * 1000),
   } : { x: 500, y: 500 };
 
-  track('narrate', 'Intro', 'Recording starts', 'intro');
+  track('narrate', 'Intro', 'Recording starts', 'intro', null, {
+    context: 'The page loads showing the main content.',
+  });
 
   // ── Helpers ──────────────────────────────────────────────
 
@@ -268,7 +270,7 @@ await page.screencast.start({
   };
 
   // ── Your flow starts here ────────────────────────────────
-  // Wait for the page (already loaded by `playwright-cli open`) to stabilize
+  // Wait for the page to stabilize after page.goto()
   await page.waitForLoadState('networkidle').catch(() => {});
   await page.waitForTimeout(2000);
 
@@ -300,7 +302,9 @@ await page.screencast.start({
     .waitFor({ state: 'visible', timeout: 15000 })
     .catch(() => {});
   await page.waitForTimeout(3000);
-  track('narrate', 'Complete', 'Flow complete');
+  track('narrate', 'Complete', 'Flow complete', null, null, {
+    context: 'The flow is complete. The user has successfully finished the task.',
+  });
 
   // ── Stop recording ────────────────────────────────────────
   await page.evaluate(() => new Promise(r =>
@@ -330,27 +334,25 @@ await page.screencast.start({
   writeFileSync(`${OUTPUT_DIR}/tracked-actions.json`, JSON.stringify(__actions, null, 2));
   console.log(`${__actions.length} actions tracked → ${OUTPUT_DIR}/tracked-actions.json`);
   console.log(`Recording saved → ${OUTPUT_DIR}/output.mp4`);
-}
 ```
 
 ## Running the script
 
 ```bash
-mkdir -p .vorec recordings
-node vorec-script.mjs
+node .vorec/<project-slug>/vorec-script.mjs
 ```
 
 The script:
-1. Launches Chromium with DPR 2 (4K rendering)
+1. Launches Chromium with DPR 2 (retina-sharp rendering)
 2. Opens the target URL directly (no white frame)
-3. Starts `page.screencast` (real-time recording at 4K)
+3. Starts `page.screencast` (real-time recording at 1920×1080)
 4. Runs the flow (clicks, types, scrolls — all pauses captured in video)
-5. Stops recording → FFmpeg re-encodes WebM → MP4 for quality
-6. Saves tracked actions to tracked-actions.json
+5. Stops recording → FFmpeg upscales to 4K with lanczos + re-encodes to MP4
+6. Saves tracked actions
 
-Output:
-- `./recordings/output.mp4` — 4K H.264 video (8 Mbit/s, CRF 18)
-- `.vorec/tracked-actions.json` — action data for Vorec
+Output (inside `.vorec/<project-slug>/`):
+- `output.mp4` — 4K H.264 video
+- `tracked-actions.json` — action data for Vorec
 
 The resulting JSON matches the format Vorec's `agent-api/create-project` expects:
 ```json

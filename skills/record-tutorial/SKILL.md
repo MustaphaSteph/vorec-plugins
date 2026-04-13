@@ -297,7 +297,7 @@ Tell the user:
 
 1. **Tracked actions** (`.vorec/tracked-actions.json`) → sent to `create-project` API → saved as `project_clicks` in Vorec DB. Each action has: `type`, `timestamp`, `coordinates` (0-1000), `description`, `context`, `target`, `typed_text`, `primary`.
 
-2. **Video** (`./recordings/output.mp4`) → uploaded to Vorec storage via presigned URL.
+2. **Video** (`.vorec/<project-slug>/output.mp4`) → uploaded to Vorec storage via presigned URL.
 
 3. **Generate narration** → Vorec AI reads the tracked actions (`description` + `context` fields) and writes voice-over scripts. **Because the agent sent tracked actions, Vorec skips video-based click detection** — it already knows what was clicked, when, and where.
 
@@ -331,16 +331,16 @@ If not uploaded:
 5. **Always use `--headed`** for `playwright-cli open` when the user needs to see/interact (login, session capture)
 6. **Auto-detect mode** — external URL = Explore, own project = Connected. Don't ask unless genuinely unsure.
 7. **Never assume login** — check the page first with a snapshot. Only handle auth if you SEE a login wall.
-7. **Use `playwright-cli` for exploration**, standalone vorec script (`node vorec-script.mjs`) for recording
-8. **4K quality by default** — ask user for preferred quality (4K / 2K / 1080p)
-9. **Scroll to the element, not past it** — use `scrollToElement`, never blind pixel scrolling
-10. **Use semantic locators** — `getByRole`, `getByLabel`, `getByPlaceholder`
-11. **Track every action** — `click`, `type`, `narrate`, `hover`, `scroll`, `select`, `wait`, `navigate` with `description`, `context`, and `primary` markers
-12. **User validates video before upload** — show the path, ask them to review
-13. **Always offer Vorec upload** after recording
-14. **End with a link** — editor URL or video path, not a summary essay
-15. Never ask for passwords — use `storageState` for app auth
-16. Clean up temp files (keep video if user declined upload)
+8. **Use `playwright-cli` for exploration**, standalone vorec script (`node vorec-script.mjs`) for recording
+9. **4K quality by default** — record 1080p DPR 2, upscale to 4K with FFmpeg lanczos
+10. **Scroll to the element, not past it** — use `scrollToElement`, never blind pixel scrolling
+11. **Use semantic locators** — `getByRole`, `getByLabel`, `getByPlaceholder`
+12. **Track every action** — with `name`, `description`, `context`, and `primary` markers
+13. **User validates video before upload** — show the path, ask them to review
+14. **Always offer Vorec upload** after recording
+15. **End with a link** — editor URL or video path, not a summary essay
+16. Never ask for passwords — use `storageState` for app auth
+17. Clean up temp files (keep video if user declined upload)
 
 ## Reference Files
 
