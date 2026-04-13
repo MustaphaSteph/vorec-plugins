@@ -141,6 +141,9 @@ const context = await browser.newContext({
   },
 });
 const page = await context.newPage();
+// T0 starts here — same moment recordVideo begins capturing.
+// This ensures action timestamps match the video's internal clock.
+const T0 = Date.now();
 await page.goto('TARGET_URL', { waitUntil: 'domcontentloaded' });
 
   // ── Action tracking (for Vorec narration) ────────────────
@@ -148,7 +151,6 @@ await page.goto('TARGET_URL', { waitUntil: 'domcontentloaded' });
   // then written to tracked-actions.json after recording stops.
   const VP = { w: 1920, h: 1080 };
   const __actions = [];
-  const T0 = Date.now();
   const track = (type, name, description, target, coords, extra) => {
     __actions.push({
       type,
