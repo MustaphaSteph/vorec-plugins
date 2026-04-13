@@ -40,13 +40,14 @@ track(type, description, target, coords, { context, typed_text, selected_value }
 
 | Field | What it's for | Example |
 |-------|--------------|---------|
-| **`description`** | Short label shown on timeline (5-10 words) | `"Click the Create Project button"` |
-| **`target`** | Element identifier for Vorec click markers | `"create-btn"`, `"email-input"` |
-| **`context`** | **Rich scene description for AI narration** (1-2 sentences). Describe what happens, what appears on screen, and why this step matters. | `"Clicks the blue Create Project button in the top right. A dialog appears with title and template fields."` |
+| **`name`** | **Short label on timeline** (max 5 words). This is what appears on dots in the editor. | `"Generate Tournament"`, `"Enter email"`, `"Submit"` |
+| **`description`** | Longer description of the action (5-15 words) | `"Click Generate Tournament to start the wizard"` |
+| **`target`** | Element identifier (selector name) | `"generate-btn"`, `"email-input"` |
+| **`context`** | **Rich scene description for AI narration** (1-2 sentences). What happens, what appears, why it matters. | `"Clicks Generate Tournament. The format picker appears with 6 options."` |
 | **`typed_text`** | What was typed (auto-set by `slowType`) | `"sarah.demo@gmail.com"` |
 | **`selected_value`** | What was picked from dropdown | `"Monthly"` |
 | **`coordinates`** | Auto-captured by helpers from `boundingBox()`. Normalized 0-1000. | `{ x: 850, y: 120 }` |
-| **`primary`** | Mark as a KEY action — gets a **gold star** on the timeline. Use for the most important steps (page state changes, goal completions, zoom-worthy moments). Most flows have 2-4 primary actions. | `true` |
+| **`primary`** | Mark as a KEY action — **gold star** on timeline. Use for page state changes, goal completions, zoom-worthy moments. 2-4 per flow. | `true` |
 
 ### Writing good `context` — this is what makes narration great
 
@@ -160,9 +161,12 @@ await cdp.send('Page.startScreencast', {
   const VP = { w: 1920, h: 1080 };
   const __actions = [];
   const T0 = Date.now();
-  const track = (type, description, target, coords, extra) => {
+  const track = (type, name, description, target, coords, extra) => {
     __actions.push({
-      type, description, target,
+      type,
+      name,          // short label for timeline (max 5 words, e.g. "Generate Tournament")
+      description,   // what the user is doing (5-10 words)
+      target,        // element identifier
       timestamp: +((Date.now() - T0) / 1000).toFixed(2),
       coordinates: coords || { x: 500, y: 500 },
       // context = rich scene description for AI narration (1-2 sentences)
@@ -178,14 +182,14 @@ await cdp.send('Page.startScreencast', {
     y: Math.round(((box.y + box.height / 2) / VP.h) * 1000),
   } : { x: 500, y: 500 };
 
-  track('narrate', 'Recording starts', 'intro');
+  track('narrate', 'Intro', 'Recording starts', 'intro');
 
   // ── Helpers ──────────────────────────────────────────────
 
   // Smooth scroll to bring a target element into view. Scrolls just enough
   // to center the element vertically — NEVER scrolls past it.
   // Use this instead of blindly scrolling a fixed pixel amount.
-  const scrollToElement = async (locator, description) => {
+  const scrollToElement = async (locator, name, description) => {
     // First check if element is already in viewport
     const box = await locator.boundingBox();
     if (box && box.y >= 0 && box.y + box.height <= VP.h) return; // already visible
@@ -208,9 +212,9 @@ await cdp.send('Page.startScreencast', {
       });
     });
     await page.waitForTimeout(400);
-    if (description) {
-      track('scroll', description, null, toCoords(await locator.boundingBox()), {
-        context: description,
+    if (name) {
+      track('scroll', name, description || name, null, toCoords(await locator.boundingBox()), {
+        context: description || name,
       });
     }
   };
@@ -231,7 +235,7 @@ await cdp.send('Page.startScreencast', {
   // Returns the boundingBox so callers can track coordinates.
   const glideMove = async (locator) => {
     // Scroll into view if off-screen (smooth, stops at the element)
-    await scrollToElement(locator);
+    await scrollToElement(locator, null, null); // silent scroll, no tracking (caller tracks the action)
     const box = await locator.boundingBox();
     if (box) await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2, { steps: 35 });
     await page.waitForTimeout(500);
@@ -239,35 +243,35 @@ await cdp.send('Page.startScreencast', {
   };
 
   // Glide + click with real coordinate tracking.
-  // context = rich description for AI narration (what happens after the click)
-  const glideClick = async (locator, description, target, context) => {
+  // name = short timeline label (max 5 words), context = rich narration description
+  const glideClick = async (locator, name, description, target, context) => {
     const box = await glideMove(locator);
     if (await page.evaluate(() => !!window.__vc?.clickPulse)) {
       await page.evaluate(() => window.__vc.clickPulse());
       await page.waitForTimeout(120);
     }
-    track('click', description, target, toCoords(box), { context });
+    track('click', name, description, target, toCoords(box), { context });
     await locator.click();
     await page.waitForTimeout(400);
   };
 
   // Human-like typing with real coordinate tracking.
-  // context = rich description for AI narration (what this input does)
-  const slowType = async (locator, text, description, target, context) => {
+  // name = short timeline label, context = rich narration description
+  const slowType = async (locator, text, name, description, target, context) => {
     const box = await glideMove(locator);
     await locator.click();
     await page.waitForTimeout(300);
-    track('type', description, target, toCoords(box), { context, typed_text: text });
+    track('type', name, description, target, toCoords(box), { context, typed_text: text });
     for (const ch of text) {
       await locator.page().keyboard.type(ch, { delay: 70 + Math.random() * 90 });
     }
   };
 
   // Hover over an element to "explain" it without clicking.
-  // description = what this element is; used as both label AND context
-  const hoverTour = async (locator, description, ms = 1500) => {
+  // name = short timeline label, description = used as narration context
+  const hoverTour = async (locator, name, description, ms = 1500) => {
     const box = await glideMove(locator);
-    track('narrate', description, null, toCoords(box), { context: description });
+    track('narrate', name, description, null, toCoords(box), { context: description });
     await page.waitForTimeout(ms);
   };
 
@@ -277,24 +281,24 @@ await cdp.send('Page.startScreencast', {
   await page.waitForTimeout(2000);
 
   // Example actions — replace with your flow
-  // scrollToElement brings the target into view and stops — no blind scrolling
-  const emailField = page.getByPlaceholder('you@example.com');
-  await scrollToElement(emailField, 'Scroll to the sign-up form');
+  //                                    name (5 words max)  description (longer)    target    context (1-2 sentences for narration)
 
-  await hoverTour(emailField, 'The email field accepts any valid email address for account creation.');
+  const emailField = page.getByPlaceholder('you@example.com');
+  await scrollToElement(emailField, 'Sign-up form', 'Scroll down to the sign-up form section');
+
+  await hoverTour(emailField, 'Email field', 'The email field accepts any valid email address for account creation.');
 
   await slowType(
     page.getByPlaceholder('you@example.com'), 'sarah.demo@gmail.com',
-    'Enter email address', 'email',
-    'Types a demo email address into the signup form. This will be used as the account login.',
+    'Enter email', 'Enter email address into signup form', 'email',
+    'Types a demo email address. This will be the account login.',
   );
 
-  // primary: true → gold star on timeline (this is the key action of the flow)
   await glideClick(
-    page.getByRole('button', { name: 'Submit' }), 'Click submit button', 'submit',
-    'Clicks the Submit button to create the account. A success message appears confirming registration.',
+    page.getByRole('button', { name: 'Submit' }),
+    'Submit', 'Click submit to create account', 'submit',
+    'Clicks Submit. A success message appears confirming registration.',
   );
-  // Mark the last click as primary (key action)
   __actions[__actions.length - 1].primary = true;
 
   // ── Wait for success state ───────────────────────────────
@@ -304,7 +308,7 @@ await cdp.send('Page.startScreencast', {
     .waitFor({ state: 'visible', timeout: 15000 })
     .catch(() => {});
   await page.waitForTimeout(3000);
-  track('narrate', 'Flow complete');
+  track('narrate', 'Complete', 'Flow complete');
 
   // ── Stop recording ────────────────────────────────────────
   await page.evaluate(() => new Promise(r =>
@@ -348,26 +352,26 @@ The resulting JSON matches the format Vorec's `agent-api/create-project` expects
 ```json
 [
   {
-    "type": "narrate", "description": "Recording starts", "target": "intro",
+    "type": "narrate", "name": "Intro", "description": "Recording starts", "target": "intro",
     "timestamp": 0, "coordinates": { "x": 500, "y": 500 },
     "context": "The landing page loads showing the hero section with a sign-up form."
   },
   {
-    "type": "type", "description": "Enter email address", "target": "email",
-    "timestamp": 4.5, "coordinates": { "x": 480, "y": 420 },
-    "context": "Types a demo email into the signup form. This will be the account login.",
+    "type": "type", "name": "Enter email", "description": "Enter email address into signup form",
+    "target": "email", "timestamp": 4.5, "coordinates": { "x": 480, "y": 420 },
+    "context": "Types a demo email. This will be the account login.",
     "typed_text": "sarah.demo@gmail.com"
   },
   {
-    "type": "click", "description": "Click submit button", "target": "submit",
-    "timestamp": 8.2, "coordinates": { "x": 510, "y": 580 },
-    "context": "Clicks Submit to create the account. A success message confirms registration.",
+    "type": "click", "name": "Submit", "description": "Click submit to create account",
+    "target": "submit", "timestamp": 8.2, "coordinates": { "x": 510, "y": 580 },
+    "context": "Clicks Submit. A success message confirms registration.",
     "primary": true
   },
   {
-    "type": "narrate", "description": "Flow complete", "target": null,
-    "timestamp": 12.0, "coordinates": { "x": 500, "y": 500 },
-    "context": "The signup flow is complete. The user now has an account and can log in."
+    "type": "narrate", "name": "Complete", "description": "Flow complete",
+    "target": null, "timestamp": 12.0, "coordinates": { "x": 500, "y": 500 },
+    "context": "The signup flow is complete. The user now has an account."
   }
 ]
 ```
@@ -376,15 +380,16 @@ The resulting JSON matches the format Vorec's `agent-api/create-project` expects
 
 | Field | Stored as | Used for |
 |-------|-----------|----------|
+| `name` | `element_name` | **Timeline dot label** (what appears on hover) |
 | `type` | `interaction_type` | Color-coded click dots on timeline |
-| `description` | `description` | Timeline label + fallback for narration |
-| `target` | `element_name` | Click marker tooltip |
+| `description` | `description` | Longer action label, narration fallback |
+| `target` | Included in action data | Element identifier |
 | `timestamp` | `timestamp_seconds` | Position on timeline + narration timing |
 | `coordinates` | `coordinates_x/y` | Click markers, auto-zoom targets, cursor effects |
-| `context` | `ui_change` | **Fed to Vorec AI as narration source** — this is what makes voice-over rich |
-| `typed_text` | Built into description | Narration knows what was typed |
-| `selected_value` | Built into description | Narration knows what was picked |
-| `primary` | `primary_click_index` on segment | **Gold star on timeline** — Vorec picks `primary_click` per narration segment based on action importance. Marking `primary: true` + writing strong `context` influences which clicks get stars. Stars are used for auto-zoom targets and article screenshots. |
+| `context` | `ui_change` | **Fed to Vorec AI as narration source** |
+| `typed_text` | `typed_text` | Narration knows what was typed |
+| `selected_value` | `selected_value` | Narration knows what was picked |
+| `primary` | `is_primary` | **Gold star on timeline** — auto-zoom targets, article screenshots |
 
 **Only valid action types:** `click`, `type`, `narrate`, `hover`, `scroll`, `select`, `wait`, `navigate`. Anything else gets rejected by the agent-api.
 
