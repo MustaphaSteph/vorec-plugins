@@ -111,25 +111,25 @@ __actions[__actions.length - 1].primary = true;
 
 ## The canonical template
 
-The vorec script is a **standalone Node.js file** (not a `playwright-cli run-code` function). This gives us access to `child_process` for piping lossless CDP frames directly to FFmpeg — no 1 Mbit/s screencast bottleneck.
+The vorec script is a **standalone Node.js file**. It uses `page.screencast` for real-time recording (pauses are captured correctly), then re-encodes with FFmpeg for high quality.
 
 Run it with: `node vorec-script.mjs`
 
 ```js
 // vorec-script.mjs — standalone Node.js recording script
 import { chromium } from 'playwright';
-import { spawn } from 'child_process';
-import { mkdirSync, writeFileSync } from 'fs';
+import { execSync } from 'child_process';
+import { mkdirSync, writeFileSync, existsSync } from 'fs';
 
-mkdirSync('./recordings', { recursive: true });
+const OUTPUT_DIR = '.vorec/PROJECT_SLUG';
+mkdirSync(OUTPUT_DIR, { recursive: true });
 
 // ── Quality presets ──────────────────────────────────────────
-// Change QUALITY to '4k', '2k', or '1080p' based on user preference.
 const QUALITY = '4k';
 const PRESETS = {
-  '4k':    { dpr: 2, w: 3840, h: 2160, bitrate: '8M' },
-  '2k':    { dpr: 1.5, w: 2880, h: 1620, bitrate: '6M' },
-  '1080p': { dpr: 1, w: 1920, h: 1080, bitrate: '4M' },
+  '4k':    { dpr: 2, w: 3840, h: 2160 },
+  '2k':    { dpr: 1.5, w: 2880, h: 1620 },
+  '1080p': { dpr: 1, w: 1920, h: 1080 },
 };
 const Q = PRESETS[QUALITY];
 
@@ -141,38 +141,17 @@ const context = await browser.newContext({
 const page = await context.newPage();
 await page.goto('TARGET_URL', { waitUntil: 'domcontentloaded' });
 
-// ── High-quality recording via CDP frames → FFmpeg ──────────
-// CDP sends lossless PNG frames → piped to FFmpeg in real-time
-const FPS = 30;
-const cdp = await context.newCDPSession(page);
-const ffmpeg = spawn('ffmpeg', [
-  '-y',
-  '-f', 'image2pipe', '-framerate', String(FPS), '-i', '-',
-  '-c:v', 'libx264', '-preset', 'slow', '-crf', '18', '-tune', 'animation',
-  '-pix_fmt', 'yuv420p', '-movflags', '+faststart',
-  '-b:v', Q.bitrate,
-  './recordings/output.mp4',
-], { stdio: ['pipe', 'pipe', 'pipe'] });
-ffmpeg.stderr.on('data', () => {}); // suppress FFmpeg logs
-
-let recording = true;
-cdp.on('Page.screencastFrame', async ({ data, sessionId }) => {
-  if (!recording) return;
-  ffmpeg.stdin.write(Buffer.from(data, 'base64'));
-  await cdp.send('Page.screencastFrameAck', { sessionId });
-});
-await cdp.send('Page.startScreencast', {
-  format: 'png', quality: 100,
-  maxWidth: Q.w, maxHeight: Q.h,
-  everyNthFrame: 1,
+// ── Real-time recording via page.screencast ─────────────────
+// Records at real-time speed — all pauses and waitForTimeout are
+// captured in the video. Re-encoded with FFmpeg after for quality.
+await page.screencast.start({
+  path: `${OUTPUT_DIR}/raw.webm`,
+  size: { width: Q.w, height: Q.h },
 });
 
   // ── Action tracking (for Vorec narration) ────────────────
   // Actions are collected in a local array during recording,
-  // then saved to window.__vorec_actions after screencast stops.
-  // A second run-code call extracts them to a JSON file.
-  // NOTE: console.log does NOT reach stdout in playwright-cli run-code,
-  //       so we MUST use this window-based approach instead.
+  // then written to tracked-actions.json after recording stops.
   const VP = { w: 1920, h: 1080 };
   const __actions = [];
   const T0 = Date.now();
@@ -330,17 +309,24 @@ await cdp.send('Page.startScreencast', {
     requestAnimationFrame(() => requestAnimationFrame(r))
   ));
   await page.waitForTimeout(500);
-  recording = false;
-  await cdp.send('Page.stopScreencast');
-  ffmpeg.stdin.end();
-  await new Promise(r => ffmpeg.on('close', r));
-
-  // ── Save tracked actions ─────────────────────────────────
-  writeFileSync('.vorec/tracked-actions.json', JSON.stringify(__actions, null, 2));
-  console.log(`${__actions.length} actions tracked → .vorec/tracked-actions.json`);
+  await page.screencast.stop();
 
   await browser.close();
-  console.log('Recording saved → ./recordings/output.mp4');
+
+  // ── Re-encode for quality ────────────────────────────────
+  // page.screencast outputs VP8 WebM at ~1 Mbit/s. Re-encode to
+  // H.264 MP4 with higher quality for the final output.
+  console.log('Re-encoding to MP4...');
+  execSync(`ffmpeg -y -i "${OUTPUT_DIR}/raw.webm" \
+    -c:v libx264 -preset slow -crf 18 -tune animation \
+    -pix_fmt yuv420p -movflags +faststart \
+    "${OUTPUT_DIR}/output.mp4"`, { stdio: 'pipe' });
+  execSync(`rm "${OUTPUT_DIR}/raw.webm"`);
+
+  // ── Save tracked actions ─────────────────────────────────
+  writeFileSync(`${OUTPUT_DIR}/tracked-actions.json`, JSON.stringify(__actions, null, 2));
+  console.log(`${__actions.length} actions tracked → ${OUTPUT_DIR}/tracked-actions.json`);
+  console.log(`Recording saved → ${OUTPUT_DIR}/output.mp4`);
 }
 ```
 
@@ -412,7 +398,7 @@ The resulting JSON matches the format Vorec's `agent-api/create-project` expects
 
 ## Video quality presets
 
-The vorec script records directly to H.264 MP4 via CDP frames → FFmpeg. No WebM intermediate — no double compression.
+The vorec script uses `page.screencast` for real-time recording (WebM), then re-encodes to H.264 MP4 with FFmpeg for quality. The DPR setting controls pixel sharpness.
 
 Set `QUALITY` at the top of the vorec script based on user preference:
 
@@ -428,7 +414,7 @@ Viewport is always 1920×1080 — only DPR changes. Content stays the same size,
 
 ## No dead-time trimming needed
 
-The recording script controls all timing directly — there are no random pauses like a human recording. Every `waitForTimeout` in the script is intentional (waiting for animations, page loads, giving the viewer time to see what happened). No post-processing trim needed.
+The recording script controls all timing directly — every `waitForTimeout` is intentional (giving the viewer time to read, waiting for animations, holding after clicks). Since `page.screencast` records in real-time, these pauses appear naturally in the video. No post-processing trim needed — get the pacing right in the script.
 
 ## Common failures and fixes
 

@@ -142,37 +142,24 @@ Load [./rules/explore.md](./rules/explore.md) for semantic locators and page dis
 
 Find: selectors for elements to interact with, valid test data, expected results, wait conditions.
 
-### 5. What language?
+### 5. Ask recording preferences
 
-Ask:
-> **What language should the narration be in?** (default: English)
+**ALWAYS ask these questions before recording. Do NOT skip them.**
 
-If the user already specified a language or it's obvious from context, skip this question.
+Ask in one message:
+> Before I start, a few quick options:
+> 1. **Language?** (default: English)
+> 2. **Narration style?** Tutorial / Professional / Conversational / Storytelling / Persuasive / Academic / Concise / Exact (default: Tutorial)
+> 3. **Quality?** 4K / 2K / 1080p (default: 4K)
+> 4. **Visible cursor?** Yes / No (default: No)
+>
+> Or say "defaults" for English, Tutorial, 4K, no cursor.
 
-### 6. What narration style?
+See [./rules/narration-styles.md](./rules/narration-styles.md) for style descriptions.
 
-Ask:
-> **What narration style do you want?**
-> - **Tutorial** (default) — friendly instructor, step-by-step
-> - **Professional** — structured workplace training
-> - **Conversational** — casual, like showing a friend
-> - **Storytelling** — narrative arc, marketing-style
-> - **Persuasive** — sales demo, investor pitch
-> - **Academic** — educational, explains concepts
-> - **Concise** — short and direct, power-user guide
-> - **Exact** — one sentence per click, technical docs
+**Wait for the user to answer before continuing.** These choices affect the recording script timing (from [./rules/pacing.md](./rules/pacing.md)) and context writing style.
 
-See [./rules/narration-styles.md](./rules/narration-styles.md) for detailed descriptions and examples.
-
-If the user says "default" or doesn't care, use **Tutorial**.
-
-### 7. Recording quality + cursors (only if user asks)
-
-These have good defaults — don't ask unless the user brings it up:
-- **Quality:** 4K (default) / 2K / 1080p
-- **Visible cursors:** No (default) / Yes
-
-### 8. Create the project folder
+### 6. Create the project folder
 
 Each recording gets its own folder under `.vorec/`. Use a short slug from the title:
 
@@ -192,7 +179,7 @@ All files for this recording go inside:
 
 This way multiple recordings don't overwrite each other.
 
-### 9. Show the recording plan
+### 7. Show the recording plan
 
 **Before writing any code, present the full plan to the user.** List every step with what you'll do, how long it will take, and the timing from [./rules/pacing.md](./rules/pacing.md).
 
@@ -221,7 +208,7 @@ Format:
 
 This is the user's last chance to change the flow before recording. Don't skip this step.
 
-### 10. Build the recording script
+### 8. Build the recording script
 
 Load [./rules/vorec-script.md](./rules/vorec-script.md) for the template. Write the script to `.vorec/<project-slug>/vorec-script.mjs`.
 
@@ -245,7 +232,7 @@ For error recovery: [./rules/validation.md](./rules/validation.md)
 Tell the user:
 > Writing the recording script now...
 
-### 11. Record the video
+### 9. Record the video
 
 ```bash
 node .vorec/<project-slug>/vorec-script.mjs
@@ -260,7 +247,7 @@ When it finishes:
 
 Ask user to validate the video before uploading.
 
-### 12. Upload to Vorec
+### 10. Upload to Vorec
 
 After the user validates the recording, ask:
 
@@ -318,7 +305,7 @@ Tell the user:
 
 **Without tracked actions**, Vorec would have to watch the video and guess where clicks happened (slower, less accurate, same cost). The agent's tracked actions are what make the narration precise.
 
-### 13. Clean up
+### 11. Clean up
 
 After successful upload, remove the script and manifest (keep the video):
 ```bash
@@ -327,7 +314,7 @@ rm -f .vorec/<project-slug>/vorec-script.mjs .vorec/<project-slug>/vorec.json .v
 
 Keep `output.mp4` — the user may want it. If the user declined upload, keep everything.
 
-### 14. Share the result
+### 12. Share the result
 
 If uploaded:
 > Your tutorial is ready! Open the editor here: [EDITOR_URL]

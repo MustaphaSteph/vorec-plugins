@@ -1,66 +1,52 @@
 ---
 name: recording-quality
-description: How Vorec records high-quality video — CDP frame capture piped to FFmpeg
+description: How Vorec records video — page.screencast for real-time + FFmpeg re-encode for quality
 ---
 
 # Video Recording
 
-Vorec records video by capturing lossless PNG frames from Chrome via CDP (Chrome DevTools Protocol) and piping them to FFmpeg in real-time. This produces sharp 4K H.264 MP4 files.
+Vorec records video using Playwright's `page.screencast` API which captures the browser in **real-time** — all pauses, typing, and animations appear at their actual speed. The WebM output is then re-encoded with FFmpeg for higher quality.
 
 ## How it works
 
 ```
-Chrome renders page → CDP sends PNG frames → FFmpeg encodes to H.264 MP4
+page.screencast → real-time WebM (VP8) → FFmpeg re-encode → H.264 MP4
 ```
 
-1. Open a Chromium browser with `deviceScaleFactor: 2` (4K pixels, normal-size content)
-2. Start CDP `Page.startScreencast` with `format: 'png'` — Chrome sends lossless frames
-3. Each frame is piped to FFmpeg's stdin as raw PNG data
-4. FFmpeg encodes to H.264 MP4 with high bitrate settings
-5. When done, stop CDP screencast and close FFmpeg
+1. `page.screencast.start()` — records the browser window in real-time
+2. All `waitForTimeout` pauses are captured (the video matches what a viewer would see)
+3. `page.screencast.stop()` — saves WebM file
+4. FFmpeg re-encodes WebM → MP4 with better quality settings
+5. Delete the intermediate WebM
 
 ## Quality presets
 
-| Preset | DPR | Output resolution | Bitrate |
-|--------|-----|-------------------|---------|
-| `'4k'` (default) | 2 | 3840×2160 | 8 Mbit/s |
-| `'2k'` | 1.5 | 2880×1620 | 6 Mbit/s |
-| `'1080p'` | 1 | 1920×1080 | 4 Mbit/s |
+| Preset | DPR | Output resolution | Best for |
+|--------|-----|-------------------|----------|
+| `'4k'` (default) | 2 | 3840×2160 | Product demos, marketing |
+| `'2k'` | 1.5 | 2880×1620 | Tutorials, onboarding |
+| `'1080p'` | 1 | 1920×1080 | Internal demos |
 
-Viewport is always 1920×1080. Only DPR changes pixel sharpness.
+Viewport is always 1920×1080. DPR controls pixel sharpness.
 
-## FFmpeg settings
+## FFmpeg re-encode settings
 
-```
--c:v libx264 -preset slow -crf 18 -tune animation -pix_fmt yuv420p -movflags +faststart
+```bash
+ffmpeg -y -i raw.webm -c:v libx264 -preset slow -crf 18 -tune animation -pix_fmt yuv420p -movflags +faststart output.mp4
 ```
 
 | Setting | Value | Why |
 |---------|-------|-----|
-| Codec | `libx264` (H.264) | Universal playback — QuickTime, iOS, Android, web |
-| CRF | 18 | Visually lossless (lower = better quality, 18-23 range) |
+| Codec | `libx264` (H.264) | Universal playback |
+| CRF | 18 | Visually lossless |
 | Preset | `slow` | Better compression at same quality |
-| Tune | `animation` | Optimized for UI content (text, flat colors, sharp edges) |
-| FPS | 30 | Smooth for tutorials, reasonable file size |
+| Tune | `animation` | Optimized for UI content |
 
-## Render flush before stop
+## Why real-time matters
 
-Before stopping the CDP screencast, force a render flush to avoid a corrupted last frame:
-
-```js
-await page.evaluate(() => new Promise(r =>
-  requestAnimationFrame(() => requestAnimationFrame(r))
-));
-await page.waitForTimeout(500);
-await cdp.send('Page.stopScreencast');
-```
-
-## Output
-
-- `./recordings/output.mp4` — ready to upload to Vorec or share directly
-- No WebM intermediate — direct MP4 output, single compression pass
+The recording must match the video duration that Vorec narrates. If the script has 5-second pauses between actions (for the viewer to read), those 5 seconds must appear in the video. Vorec's AI writes narration timed to the tracked action timestamps — if the video is shorter than the timestamps, narration won't sync.
 
 ## Related files
 
-- [./vorec-script.md](./vorec-script.md) — Recording script template with full CDP setup
-- [./cli-commands.md](./cli-commands.md) — playwright-cli commands for page exploration
+- [./vorec-script.md](./vorec-script.md) — Recording script template
+- [./pacing.md](./pacing.md) — Timing rules per narration style
