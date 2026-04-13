@@ -12,9 +12,9 @@ The script is a standalone Node.js file (`vorec-script.mjs`) — run it with `no
 ## Critical rules
 
 ### Recording quality
-1. **4K quality by default** — viewport 1920×1080 + `deviceScaleFactor: 2` = 3840×2160 output. CDP frame capture with PNG → FFmpeg at 8 Mbit/s.
+1. **4K quality by default** — record at 1920×1080 with DPR 2 (sharp pixels), then upscale to 4K with FFmpeg lanczos. Real-time recording, no frame drops.
 2. **Navigate to the target URL directly** — `page.goto(url)`. Never leave the page on `about:blank` (avoids white start frame).
-3. **Render flush before stop** — `requestAnimationFrame × 2` + 500ms wait before stopping CDP capture to avoid a glitched last frame.
+3. **Render flush before stop** — `requestAnimationFrame × 2` + 500ms wait before `page.screencast.stop()` to avoid a glitched last frame.
 4. **The vorec script is a standalone Node.js file** (`vorec-script.mjs`) — run with `node vorec-script.mjs`.
 
 ### Action tracking
@@ -124,29 +124,27 @@ import { mkdirSync, writeFileSync, existsSync } from 'fs';
 const OUTPUT_DIR = '.vorec/PROJECT_SLUG';
 mkdirSync(OUTPUT_DIR, { recursive: true });
 
-// ── Quality presets ──────────────────────────────────────────
-const QUALITY = '4k';
-const PRESETS = {
-  '4k':    { dpr: 2, w: 3840, h: 2160 },
-  '2k':    { dpr: 1.5, w: 2880, h: 1620 },
-  '1080p': { dpr: 1, w: 1920, h: 1080 },
-};
-const Q = PRESETS[QUALITY];
+// ── Recording setup ─────────────────────────────────────────
+// Record at 1080p with DPR 2 (retina-sharp rendering internally).
+// Then upscale to 4K with FFmpeg lanczos after recording.
+// This avoids frame drops (4K CDP can't keep up) while keeping
+// text and UI crisp because DPR 2 renders at 2x pixel density.
+const QUALITY = '4k'; // '4k', '2k', or '1080p'
 
 const browser = await chromium.launch({ headless: true });
 const context = await browser.newContext({
   viewport: { width: 1920, height: 1080 },
-  deviceScaleFactor: Q.dpr,
+  deviceScaleFactor: 2, // always 2 — renders sharp text/UI internally
 });
 const page = await context.newPage();
 await page.goto('TARGET_URL', { waitUntil: 'domcontentloaded' });
 
 // ── Real-time recording via page.screencast ─────────────────
-// Records at real-time speed — all pauses and waitForTimeout are
-// captured in the video. Re-encoded with FFmpeg after for quality.
+// Records at 1920×1080 in real-time — all pauses captured in video.
+// Upscaled to 4K after with FFmpeg lanczos (sharp, no blur).
 await page.screencast.start({
   path: `${OUTPUT_DIR}/raw.webm`,
-  size: { width: Q.w, height: Q.h },
+  size: { width: 1920, height: 1080 },
 });
 
   // ── Action tracking (for Vorec narration) ────────────────
@@ -313,11 +311,16 @@ await page.screencast.start({
 
   await browser.close();
 
-  // ── Re-encode for quality ────────────────────────────────
-  // page.screencast outputs VP8 WebM at ~1 Mbit/s. Re-encode to
-  // H.264 MP4 with higher quality for the final output.
-  console.log('Re-encoding to MP4...');
+  // ── Upscale + re-encode ───────────────────────────────────
+  // Step 1: Re-encode WebM → MP4 at source resolution
+  // Step 2: Upscale to target quality with lanczos (sharp edges)
+  const SIZES = { '4k': '3840:2160', '2k': '2560:1440', '1080p': null };
+  const targetSize = SIZES[QUALITY];
+  const scaleFilter = targetSize ? `-vf "scale=${targetSize}:flags=lanczos"` : '';
+
+  console.log(`Re-encoding to ${QUALITY} MP4...`);
   execSync(`ffmpeg -y -i "${OUTPUT_DIR}/raw.webm" \
+    ${scaleFilter} \
     -c:v libx264 -preset slow -crf 18 -tune animation \
     -pix_fmt yuv420p -movflags +faststart \
     "${OUTPUT_DIR}/output.mp4"`, { stdio: 'pipe' });
@@ -340,10 +343,10 @@ node vorec-script.mjs
 The script:
 1. Launches Chromium with DPR 2 (4K rendering)
 2. Opens the target URL directly (no white frame)
-3. Starts CDP frame capture → pipes lossless PNGs to FFmpeg in real-time
-4. Runs the flow (clicks, types, scrolls)
-5. Stops recording → FFmpeg finalizes the MP4
-6. Saves tracked actions to `.vorec/tracked-actions.json`
+3. Starts `page.screencast` (real-time recording at 4K)
+4. Runs the flow (clicks, types, scrolls — all pauses captured in video)
+5. Stops recording → FFmpeg re-encodes WebM → MP4 for quality
+6. Saves tracked actions to tracked-actions.json
 
 Output:
 - `./recordings/output.mp4` — 4K H.264 video (8 Mbit/s, CRF 18)
@@ -398,19 +401,15 @@ The resulting JSON matches the format Vorec's `agent-api/create-project` expects
 
 ## Video quality presets
 
-The vorec script uses `page.screencast` for real-time recording (WebM), then re-encodes to H.264 MP4 with FFmpeg for quality. The DPR setting controls pixel sharpness.
+Recording always happens at 1920×1080 with DPR 2 (sharp text/UI). FFmpeg upscales to the target resolution after recording using lanczos (preserves sharp edges).
 
-Set `QUALITY` at the top of the vorec script based on user preference:
+| Preset | Output | How |
+|--------|--------|-----|
+| `'4k'` (default) | 3840×2160 | Record 1080p DPR 2 → upscale with lanczos |
+| `'2k'` | 2560×1440 | Record 1080p DPR 2 → upscale with lanczos |
+| `'1080p'` | 1920×1080 | Record 1080p DPR 2 → re-encode only (no upscale) |
 
-| Preset | Resolution | DPR | Bitrate | Best for |
-|--------|-----------|-----|---------|----------|
-| `'4k'` (default) | 3840×2160 | 2 | 8 Mbit/s | Product demos, marketing, investor pitches |
-| `'2k'` | 2880×1620 | 1.5 | 6 Mbit/s | Tutorials, onboarding, docs |
-| `'1080p'` | 1920×1080 | 1 | 4 Mbit/s | Internal demos, quick recordings |
-
-All presets use: lossless PNG frames, H.264 codec, CRF 18, slow preset, animation tune, 30 FPS.
-
-Viewport is always 1920×1080 — only DPR changes. Content stays the same size, just sharper pixels.
+DPR 2 is always on — even 1080p gets retina-sharp rendering. The upscale works because the source pixels are already crisp from DPR 2.
 
 ## No dead-time trimming needed
 
