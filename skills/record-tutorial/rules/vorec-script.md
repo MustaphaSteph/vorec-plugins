@@ -159,9 +159,24 @@ await page.goto('TARGET_URL', { waitUntil: 'domcontentloaded' });
     y: Math.round(((box.y + box.height / 2) / VP.h) * 1000),
   } : { x: 500, y: 500 };
 
+  // ── Context-driven timing ────────────────────────────────
+  // Pauses are calculated from context word count. No hardcoded values.
+  // See rules/pacing.md for the full explanation.
+  const STYLE = 'tutorial'; // set from user's choice
+  const STYLE_SPEED = {
+    exact: 0.6, concise: 0.7, tutorial: 1.0, professional: 1.0,
+    conversational: 1.2, storytelling: 1.3, academic: 1.3, persuasive: 1.1,
+  };
+  const TYPING_DELAY = { exact: 50, concise: 60, tutorial: 80, professional: 80,
+    conversational: 100, storytelling: 100, academic: 100, persuasive: 80,
+  }[STYLE] || 80;
+  const wordMs = (text) => Math.max(1500, Math.round(((text || '').split(/\s+/).length / 3) * 1000));
+  const pause = (context) => Math.round(wordMs(context) * (STYLE_SPEED[STYLE] || 1.0));
+
   track('narrate', 'Intro', 'Recording starts', 'intro', null, {
     context: 'The page loads showing the main content.',
   });
+  await page.waitForTimeout(pause('The page loads showing the main content.'));
 
   // ── Helpers ──────────────────────────────────────────────
 
@@ -221,8 +236,7 @@ await page.goto('TARGET_URL', { waitUntil: 'domcontentloaded' });
     return box;
   };
 
-  // Glide + click with real coordinate tracking.
-  // name = short timeline label (max 5 words), context = rich narration description
+  // Glide + click. Pause duration = time to speak the context.
   const glideClick = async (locator, name, description, target, context) => {
     const box = await glideMove(locator);
     if (await page.evaluate(() => !!window.__vc?.clickPulse)) {
@@ -231,27 +245,26 @@ await page.goto('TARGET_URL', { waitUntil: 'domcontentloaded' });
     }
     track('click', name, description, target, toCoords(box), { context });
     await locator.click();
-    await page.waitForTimeout(400);
+    await page.waitForTimeout(pause(context));
   };
 
-  // Human-like typing with real coordinate tracking.
-  // name = short timeline label, context = rich narration description
+  // Human-like typing. Typing speed + pause both from style.
   const slowType = async (locator, text, name, description, target, context) => {
     const box = await glideMove(locator);
     await locator.click();
     await page.waitForTimeout(300);
     track('type', name, description, target, toCoords(box), { context, typed_text: text });
     for (const ch of text) {
-      await locator.page().keyboard.type(ch, { delay: 70 + Math.random() * 90 });
+      await page.keyboard.type(ch, { delay: TYPING_DELAY + Math.random() * (TYPING_DELAY * 0.5) });
     }
+    await page.waitForTimeout(pause(context));
   };
 
-  // Hover over an element to "explain" it without clicking.
-  // name = short timeline label, description = used as narration context
-  const hoverTour = async (locator, name, description, ms = 1500) => {
+  // Hover to explain an element. Pause = time to speak the description.
+  const hoverTour = async (locator, name, description) => {
     const box = await glideMove(locator);
     track('narrate', name, description, null, toCoords(box), { context: description });
-    await page.waitForTimeout(ms);
+    await page.waitForTimeout(pause(description));
   };
 
   // ── Your flow starts here ────────────────────────────────
