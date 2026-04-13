@@ -14,7 +14,7 @@ The script is a standalone Node.js file (`vorec-script.mjs`) — run it with `no
 ### Recording quality
 1. **4K quality by default** — record at 1920×1080 with DPR 2 via `recordVideo`, then upscale to 4K with FFmpeg lanczos.
 2. **Navigate to the target URL directly** — `page.goto(url)`. Never leave the page on `about:blank` (avoids white start frame).
-3. **Stop recording correctly** — (a) render flush with `requestAnimationFrame × 2`, (b) hold 5 seconds for encoder to catch up, (c) get video path with `page.video().path()` BEFORE closing, (d) `page.close()` then `browser.close()`. Wrong order = video cut short or crash.
+3. **Stop recording correctly** — (a) render flush with `requestAnimationFrame × 2`, (b) `page.close()`, (c) `page.video().saveAs(path)` which waits until the video is fully written, (d) `browser.close()`. Use `saveAs()` not `path()` — `path()` returns before the video is finalized.
 4. **The vorec script is a standalone Node.js file** (`vorec-script.mjs`) — run with `node vorec-script.mjs`.
 
 ### Action tracking
@@ -303,19 +303,17 @@ await page.goto('TARGET_URL', { waitUntil: 'domcontentloaded' });
   });
 
   // ── Stop recording ────────────────────────────────────────
-  // 1. Render flush to avoid glitched last frame
+  // Render flush to avoid glitched last frame
   await page.evaluate(() => new Promise(r =>
     requestAnimationFrame(() => requestAnimationFrame(r))
   ));
-  // 2. Hold 5 seconds — gives the video encoder time to catch up.
-  //    recordVideo's VP8 encoder can fall behind on long recordings.
-  //    Without this, the last actions may be cut off from the video.
-  await page.waitForTimeout(5000);
+  await page.waitForTimeout(500);
 
-  // 3. Get the video path BEFORE closing (page.video() needs the page alive).
-  const rawVideo = await page.video().path();
-  // 4. Close page first (finalizes video file), then browser.
+  // Close context to finalize recording, then use saveAs() which
+  // WAITS until the video is fully written (unlike path() which returns early).
+  const rawVideo = `${OUTPUT_DIR}/raw.webm`;
   await page.close();
+  await page.video().saveAs(rawVideo);
   await browser.close();
 
   // ── Upscale + re-encode ───────────────────────────────────
