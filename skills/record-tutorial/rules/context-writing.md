@@ -61,14 +61,21 @@ Good examples:
 
 ### Rule 6 — Vary context for repeated actions
 
-When adding multiple items, don't copy-paste the same context. Tell a progression story.
+When adding multiple items, tell a progression story. The agent types realistic demo data (real-looking names, emails, values) but the context must frame them as examples — the viewer enters their own.
 
-| # | Context |
-|---|---------|
-| 1st item | `"Types the first task name. Each task gets its own card on the board once added."` |
-| 2nd item | `"Adding another task. The list on the right updates as each one is confirmed."` |
-| Middle item | `"Three tasks in. The board is starting to take shape with cards organized by status."` |
-| Last item | `"Last one. The board now has all 6 tasks — ready to assign team members and set deadlines."` |
+**First item — explain the PROCESS (how to add):**
+`"Types a name and clicks Add. Enter each of your team members here — the list updates as you go."`
+
+**Second item — reinforce the pattern:**
+`"Adding another one. Same process — type the name, hit Add."`
+
+**Middle item — show PROGRESS:**
+`"Four added so far. The list is filling up on the right side."`
+
+**Last item — what happens NEXT:**
+`"Last one. The team is complete — ready to assign roles and set permissions."`
+
+**Never narrate the specific demo values.** The viewer should hear "enter your team members" not "type Carlos, then Maria, then Pedro."
 
 ### Rule 7 — Every tracked action MUST have context
 
