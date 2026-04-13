@@ -14,7 +14,7 @@ The script is a standalone Node.js file (`vorec-script.mjs`) — run it with `no
 ### Recording quality
 1. **4K quality by default** — record at 1920×1080 with DPR 2 via `recordVideo`, then upscale to 4K with FFmpeg lanczos.
 2. **Navigate to the target URL directly** — `page.goto(url)`. Never leave the page on `about:blank` (avoids white start frame).
-3. **Render flush before stop** — `requestAnimationFrame × 2` + 500ms wait before closing the context to avoid a glitched last frame.
+3. **Stop recording correctly** — (a) render flush with `requestAnimationFrame × 2`, (b) hold 5 seconds for encoder to catch up, (c) get video path with `page.video().path()` BEFORE closing, (d) `page.close()` then `browser.close()`. Wrong order = video cut short or crash.
 4. **The vorec script is a standalone Node.js file** (`vorec-script.mjs`) — run with `node vorec-script.mjs`.
 
 ### Action tracking
@@ -303,16 +303,19 @@ await page.goto('TARGET_URL', { waitUntil: 'domcontentloaded' });
   });
 
   // ── Stop recording ────────────────────────────────────────
-  // Render flush to avoid glitched last frame
+  // 1. Render flush to avoid glitched last frame
   await page.evaluate(() => new Promise(r =>
     requestAnimationFrame(() => requestAnimationFrame(r))
   ));
-  await page.waitForTimeout(500);
+  // 2. Hold 5 seconds — gives the video encoder time to catch up.
+  //    recordVideo's VP8 encoder can fall behind on long recordings.
+  //    Without this, the last actions may be cut off from the video.
+  await page.waitForTimeout(5000);
 
-  // recordVideo saves the file when the context closes.
-  // Get the video path BEFORE closing (page.video() needs the page alive).
+  // 3. Get the video path BEFORE closing (page.video() needs the page alive).
   const rawVideo = await page.video().path();
-  await context.close();
+  // 4. Close page first (finalizes video file), then browser.
+  await page.close();
   await browser.close();
 
   // ── Upscale + re-encode ───────────────────────────────────
