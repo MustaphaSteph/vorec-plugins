@@ -66,26 +66,15 @@ track(type, name, description, target, coords, { context, typed_text, selected_v
 
 ### Writing good `context` — this is what makes narration great
 
-Vorec's AI uses `context` to write the voice-over script. Without it, narration is generic ("Click the button"). With it, narration explains what's happening and why.
+**Load [./context-writing.md](./context-writing.md) before writing ANY context.** It teaches the 7 rules for context that produces professional narration. Key points:
 
-**Bad context (or no context):**
-```js
-glideClick(btn, 'Click Create', 'create-btn')
-// → Vorec narration: "Click the Create button."
-```
-
-**Good context:**
-```js
-glideClick(btn, 'Click Create Project', 'create-btn',
-  'Clicks the blue Create Project button in the top-right corner. A creation dialog slides in with fields for project title and template selection.')
-// → Vorec narration: "Now let's create our first project. Click the Create Project button in the top right — you'll see a dialog where we can give it a name and choose a template."
-```
-
-**Rules for context:**
 1. Describe what you SEE, not just what you click
-2. Say what appears AFTER the action (modal opens, page changes, data loads)
-3. Mention WHY this step matters if it's not obvious
-4. 1-2 sentences max — Vorec expands it into natural narration
+2. Set the scene BEFORE the action (where are we, what's on screen)
+3. React to what CHANGED after the action (modal opened, page changed)
+4. Group by intent, not individual click
+5. Orient the viewer on every new page
+6. Vary context for repeated actions (don't copy-paste)
+7. Every action MUST have context — no empty fields
 
 ### Marking primary actions (gold stars)
 

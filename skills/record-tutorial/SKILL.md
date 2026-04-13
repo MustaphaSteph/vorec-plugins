@@ -231,6 +231,7 @@ For **Explore mode** page discovery (before writing the script), use `playwright
 - [./rules/cli-session.md](./rules/cli-session.md) — `close-all`, session management
 
 For action types: [./rules/actions.md](./rules/actions.md)
+For writing context: [./rules/context-writing.md](./rules/context-writing.md) — **load this before writing any context**
 For error recovery: [./rules/validation.md](./rules/validation.md)
 
 Tell the user:
@@ -357,6 +358,7 @@ If not uploaded:
 - [./rules/vorec-script.md](./rules/vorec-script.md) — Recording script template + action types
 - [./rules/narration-styles.md](./rules/narration-styles.md) — All 8 narration styles with examples
 - [./rules/pacing.md](./rules/pacing.md) — Timing rules per narration style
+- [./rules/context-writing.md](./rules/context-writing.md) — How to write context that produces great narration
 - [./rules/cursor-pack.md](./rules/cursor-pack.md) — Visible cursor injection (opt-in)
 
 ### playwright-cli reference
