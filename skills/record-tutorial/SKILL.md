@@ -172,18 +172,39 @@ These have good defaults — don't ask unless the user brings it up:
 - **Quality:** 4K (default) / 2K / 1080p
 - **Visible cursors:** No (default) / Yes
 
-### 8. Build the recording script
+### 8. Create the project folder
+
+Each recording gets its own folder under `.vorec/`. Use a short slug from the title:
+
+```bash
+# Example: "How to Create a Tournament" → padelmake-tournament
+mkdir -p .vorec/<project-slug>
+```
+
+All files for this recording go inside:
+```
+.vorec/<project-slug>/
+├── vorec-script.mjs      # the recording script
+├── output.mp4             # the recorded video
+├── tracked-actions.json   # action data for Vorec
+└── vorec.json             # manifest for upload
+```
+
+This way multiple recordings don't overwrite each other.
+
+### 9. Build the recording script
 
 Tell the user what you're about to do:
 > I'm writing the recording script now. It will open a browser, walk through the flow, and capture a high-quality video with every action tracked.
 
-Load [./rules/vorec-script.md](./rules/vorec-script.md) for the template. The recording script is a standalone Node.js file (`vorec-script.mjs`).
+Load [./rules/vorec-script.md](./rules/vorec-script.md) for the template. Write the script to `.vorec/<project-slug>/vorec-script.mjs`.
 
 What to include:
 - Quality preset based on user's choice (4K / 2K / 1080p)
 - `scrollToElement`, `glideClick`, `slowType`, `hoverTour` helpers
-- A `track()` call for every action — with `description`, `context`, and `primary` markers
+- A `track()` call for every action — with `name`, `description`, `context`, and `primary` markers
 - `scrollToElement` before every interaction (never scroll blindly)
+- Output paths pointing to the project folder (`.vorec/<project-slug>/output.mp4` and `.vorec/<project-slug>/tracked-actions.json`)
 
 If **visible cursors = Yes**, also load [./rules/cursor-pack.md](./rules/cursor-pack.md).
 
@@ -202,23 +223,22 @@ For error recovery: [./rules/validation.md](./rules/validation.md)
 >
 > Ready? I'll start recording now.
 
-### 9. Record the video
+### 10. Record the video
 
 ```bash
-mkdir -p .vorec recordings
-node vorec-script.mjs
+node .vorec/<project-slug>/vorec-script.mjs
 ```
 
 **Tell the user what's happening while it runs:**
 > Recording in progress... The script is walking through the flow now.
 
 When it finishes:
-> Recording done! Saved to `./recordings/output.mp4` ([count] actions tracked).
+> Recording done! Saved to `.vorec/<project-slug>/output.mp4` ([count] actions tracked).
 > Please review the video to make sure it looks good.
 
 Ask user to validate the video before uploading.
 
-### 10. Upload to Vorec
+### 11. Upload to Vorec
 
 After the user validates the recording, ask:
 
@@ -232,7 +252,7 @@ After the user validates the recording, ask:
 > - **Timeline editor** — adjust timing, trim, re-record
 > - **Export** — up to 4K, 60fps
 
-If yes, write a `vorec.json` manifest:
+If yes, write the manifest to `.vorec/<project-slug>/vorec.json`:
 
 ```json
 {
@@ -256,9 +276,9 @@ No need for `actions` in the manifest — the real action data comes from `--tra
 
 Then upload:
 ```bash
-npx @vorec/cli@latest run vorec.json --skip-record \
-  --video ./recordings/output.mp4 \
-  --tracked-actions .vorec/tracked-actions.json
+npx @vorec/cli@latest run .vorec/<project-slug>/vorec.json --skip-record \
+  --video .vorec/<project-slug>/output.mp4 \
+  --tracked-actions .vorec/<project-slug>/tracked-actions.json
 ```
 
 Tell the user:
@@ -276,16 +296,16 @@ Tell the user:
 
 **Without tracked actions**, Vorec would have to watch the video and guess where clicks happened (slower, less accurate, same cost). The agent's tracked actions are what make the narration precise.
 
-### 11. Clean up
+### 12. Clean up
 
+After successful upload, remove the script and manifest (keep the video):
 ```bash
-rm -f vorec-script.mjs vorec.json
-rm -rf .vorec/tracked-actions.json
+rm -f .vorec/<project-slug>/vorec-script.mjs .vorec/<project-slug>/vorec.json .vorec/<project-slug>/tracked-actions.json
 ```
 
-Keep the recordings directory if the user chose not to upload.
+Keep `output.mp4` — the user may want it. If the user declined upload, keep everything.
 
-### 12. Share the result
+### 13. Share the result
 
 If uploaded:
 > Your tutorial is ready! Open the editor here: [EDITOR_URL]
