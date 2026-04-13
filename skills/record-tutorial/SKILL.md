@@ -343,6 +343,7 @@ If not uploaded:
 - [./rules/explore.md](./rules/explore.md) — Explore mode (page-driven)
 - [./rules/vorec-script.md](./rules/vorec-script.md) — Recording script template + action types
 - [./rules/narration-styles.md](./rules/narration-styles.md) — All 8 narration styles with examples
+- [./rules/pacing.md](./rules/pacing.md) — Timing rules per narration style
 - [./rules/cursor-pack.md](./rules/cursor-pack.md) — Visible cursor injection (opt-in)
 
 ### playwright-cli reference

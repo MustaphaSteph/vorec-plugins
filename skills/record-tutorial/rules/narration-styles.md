@@ -102,3 +102,7 @@ If the user isn't sure, ask:
 > - Students or learners → **Academic**
 
 Or just use **Tutorial** — it works for 80% of cases.
+
+## Recording pacing
+
+Each style has different timing. See [./pacing.md](./pacing.md) for pause durations, typing speeds, and hold times per style.
