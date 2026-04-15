@@ -4,9 +4,9 @@
 
 [![npm](https://img.shields.io/npm/v/@vorec/cli)](https://www.npmjs.com/package/@vorec/cli)
 [![Claude Code Plugin](https://img.shields.io/badge/Claude_Code-Plugin-blueviolet)](https://vorec.ai)
-[![Plugin Version](https://img.shields.io/badge/plugin-v9.7.0-success)](https://github.com/MustaphaSteph/vorec-plugins)
+[![Plugin Version](https://img.shields.io/badge/plugin-v10.0.0-success)](https://github.com/MustaphaSteph/vorec-plugins)
 
-## ✨ What's new in v9.7.0
+## ✨ What's new in v10.0.0
 
 - **4K recording quality** — CDP lossless frame capture → FFmpeg at 8 Mbit/s. Near QuickTime-level sharpness
 - **Smart action tracking** — every click, type, and scroll is tracked with real coordinates, context, and timestamps. Vorec skips video analysis entirely
