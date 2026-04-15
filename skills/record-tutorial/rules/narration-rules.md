@@ -175,9 +175,49 @@ track('type', 'Project name', '...', 'name-input', coords, {
 });
 ```
 
+### ⚠️ CRITICAL: Narration must FIT in the pause (no freeze sync)
+
+Narration is spoken at ~3 words/second. If the narration is too long for the pause, it overflows into the next action → **FREEZE SYNC** (the video freezes while narration catches up — looks broken).
+
+**Math:**
+- `narration_duration_ms = wordCount × 333`
+- Rule: `narration_duration_ms ≤ pauseMs` (always)
+- Example: 10-word narration needs `pauseMs ≥ 3333`
+- Example: `pauseMs: 3000` allows max 9 words of narration
+
+**When narration is too long:**
+- Option A: increase `pauseMs` (if the visual moment supports a longer hold)
+- Option B: shorten the narration
+- Option C: split into multiple tracked actions with separate narrations and pauses
+
+### ⚠️ Group nearby actions when narration spans them
+
+If several clicks happen within 2-3 seconds (rapid navigation, multi-step clicks on the same screen), **DON'T split into multiple tracked actions with tiny pauses**. Either:
+
+**Option A — One tracked action for the group:**
+```js
+// 3 clicks in 2 seconds, all part of "configure settings"
+// → ONE tracked action covering all 3, with combined narration
+await btn1.click();
+await btn2.click();
+await glideClick(btn3, 'Configure', '...', 'save', context,
+  "We're setting up the defaults — courts, rounds, and scoring all in one pass.",
+  4500  // long enough for the combined narration
+);
+```
+
+**Option B — Separate actions with fitting narration:**
+```js
+// If each click deserves its own narration beat
+await glideClick(btn1, 'Courts', ..., "Set the number of courts.", 2500);  // 5 words, 1.7s ✓
+await glideClick(btn2, 'Rounds', ..., "Then pick rounds.", 2000);           // 3 words, 1s ✓
+await glideClick(btn3, 'Save', ..., "Save the configuration.", 2500);       // 3 words, 1s ✓
+```
+
 ### Pause is explicit, not calculated
 
 The agent sets `pause` directly in milliseconds. The narration word count is a reference (roughly 3 words/second) but the agent picks the pause based on:
+- **Narration fit** — pause must hold long enough to speak the narration (`words × 333ms`)
 - How long the visual moment lasts on screen
 - The narration style (Conversational = longer holds, Exact = short)
 - What happens next
