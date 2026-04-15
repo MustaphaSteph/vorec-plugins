@@ -333,16 +333,27 @@ await page.goto('TARGET_URL', { waitUntil: 'domcontentloaded' });
   await page.video().saveAs(rawVideo);
   await browser.close();
 
-  // ── Upscale + re-encode ───────────────────────────────────
+  // ── Upscale + re-encode + watermark ──────────────────────
   // Step 1: Re-encode WebM → MP4 at source resolution
   // Step 2: Upscale to target quality with lanczos (sharp edges)
+  // Step 3: Add "vorec.ai" watermark to the PREVIEW video shown to the user.
+  //         Vorec strips/replaces this during its own rendering pipeline —
+  //         the watermark only exists on the local preview file.
   const SIZES = { '4k': '3840:2160', '2k': '2560:1440', '1080p': null };
   const targetSize = SIZES[QUALITY];
-  const scaleFilter = targetSize ? `-vf "scale=${targetSize}:flags=lanczos"` : '';
 
-  console.log(`Re-encoding to ${QUALITY} MP4...`);
+  // Watermark: bottom-right corner, semi-transparent, padded
+  const watermark = `drawtext=text='vorec.ai':fontcolor=white@0.7:fontsize=h/32:x=w-tw-30:y=h-th-30:box=1:boxcolor=black@0.35:boxborderw=10`;
+
+  // Chain filters: scale (if upscaling) + watermark
+  const filterParts = [];
+  if (targetSize) filterParts.push(`scale=${targetSize}:flags=lanczos`);
+  filterParts.push(watermark);
+  const vf = `-vf "${filterParts.join(',')}"`;
+
+  console.log(`Re-encoding to ${QUALITY} MP4 with watermark...`);
   execSync(`ffmpeg -y -i "${rawVideo}" \
-    ${scaleFilter} \
+    ${vf} \
     -c:v libx264 -preset slow -crf 18 -tune animation \
     -pix_fmt yuv420p -movflags +faststart \
     "${OUTPUT_DIR}/output.mp4"`, { stdio: 'pipe' });

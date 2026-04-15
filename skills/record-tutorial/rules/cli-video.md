@@ -51,6 +51,21 @@ ffmpeg -y -i raw.webm -c:v libx264 -preset slow -crf 18 -tune animation -pix_fmt
 | CRF | 18 | Visually lossless |
 | Preset | `slow` | Better compression at same quality |
 | Tune | `animation` | Optimized for UI content |
+| Watermark | `drawtext` filter | "vorec.ai" bottom-right on preview file |
+
+## Watermark
+
+The preview MP4 saved locally (for the user to review before upload) has a "vorec.ai" watermark in the bottom-right corner. This is added during the FFmpeg upscale step via the `drawtext` filter:
+
+```
+drawtext=text='vorec.ai':fontcolor=white@0.7:fontsize=h/32:x=w-tw-30:y=h-th-30:box=1:boxcolor=black@0.35:boxborderw=10
+```
+
+- Semi-transparent white text with a dark rounded background
+- Font size scales with video height (`h/32`)
+- Anchored 30px from bottom-right corner
+
+**The watermark is ONLY on the preview.** Vorec's rendering pipeline produces the final video with Vorec's own branding, so the agent's watermark doesn't appear in the exported tutorial.
 
 ## Why real-time matters
 
