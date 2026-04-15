@@ -23,7 +23,7 @@ The script is a standalone Node.js file (`vorec-script.mjs`) — run it with `no
 7. **Scroll TO the element, not past it** — use `scrollToElement(locator)` to bring the next target into view. Never blindly scroll a fixed pixel amount.
 
 ### Pacing — this is what makes a tutorial watchable
-8. **Explicit pause per action** — agent sets `pauseMs` (milliseconds) on each helper call. The narration must FIT in the pause: `wordCount × 333 ≤ pauseMs` (3 words/second speaking rate). Longer narration needs longer pause, or split into multiple actions. See [./narration-rules.md](./narration-rules.md) for the freeze-sync prevention rules.
+8. **Calculate pauseMs from YOUR narration** — no defaults. For every action: (1) write the narration text, (2) count the words, (3) set `pauseMs = Math.max(1500, Math.ceil(wordCount × 333) + 500)` — 333ms per word at 3 words/second speaking speed, plus 500ms breathing room. If narration is 12 words → `pauseMs = 12 × 333 + 500 = 4496ms`. The helpers throw if you forget pauseMs. See [./narration-rules.md](./narration-rules.md) for freeze-sync prevention.
 
 ### Writing long scripts (10+ actions)
 These rules prevent drift when the script gets big:
@@ -163,12 +163,20 @@ await page.goto('TARGET_URL', { waitUntil: 'domcontentloaded' });
     conversational: 100, storytelling: 100, academic: 100, persuasive: 80,
   }[STYLE] || 80;
 
+  // pauseFor(narration) → milliseconds needed to speak the narration + breathing room.
+  // ~3 words/sec speaking rate (333ms/word) + 500ms buffer, minimum 1500ms.
+  // Agent calls this for EVERY pauseMs to keep narration and timing aligned.
+  const pauseFor = (narration) =>
+    Math.max(1500, Math.ceil((narration || '').split(/\s+/).filter(Boolean).length * 333) + 500);
+
+  // Intro narration
+  const introNarration = "Here's the page we'll be working with.";
   track('narrate', 'Intro', 'Recording starts', 'intro', null, {
     context: 'The page loads showing the main content.',
-    narration: "Here's the page we'll be working with.",
-    pause: 3000,
+    narration: introNarration,
+    pause: pauseFor(introNarration),
   });
-  await page.waitForTimeout(3000);
+  await page.waitForTimeout(pauseFor(introNarration));
 
   // ── Helpers ──────────────────────────────────────────────
 
@@ -228,8 +236,10 @@ await page.goto('TARGET_URL', { waitUntil: 'domcontentloaded' });
     return box;
   };
 
-  // Glide + click. Agent passes explicit pause (ms) for the visual moment.
-  const glideClick = async (locator, name, description, target, context, narration, pauseMs = 2500) => {
+  // Glide + click. Agent MUST pass pauseMs calculated from narration word count.
+  // No default — the agent writes narration first, then sizes pauseMs to fit.
+  const glideClick = async (locator, name, description, target, context, narration, pauseMs) => {
+    if (typeof pauseMs !== 'number') throw new Error('pauseMs required — calculate from narration word count');
     const box = await glideMove(locator);
     if (await page.evaluate(() => !!window.__vc?.clickPulse)) {
       await page.evaluate(() => window.__vc.clickPulse());
@@ -240,8 +250,9 @@ await page.goto('TARGET_URL', { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(pauseMs);
   };
 
-  // Human-like typing. Agent passes explicit pause (ms) after typing.
-  const slowType = async (locator, text, name, description, target, context, narration, pauseMs = 2000) => {
+  // Human-like typing. Agent passes pauseMs sized to the narration.
+  const slowType = async (locator, text, name, description, target, context, narration, pauseMs) => {
+    if (typeof pauseMs !== 'number') throw new Error('pauseMs required — calculate from narration word count');
     const box = await glideMove(locator);
     await locator.click();
     await page.waitForTimeout(300);
@@ -252,8 +263,9 @@ await page.goto('TARGET_URL', { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(pauseMs);
   };
 
-  // Hover to explain an element. Agent passes explicit pause (ms).
-  const hoverTour = async (locator, name, description, narration, pauseMs = 3000) => {
+  // Hover to explain an element. Agent passes pauseMs sized to the narration.
+  const hoverTour = async (locator, name, description, narration, pauseMs) => {
+    if (typeof pauseMs !== 'number') throw new Error('pauseMs required — calculate from narration word count');
     const box = await glideMove(locator);
     track('narrate', name, description, null, toCoords(box), { context: description, narration, pause: pauseMs });
     await page.waitForTimeout(pauseMs);
@@ -266,27 +278,29 @@ await page.goto('TARGET_URL', { waitUntil: 'domcontentloaded' });
 
   // Example actions — replace with your flow
   // Signature: helper(locator, name, description, target, context, narration, pauseMs)
-  //   name       — 3-5 words (timeline label)
-  //   description — 5-15 words (what the user is doing)
-  //   context    — what's on screen (scene reference for Vorec)
-  //   narration  — what will be SPOKEN over this moment (follow narration-rules.md)
-  //   pauseMs    — explicit hold time; must be ≥ narration.wordCount × 333
+  // Agent writes narration FIRST, then pauseMs = pauseFor(narration).
+  // Helpers throw if pauseMs is missing. No defaults.
 
   const emailField = page.getByPlaceholder('you@example.com');
-  await scrollToElement(emailField, 'Sign-up form', 'Scroll down to the sign-up form section');
 
-  await hoverTour(emailField, 'Email field', 'The email field accepts any valid email address for account creation.');
+  // Hover to explain the field
+  const n1 = "This is where the account email goes.";
+  await hoverTour(emailField, 'Email field', 'Hover the email input', n1, pauseFor(n1));
 
+  // Type the email
+  const n2 = "Enter your email — this becomes the account login.";
   await slowType(
-    page.getByPlaceholder('you@example.com'), 'sarah.demo@gmail.com',
-    'Enter email', 'Enter email address into signup form', 'email',
-    'Types a demo email address. This will be the account login.',
+    emailField, 'sarah.demo@gmail.com',
+    'Enter email', 'Type email address', 'email',
+    n2, pauseFor(n2),
   );
 
+  // Submit
+  const n3 = "Click Submit. The account is created.";
   await glideClick(
     page.getByRole('button', { name: 'Submit' }),
     'Submit', 'Click submit to create account', 'submit',
-    'Clicks Submit. A success message appears confirming registration.',
+    n3, pauseFor(n3),
   );
   __actions[__actions.length - 1].primary = true;
 
@@ -297,9 +311,13 @@ await page.goto('TARGET_URL', { waitUntil: 'domcontentloaded' });
     .waitFor({ state: 'visible', timeout: 15000 })
     .catch(() => {});
   await page.waitForTimeout(3000);
+  const nFinal = "And that's it — the task is done.";
   track('narrate', 'Complete', 'Flow complete', null, null, {
     context: 'The flow is complete. The user has successfully finished the task.',
+    narration: nFinal,
+    pause: pauseFor(nFinal),
   });
+  await page.waitForTimeout(pauseFor(nFinal));
 
   // ── Stop recording ────────────────────────────────────────
   // Render flush to avoid glitched last frame

@@ -1,108 +1,50 @@
 ---
 name: pacing
-description: Timing rules — context-driven pauses, style multipliers, one formula
+description: How the agent calculates pause duration from narration word count — no hardcoded values
 ---
 
-# Pacing Rules
+# Pacing
 
-## One formula for all pauses
+## The only rule
 
-Every pause duration is calculated from the context that will be narrated over it:
-
-```js
-const wordMs = (text) => Math.max(1500, Math.round((text.split(/\s+/).length / 3) * 1000));
-```
-
-- Average speaking rate: ~3 words per second
-- 30-word context = ~10s pause
-- 6-word context = ~2s pause
-- Minimum 1.5s (even silent transitions need a beat)
-
-**Write the context first. The timing follows automatically.**
-
-## Style multiplier
-
-Each narration style adjusts the base pause:
+Every pause is calculated from the narration you wrote for that action:
 
 ```js
-const STYLE_SPEED = {
-  exact: 0.6,
-  concise: 0.7,
-  tutorial: 1.0,
-  professional: 1.0,
-  conversational: 1.2,
-  storytelling: 1.3,
-  academic: 1.3,
-  persuasive: 1.1,
-};
-
-const pause = (context, style) => Math.round(wordMs(context) * (STYLE_SPEED[style] || 1.0));
+const pauseFor = (narration) =>
+  Math.max(1500, Math.ceil(narration.split(/\s+/).filter(Boolean).length * 333) + 500);
 ```
 
-Same context, different styles:
-- "Click Create. The wizard opens." (6 words) → Exact: 1.5s, Tutorial: 2s, Storytelling: 2.6s
-- A 30-word scene description → Exact: 6s, Tutorial: 10s, Conversational: 12s
+- `333ms per word` = 3 words/sec speaking rate
+- `+500ms` = breathing room so narration doesn't butt against the next action
+- `1500ms` minimum — even silent transitions need a beat
 
-## How helpers use it
+**The agent writes narration first, counts words, calls `pauseFor()`.** No defaults. No tables. No hardcoded numbers.
 
-The helpers calculate their own timing from context — no hardcoded pauses:
+## Examples
+
+| Narration | Words | pauseFor() |
+|-----------|-------|-----------|
+| "Click Submit." | 2 | 1500ms (minimum) |
+| "Click Save. The dialog closes." | 5 | 2165ms |
+| "Now let's create a new project — click New Project in the top-right." | 12 | 4496ms |
+| "This is where the real magic happens. Every action you take here updates in real time, and the preview on the right shows exactly what your customers will see." | 28 | 9824ms |
+
+## Typing speed per style
+
+Typing speed IS style-dependent (affects how human the typing looks):
 
 ```js
-const glideClick = async (locator, name, desc, target, context) => {
-  const box = await glideMove(locator);
-  track('click', name, desc, target, toCoords(box), { context });
-  await locator.click();
-  await page.waitForTimeout(pause(context, STYLE));
-};
-
-const hoverTour = async (locator, name, context) => {
-  const box = await glideMove(locator);
-  track('narrate', name, context, null, toCoords(box), { context });
-  await page.waitForTimeout(pause(context, STYLE));
-};
-
-const slowType = async (locator, text, name, desc, target, context) => {
-  const box = await glideMove(locator);
-  await locator.click();
-  track('type', name, desc, target, toCoords(box), { context, typed_text: text });
-  for (const ch of text) {
-    await page.keyboard.type(ch, { delay: TYPING_DELAY });
-  }
-  await page.waitForTimeout(pause(context, STYLE));
-};
+const TYPING_DELAY = {
+  exact: 50, concise: 60, tutorial: 80, professional: 80,
+  conversational: 100, storytelling: 100, academic: 100, persuasive: 80,
+}[STYLE];
 ```
-
-## Typing delay per style
-
-| Style | Typing delay per character |
-|-------|---------------------------|
-| Exact | 50ms |
-| Concise | 60ms |
-| Tutorial | 80ms |
-| Professional | 80ms |
-| Conversational | 100ms |
-| Storytelling | 100ms |
-| Academic | 100ms |
-| Persuasive | 80ms |
 
 ## General rules
 
-- **No instant `fill()`** — every tracked `type` action must use `slowType` so the viewer sees it
-- **Explain while doing, not before** — don't stack narrate blocks before the first click
-- **Interact with what you narrate** — hover over the actual element you're describing
-- **Even pacing across steps** — no step should take more than 2x the time of another step
+- **Write narration first, pause second** — never set pauseMs before the narration exists
+- **Split by visual moments** — one tracked action = one thing the viewer sees changing
+- **No `fill()` for tracked actions** — always `slowType` so the typing is visible
+- **Group or split** — if you need 20 words over 3 clicks in 2 seconds, either merge into one action with one long narration, or split into 3 actions each with fitting narration
 
-## Context writing style must match
-
-The tone of your context should match the narration style. See [./context-writing.md](./context-writing.md) for the full guide.
-
-| Style | Tone |
-|-------|------|
-| Tutorial | Friendly: "Let's start by clicking Create. This opens the setup wizard." |
-| Professional | Structured: "Navigate to the settings panel. Select the notification preferences." |
-| Conversational | Casual: "Alright, so we just hit this button and the wizard pops up." |
-| Storytelling | Narrative: "This is where it all begins. One click, and everything starts taking shape." |
-| Concise | Direct: "Click Create. The wizard opens." |
-| Exact | Factual: "Click Create button." |
-| Academic | Conceptual: "The Create action initiates the multi-step configuration workflow." |
-| Persuasive | Selling: "Look how easy this is — one click and you're already building." |
+See [./narration-rules.md](./narration-rules.md) for how to write narration in the chosen style. See [./context-writing.md](./context-writing.md) for context field rules.
