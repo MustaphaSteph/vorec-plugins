@@ -147,9 +147,8 @@ Find: selectors for elements to interact with, valid test data, expected results
 Plan the sequence of steps you'll record. For each step, note:
 - What page/section we're on
 - What interactions will happen (clicks, types, hovers)
-- Approximately how long it will take
 
-Don't write narration yet — just the plan. This becomes the outline you'll show the user in Step 7.
+Don't write narration yet. Don't estimate durations. Just the structure of visual steps. This becomes the outline you'll show the user in Step 7. Real timing comes from Step 8 when narration is written.
 
 See [./rules/narration-styles.md](./rules/narration-styles.md) for style descriptions (ready for when the user picks a style in Step 7).
 
@@ -179,18 +178,16 @@ This way:
 
 ### 7. Show the recording plan + ask preferences
 
-**Before writing any code, present the full plan AND ask the 4 preference questions in ONE message.** The user approves both at once.
-
-Format:
+Present the flow structure AND ask the 4 preference questions in ONE message:
 
 > I've mapped the flow. Here's the plan:
 >
-> **Tutorial: [Title] ([estimated total time])**
+> **Tutorial: [Title]**
 >
-> **Step 1 — [Section name] ([Xs])**
+> **Step 1 — [Section name]**
 > — [What you'll do: hover this, click that, narrate over X]
 >
-> **Step 2 — [Section name] ([Xs])**
+> **Step 2 — [Section name]**
 > — [What you'll do]
 >
 > ...
@@ -202,6 +199,8 @@ Format:
 > 4. **Visible cursor?** Yes / No (default: No)
 >
 > Reply with adjustments or say "go" to use these defaults.
+
+Real durations are calculated in Step 8 from narration word count.
 
 **Wait for the user.** They might:
 - Adjust steps: "Skip step 2", "Step 5 is too long", "Add settings step"
