@@ -42,6 +42,10 @@ Go generic. "Fill in the required field" is safer than dictating a specific valu
 
 ## Style-specific rules
 
+> **All quoted phrases below are examples, not scripts.** They show the TONE and APPROACH of each style. Write your own narration that matches the feel — don't copy these exact words. The examples are there to inspire, not to prescribe.
+
+
+
 ### Tutorial (default)
 - **Tone**: Friendly instructor who genuinely wants the viewer to succeed.
 - **Structure**: 3-8 high-level workflow steps. Group related clicks.
@@ -57,7 +61,7 @@ Go generic. "Fill in the required field" is safer than dictating a specific valu
 - **Tone**: Senior professional delivering structured workplace training.
 - **Structure**: 4-10 steps covering the complete workflow.
 - **Approach**:
-  - Open: clear objective — "In this walkthrough, we'll configure X to achieve Y."
+  - Open with a clear objective (e.g. *"In this walkthrough, we'll configure X to achieve Y."* — write your own).
   - Precise but not robotic — explain context, not just clicks.
   - Reference best practices: "It's recommended to...", "The standard approach is..."
   - Explain configuration options and which ones matter.
@@ -68,7 +72,7 @@ Go generic. "Fill in the required field" is safer than dictating a specific valu
 - **Tone**: Showing a friend. Relaxed, natural, real.
 - **Structure**: 3-7 steps. Merge small actions freely.
 - **Approach**:
-  - Start naturally: "Alright, so here's the deal..." or "Okay so I want to show you..."
+  - Start naturally in a casual tone (e.g. *"Alright, so here's the deal..."*, *"Okay so I want to show you..."* — write your own opener).
   - React like a real person: "See this panel on the left? That's where all the magic happens."
   - Contractions and filler words OK. "So basically what we're gonna do is..."
   - Share opinions: "I usually go with this option, it just works better."
@@ -78,7 +82,7 @@ Go generic. "Fill in the required field" is safer than dictating a specific valu
 - **Tone**: Narrator telling the story of building something.
 - **Structure**: 3-6 narrative beats that build on each other.
 - **Approach**:
-  - Open with the mission: "We're about to transform this raw design into..."
+  - Open with the mission (e.g. *"We're about to transform this raw design into..."* — frame your own mission for this flow).
   - Every step answers WHY, not just what.
   - Build momentum: "Now that the foundation is set, this is where it gets interesting..."
   - Connect steps causally: "Because we set that flag earlier, the system now shows..."
@@ -89,7 +93,7 @@ Go generic. "Fill in the required field" is safer than dictating a specific valu
 - **Tone**: Confident product demo presenter showing off something impressive.
 - **Structure**: 3-7 steps emphasizing ease and power.
 - **Approach**:
-  - Open with excitement: "Let me show you how you can go from idea to published in under two minutes."
+  - Open with excitement about what's possible (e.g. *"Let me show you how you can go from idea to published in under two minutes."* — match the pattern to this flow).
   - Emphasize speed: "With just a couple of clicks...", "Notice how it handles that automatically."
   - React enthusiastically: "And look at that — a fully formatted report, ready to share."
   - Compare to the old way: "What used to take an hour now happens instantly."
@@ -99,7 +103,7 @@ Go generic. "Fill in the required field" is safer than dictating a specific valu
 - **Tone**: Knowledgeable educator explaining the thinking behind tools.
 - **Structure**: 3-8 steps grouped by conceptual topic.
 - **Approach**:
-  - Frame learning objective: "Today we'll explore how X works, and why it matters."
+  - Frame the learning objective upfront (e.g. *"Today we'll explore how X works, and why it matters."* — state the objective for this specific flow).
   - Explain what UI elements ARE and what concepts they represent.
   - Define technical terms naturally.
   - Explain WHY things are designed this way.
