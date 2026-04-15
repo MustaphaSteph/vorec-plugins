@@ -222,10 +222,10 @@ For each step in the approved plan, write:
 Save as `.vorec/<project-slug>/narration-drafts.json`:
 ```json
 [
-  { "step": 1, "action": "hover", "name": "Mixed Americano card",
-    "narration": "Let's start by building a gender-balanced tournament. Mixed Americano pairs one male and one female player per team, rotating every round." },
-  { "step": 2, "action": "click", "name": "Mixed Americano",
-    "narration": "Click Mixed Americano to jump into the setup wizard." },
+  { "step": 1, "action": "hover", "name": "Dashboard overview",
+    "narration": "Here's the dashboard — this is where everything starts. The main actions are on the right panel." },
+  { "step": 2, "action": "click", "name": "New item",
+    "narration": "Click the primary button to open the creation dialog." },
   ...
 ]
 ```

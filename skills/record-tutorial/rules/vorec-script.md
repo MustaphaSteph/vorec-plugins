@@ -31,9 +31,9 @@ These rules prevent drift when the script gets big:
 
 10. **Max 1 narrate before the first click on each page** — orient the viewer once, then start interacting. Don't stack 3-5 narrate blocks before clicking anything.
 11. **description and context must be DIFFERENT** — `description` is a short label (5-15 words). `context` is a rich narration source (1-2 sentences). Never copy one into the other.
-12. **Every tracked action must have context** — no empty context fields. If you're adding 7 players, each `track('type', ...)` needs context. For repeated actions, vary the context (e.g. "Adding our second player" → "Five players in, two more to go").
+12. **Every tracked action must have context** — no empty context fields. For repeated actions (loops), vary the context from item to item — don't copy-paste the same text.
 13. **Always use `slowType` for tracked type actions** — never use manual `keyboard.type` with different delays. The `slowType` helper handles timing consistently. No exceptions.
-14. **Use loops for repeated actions, but keep context unique** — for adding multiple items (players, rows, products), use a loop but give at least the first and last items full context, and every 3rd item a progress update.
+14. **Use loops for repeated actions, but keep context unique** — when adding multiple items, use a loop but give the first and last items full context, and middle items a brief progress update.
 
 ## Action types for `track()` calls
 

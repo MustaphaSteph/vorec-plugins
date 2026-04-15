@@ -28,7 +28,7 @@ If you write long contexts on every action, the video will be 5+ minutes. Keep c
 
 ## ⚠️ CRITICAL: For repeated actions (loops), drop context to bare minimum
 
-When adding 5+ of the same thing (players, rows, products):
+When adding 5+ of the same thing (rows, items, entries):
 - **First item**: full context explaining the process (20 words)
 - **Middle items**: bare minimum, no repetition (3-6 words: "Adding another.", "Fifth one in.", "List grows.")
 - **Last item**: brief wrap-up (8-12 words: "Last one — eight total, ready to continue.")
