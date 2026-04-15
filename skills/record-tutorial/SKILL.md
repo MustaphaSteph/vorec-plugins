@@ -150,10 +150,10 @@ Ask in one message:
 > Before I start, a few quick options:
 > 1. **Language?** (default: English)
 > 2. **Narration style?** Tutorial / Professional / Conversational / Storytelling / Persuasive / Academic / Concise / Exact (default: Tutorial)
-> 3. **Quality?** 4K / 2K / 1080p (default: 4K)
+> 3. **Quality?** 1080p / 2K / 4K (default: 1080p)
 > 4. **Visible cursor?** Yes / No (default: No)
 >
-> Or say "defaults" for English, Tutorial, 4K, no cursor.
+> Or say "defaults" for English, Tutorial, 1080p, no cursor.
 
 See [./rules/narration-styles.md](./rules/narration-styles.md) for style descriptions.
 
@@ -338,7 +338,7 @@ If not uploaded:
 6. **Auto-detect mode** — external URL = Explore, own project = Connected. Don't ask unless genuinely unsure.
 7. **Never assume login** — check the page first with a snapshot. Only handle auth if you SEE a login wall.
 8. **Use `playwright-cli` for exploration**, standalone vorec script (`node vorec-script.mjs`) for recording
-9. **4K quality by default** — record 1080p DPR 2, upscale to 4K with FFmpeg lanczos
+9. **1080p by default** — record 1080p DPR 2 via recordVideo. For 2K/4K, FFmpeg upscales with lanczos
 10. **Scroll to the element, not past it** — use `scrollToElement`, never blind pixel scrolling
 11. **Use semantic locators** — `getByRole`, `getByLabel`, `getByPlaceholder`
 12. **Track every action** — with `name`, `description`, `context`, and `primary` markers

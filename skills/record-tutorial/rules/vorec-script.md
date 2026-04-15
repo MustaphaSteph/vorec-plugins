@@ -12,7 +12,7 @@ The script is a standalone Node.js file (`vorec-script.mjs`) — run it with `no
 ## Critical rules
 
 ### Recording quality
-1. **4K quality by default** — record at 1920×1080 with DPR 2 via `recordVideo`, then upscale to 4K with FFmpeg lanczos.
+1. **1080p by default** — record at 1920×1080 with DPR 2 via `recordVideo`. For 2K/4K (only if user asks), FFmpeg upscales with lanczos.
 2. **Navigate to the target URL directly** — `page.goto(url)`. Never leave the page on `about:blank` (avoids white start frame).
 3. **Stop recording correctly** — (a) render flush with `requestAnimationFrame × 2`, (b) `page.close()`, (c) `page.video().saveAs(path)` which waits until the video is fully written, (d) `browser.close()`. Use `saveAs()` not `path()` — `path()` returns before the video is finalized.
 4. **The vorec script is a standalone Node.js file** (`vorec-script.mjs`) — run with `node vorec-script.mjs`.
@@ -113,7 +113,7 @@ mkdirSync(OUTPUT_DIR, { recursive: true });
 // Then upscale to 4K with FFmpeg lanczos after recording.
 // Uses recordVideo (standard Playwright API) — NOT page.screencast
 // (which only exists in playwright-cli run-code, not standalone scripts).
-const QUALITY = '4k'; // '4k', '2k', or '1080p'
+const QUALITY = '1080p'; // '1080p' (default), '2k', or '4k' — based on user choice
 
 const browser = await chromium.launch({ headless: true });
 const context = await browser.newContext({
@@ -454,9 +454,9 @@ Recording always happens at 1920×1080 with DPR 2 (sharp text/UI). FFmpeg upscal
 
 | Preset | Output | How |
 |--------|--------|-----|
-| `'4k'` (default) | 3840×2160 | Record 1080p DPR 2 → upscale with lanczos |
+| `'1080p'` (default) | 1920×1080 | Record 1080p DPR 2 → re-encode only (no upscale) |
 | `'2k'` | 2560×1440 | Record 1080p DPR 2 → upscale with lanczos |
-| `'1080p'` | 1920×1080 | Record 1080p DPR 2 → re-encode only (no upscale) |
+| `'4k'` | 3840×2160 | Record 1080p DPR 2 → upscale with lanczos |
 
 DPR 2 is always on — even 1080p gets retina-sharp rendering. The upscale works because the source pixels are already crisp from DPR 2.
 

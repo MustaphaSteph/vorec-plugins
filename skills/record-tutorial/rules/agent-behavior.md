@@ -68,7 +68,7 @@ These affect the entire recording (pacing, context writing tone, output resoluti
 | **API key** | MUST have | Always |
 | **Language** | English | **Always ask** |
 | **Narration style** | Tutorial | **Always ask** |
-| **Quality** | 4K | **Always ask** |
+| **Quality** | 1080p | **Always ask** |
 | **Visible cursors** | No | **Always ask** |
 | Mode (Connected/Explore) | Auto-detect | Only if unsure |
 | Scope | Minimum-viable | Only if user says "full walkthrough" |

@@ -23,25 +23,27 @@ recordVideo → real-time WebM (VP8) → FFmpeg lanczos upscale → H.264 MP4
 
 ## Quality presets
 
-| Preset | DPR | Output resolution | Best for |
-|--------|-----|-------------------|----------|
-| `'4k'` (default) | 2 | 3840×2160 | Product demos, marketing |
-| `'2k'` | 1.5 | 2880×1620 | Tutorials, onboarding |
-| `'1080p'` | 1 | 1920×1080 | Internal demos |
+| Preset | Output resolution | Best for |
+|--------|-------------------|----------|
+| `'1080p'` (default) | 1920×1080 | Tutorials, onboarding, most use cases |
+| `'2k'` | 2560×1440 | Product demos |
+| `'4k'` | 3840×2160 | Marketing, investor pitches |
+
+Recording always happens at 1920×1080 with DPR 2. For 2K/4K, FFmpeg upscales with lanczos after.
 
 Viewport is always 1920×1080. DPR controls pixel sharpness.
 
 ## FFmpeg upscale + re-encode
 
 ```bash
-# 4K output (default):
-ffmpeg -y -i raw.webm -vf "scale=3840:2160:flags=lanczos" -c:v libx264 -preset slow -crf 18 -tune animation -pix_fmt yuv420p -movflags +faststart output.mp4
+# 1080p output (default — no upscale, just re-encode):
+ffmpeg -y -i raw.webm -c:v libx264 -preset slow -crf 18 -tune animation -pix_fmt yuv420p -movflags +faststart output.mp4
 
 # 2K output:
 ffmpeg -y -i raw.webm -vf "scale=2560:1440:flags=lanczos" -c:v libx264 -preset slow -crf 18 -tune animation -pix_fmt yuv420p -movflags +faststart output.mp4
 
-# 1080p output (no upscale, just re-encode):
-ffmpeg -y -i raw.webm -c:v libx264 -preset slow -crf 18 -tune animation -pix_fmt yuv420p -movflags +faststart output.mp4
+# 4K output:
+ffmpeg -y -i raw.webm -vf "scale=3840:2160:flags=lanczos" -c:v libx264 -preset slow -crf 18 -tune animation -pix_fmt yuv420p -movflags +faststart output.mp4
 ```
 
 | Setting | Value | Why |
