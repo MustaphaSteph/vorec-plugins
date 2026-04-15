@@ -23,7 +23,7 @@ The script is a standalone Node.js file (`vorec-script.mjs`) — run it with `no
 7. **Scroll TO the element, not past it** — use `scrollToElement(locator)` to bring the next target into view. Never blindly scroll a fixed pixel amount.
 
 ### Pacing — this is what makes a tutorial watchable
-8. **Load pacing rules** — read [./pacing.md](./pacing.md) for timing. Use the per-style timing table to set `waitForTimeout` values and typing delays. Never hardcode — match the user's chosen narration style.
+8. **Context length = video length.** Every action pauses for `words÷3` seconds. 30-word context = 10s pause. Keep contexts tight. For loops (adding multiple items), first item gets full context, middle items get 3-6 words. See [./pacing.md](./pacing.md) and [./context-writing.md](./context-writing.md).
 
 ### Writing long scripts (10+ actions)
 These rules prevent drift when the script gets big:

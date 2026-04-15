@@ -7,6 +7,34 @@ description: How to write great context fields for tracked actions — the key t
 
 The `context` field on each tracked action is what Vorec's AI turns into voice-over narration. Better context = better narration. This is the most important part of your recording script.
 
+## ⚠️ CRITICAL: Context length determines video length
+
+Every tracked action pauses the recording for `word_count ÷ 3` seconds (at the average speaking rate). This means:
+
+- **A 30-word context = 10 second pause in the video**
+- **A 6-word context = 2 second pause**
+
+If you write long contexts on every action, the video will be 5+ minutes. Keep contexts **tight and action-sized**:
+
+| Action type | Ideal context length |
+|-------------|---------------------|
+| Navigation click (page changes) | 8-15 words |
+| Form submit / primary action | 10-20 words |
+| Type input | 8-12 words |
+| Hover/narrate (explains something) | 15-25 words |
+| Repeated actions (adding items) | 5-8 words (terse) |
+
+**The narration AI expands your short context into full sentences during TTS.** You don't need to write the final narration — just give the scene. "Clicks Save. Dialog closes, table refreshes." becomes "Now let's save our changes. The dialog disappears and you can see the table has updated with the new entry."
+
+## ⚠️ CRITICAL: For repeated actions (loops), drop context to bare minimum
+
+When adding 5+ of the same thing (players, rows, products):
+- **First item**: full context explaining the process (20 words)
+- **Middle items**: bare minimum, no repetition (3-6 words: "Adding another.", "Fifth one in.", "List grows.")
+- **Last item**: brief wrap-up (8-12 words: "Last one — eight total, ready to continue.")
+
+This cuts 8 × 20 words = 160 words (53s pause) down to ~60 words (20s pause). Same information, third the time.
+
 ## The three text fields
 
 | Field | Length | Purpose | Example |
