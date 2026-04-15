@@ -142,22 +142,16 @@ Load [./rules/explore.md](./rules/explore.md) for semantic locators and page dis
 
 Find: selectors for elements to interact with, valid test data, expected results, wait conditions.
 
-### 5. Ask recording preferences
+### 5. Map the flow
 
-**ALWAYS ask these questions before recording. Do NOT skip them.**
+Plan the sequence of steps you'll record. For each step, note:
+- What page/section we're on
+- What interactions will happen (clicks, types, hovers)
+- Approximately how long it will take
 
-Ask in one message:
-> Before I start, a few quick options:
-> 1. **Language?** (default: English)
-> 2. **Narration style?** Tutorial / Professional / Conversational / Storytelling / Persuasive / Academic / Concise / Exact (default: Tutorial)
-> 3. **Quality?** 1080p / 2K / 4K (default: 1080p)
-> 4. **Visible cursor?** Yes / No (default: No)
->
-> Or say "defaults" for English, Tutorial, 1080p, no cursor.
+Don't write narration yet — just the plan. This becomes the outline you'll show the user in Step 7.
 
-See [./rules/narration-styles.md](./rules/narration-styles.md) for style descriptions.
-
-**Wait for the user to answer before continuing.** These choices affect the recording script timing (from [./rules/pacing.md](./rules/pacing.md)) and context writing style.
+See [./rules/narration-styles.md](./rules/narration-styles.md) for style descriptions (ready for when the user picks a style in Step 7).
 
 ### 6. Create the project folder
 
@@ -183,36 +177,82 @@ This way:
 - Different sessions working in the same project stay separate
 - The user can see which recording is which by the timestamp
 
-### 7. Show the recording plan
+### 7. Show the recording plan + ask preferences
 
-**Before writing any code, present the full plan to the user.** List every step with what you'll do, how long it will take, and the timing from [./rules/pacing.md](./rules/pacing.md).
+**Before writing any code, present the full plan AND ask the 4 preference questions in ONE message.** The user approves both at once.
 
 Format:
 
-> Here's the recording plan ([style] style, [quality]):
+> I've mapped the flow. Here's the plan:
 >
-> **Step 1 — [Page/section name] ([Xs])**
-> - [What you'll do: hover, click, type, narrate]
-> - [What you'll do next]
+> **Tutorial: [Title] ([estimated total time])**
 >
-> **Step 2 — [Page/section name] ([Xs])**
-> - [What you'll do]
+> **Step 1 — [Section name] ([Xs])**
+> — [What you'll do: hover this, click that, narrate over X]
+>
+> **Step 2 — [Section name] ([Xs])**
+> — [What you'll do]
 >
 > ...
 >
-> **Total: ~[X] seconds (~[M:SS])**
+> Before I start, four quick choices:
+> 1. **Language?** (default: English)
+> 2. **Narration style?** Tutorial / Professional / Conversational / Storytelling / Persuasive / Academic / Concise / Exact (default: Tutorial)
+> 3. **Quality?** 1080p / 2K / 4K (default: 1080p)
+> 4. **Visible cursor?** Yes / No (default: No)
 >
-> Want me to adjust anything before I start recording?
+> Reply with adjustments or say "go" to use these defaults.
 
-**Wait for the user to confirm or adjust.** They might say:
-- "Skip step 2" → remove it
-- "Step 5 is too long" → reduce actions
-- "Add a step showing the settings" → add it
-- "Looks good, go" → proceed
+**Wait for the user.** They might:
+- Adjust steps: "Skip step 2", "Step 5 is too long", "Add settings step"
+- Pick preferences: "Conversational style, 4K quality"
+- Just say "go" → use defaults
 
-This is the user's last chance to change the flow before recording. Don't skip this step.
+This is the user's last checkpoint before recording.
 
-### 8. Build the recording script
+### 8. Write narration drafts (BEFORE writing the script)
+
+**Generate the narration text for every tracked action FIRST, before any code.**
+
+For each step in the approved plan, write:
+- One narration per visual moment (see [./rules/narration-rules.md](./rules/narration-rules.md))
+- In the chosen style's tone
+- Sized to fit the visual moment (if 3 clicks happen in 2 seconds, ONE combined narration — don't split)
+- Demo data vs real choices rules apply (typed = demo, clicked = real)
+
+Save as `.vorec/<project-slug>/narration-drafts.json`:
+```json
+[
+  { "step": 1, "action": "hover", "name": "Mixed Americano card",
+    "narration": "Let's start by building a gender-balanced tournament. Mixed Americano pairs one male and one female player per team, rotating every round." },
+  { "step": 2, "action": "click", "name": "Mixed Americano",
+    "narration": "Click Mixed Americano to jump into the setup wizard." },
+  ...
+]
+```
+
+This way you see the full narration script as a document. Check:
+- Does it flow naturally from step to step?
+- Does each narration match the chosen style?
+- Are there any freeze-sync risks (narration too long for the visual moment)?
+
+Fix it here before writing the script.
+
+### 9. Build the recording script
+
+Now that the narration is written, build `vorec-script.mjs` using those narrations:
+
+```js
+const n1 = "Let's start by building a gender-balanced tournament...";
+await hoverTour(card, 'Mixed Americano card', '...', n1, pauseFor(n1));
+
+const n2 = "Click Mixed Americano to jump into the setup wizard.";
+await glideClick(link, 'Mixed Americano', '...', 'mixed-link', '...', n2, pauseFor(n2));
+```
+
+Each `pauseMs` is calculated from the narration you already wrote. No guessing.
+
+Load [./rules/vorec-script.md](./rules/vorec-script.md) for the template.
 
 Load [./rules/vorec-script.md](./rules/vorec-script.md) for the template. Write the script to `.vorec/<project-slug>/vorec-script.mjs`.
 
@@ -238,7 +278,7 @@ For error recovery: [./rules/validation.md](./rules/validation.md)
 Tell the user:
 > Writing the recording script now...
 
-### 9. Record the video
+### 10. Record the video
 
 ```bash
 node .vorec/<project-slug>/vorec-script.mjs
@@ -253,7 +293,7 @@ When it finishes:
 
 Ask user to validate the video before uploading.
 
-### 10. Upload to Vorec
+### 11. Upload to Vorec
 
 After the user validates the recording, ask:
 
@@ -311,7 +351,7 @@ Tell the user:
 
 **Without tracked actions**, Vorec would have to watch the video and guess where clicks happened (slower, less accurate, same cost). The agent's tracked actions are what make the narration precise.
 
-### 11. Clean up
+### 12. Clean up
 
 After successful upload, remove the script and manifest (keep the video):
 ```bash
@@ -320,7 +360,7 @@ rm -f .vorec/<project-slug>/vorec-script.mjs .vorec/<project-slug>/vorec.json .v
 
 Keep `output.mp4` — the user may want it. If the user declined upload, keep everything.
 
-### 12. Share the result
+### 13. Share the result
 
 If uploaded:
 > Your tutorial is ready! Open the editor here: [EDITOR_URL]
