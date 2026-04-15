@@ -14,25 +14,26 @@ The script is a standalone Node.js file (`vorec-script.mjs`) — run it with `no
 ### Recording quality
 1. **1080p by default** — record at 1920×1080 with DPR 2 via `recordVideo`. For 2K/4K (only if user asks), FFmpeg upscales with lanczos.
 2. **Navigate to the target URL directly** — `page.goto(url)`. Never leave the page on `about:blank` (avoids white start frame).
-3. **Stop recording correctly** — (a) render flush with `requestAnimationFrame × 2`, (b) `page.close()`, (c) `page.video().saveAs(path)` which waits until the video is fully written, (d) `browser.close()`. Use `saveAs()` not `path()` — `path()` returns before the video is finalized.
-4. **The vorec script is a standalone Node.js file** (`vorec-script.mjs`) — run with `node vorec-script.mjs`.
+3. **Verify end state before stopping** — scan for validation errors, disabled buttons, failure messages. If the flow broke, throw loudly with a clear message and re-record. Don't ship a broken video. See [./end-state-verify.md](./end-state-verify.md).
+4. **Stop recording correctly** — (a) render flush with `requestAnimationFrame × 2`, (b) `page.close()`, (c) `page.video().saveAs(path)` which waits until the video is fully written, (d) `browser.close()`. Use `saveAs()` not `path()` — `path()` returns before the video is finalized.
+5. **The vorec script is a standalone Node.js file** (`vorec-script.mjs`) — run with `node vorec-script.mjs`.
 
 ### Action tracking
-5. **Every action must call `track()`** — not just clicks. If the user types → `track('type', ...)`. Dropdown → `track('select', ...)`. Vorec needs the full workflow.
-6. **Action tracking uses valid types only** — see table below. Never invent new types.
-7. **Scroll TO the element, not past it** — use `scrollToElement(locator)` to bring the next target into view. Never blindly scroll a fixed pixel amount.
+6. **Every action must call `track()`** — not just clicks. If the user types → `track('type', ...)`. Dropdown → `track('select', ...)`. Vorec needs the full workflow.
+7. **Action tracking uses valid types only** — see table below. Never invent new types.
+8. **Scroll TO the element, not past it** — use `scrollToElement(locator)` to bring the next target into view. Never blindly scroll a fixed pixel amount.
 
 ### Pacing — this is what makes a tutorial watchable
-8. **Calculate pauseMs from YOUR narration** — no defaults. For every action: (1) write the narration text, (2) count the words, (3) set `pauseMs = Math.max(1500, Math.ceil(wordCount × 350) + 500)` — 350ms per word (measured Vorec TTS rate ~2.86 words/sec), plus 500ms breathing buffer. If narration is 12 words → `pauseMs = 12 × 350 + 500 = 4700ms`. The helpers throw if you forget pauseMs. See [./narration-rules.md](./narration-rules.md) for freeze-sync prevention.
+9. **Calculate pauseMs from YOUR narration** — no defaults. For every action: (1) write the narration text, (2) count the words, (3) set `pauseMs = Math.max(1500, Math.ceil(wordCount × 350) + 500)` — 350ms per word (measured Vorec TTS rate ~2.86 words/sec), plus 500ms breathing buffer. If narration is 12 words → `pauseMs = 12 × 350 + 500 = 4700ms`. The helpers throw if you forget pauseMs. See [./narration-rules.md](./narration-rules.md) for freeze-sync prevention.
 
 ### Writing long scripts (10+ actions)
 These rules prevent drift when the script gets big:
 
-9. **Max 1 narrate before the first click on each page** — orient the viewer once, then start interacting. Don't stack 3-5 narrate blocks before clicking anything.
-10. **description and context must be DIFFERENT** — `description` is a short label (5-15 words). `context` is a rich narration source (1-2 sentences). Never copy one into the other.
-11. **Every tracked action must have context** — no empty context fields. If you're adding 7 players, each `track('type', ...)` needs context. For repeated actions, vary the context (e.g. "Adding our second player" → "Five players in, two more to go").
-12. **Always use `slowType` for tracked type actions** — never use manual `keyboard.type` with different delays. The `slowType` helper handles timing consistently. No exceptions.
-13. **Use loops for repeated actions, but keep context unique** — for adding multiple items (players, rows, products), use a loop but give at least the first and last items full context, and every 3rd item a progress update.
+10. **Max 1 narrate before the first click on each page** — orient the viewer once, then start interacting. Don't stack 3-5 narrate blocks before clicking anything.
+11. **description and context must be DIFFERENT** — `description` is a short label (5-15 words). `context` is a rich narration source (1-2 sentences). Never copy one into the other.
+12. **Every tracked action must have context** — no empty context fields. If you're adding 7 players, each `track('type', ...)` needs context. For repeated actions, vary the context (e.g. "Adding our second player" → "Five players in, two more to go").
+13. **Always use `slowType` for tracked type actions** — never use manual `keyboard.type` with different delays. The `slowType` helper handles timing consistently. No exceptions.
+14. **Use loops for repeated actions, but keep context unique** — for adding multiple items (players, rows, products), use a loop but give at least the first and last items full context, and every 3rd item a progress update.
 
 ## Action types for `track()` calls
 

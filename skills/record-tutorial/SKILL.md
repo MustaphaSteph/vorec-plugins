@@ -273,6 +273,7 @@ For action types: [./rules/actions.md](./rules/actions.md)
 For writing context: [./rules/context-writing.md](./rules/context-writing.md)
 For writing narration: [./rules/narration-rules.md](./rules/narration-rules.md) — **the agent writes narration following these rules; word count sizes the pause**
 For error recovery: [./rules/validation.md](./rules/validation.md)
+For end-state verification + asking user for help when stuck: [./rules/end-state-verify.md](./rules/end-state-verify.md)
 
 Tell the user:
 > Writing the recording script now...
@@ -286,7 +287,11 @@ node .vorec/<project-slug>/vorec-script.mjs
 **Tell the user what's happening while it runs:**
 > Recording in progress... The script is walking through the flow now.
 
-When it finishes:
+**If the script fails or hits an error:** Load [./rules/end-state-verify.md](./rules/end-state-verify.md). Read the current screen, diagnose the issue, fix the script, or ask the user for help. Never continue past a broken state silently.
+
+**Before ending the recording, verify end state** — no validation errors, no disabled buttons, no failure messages. If the flow broke, fix it and re-record. Don't ship a broken video.
+
+When it finishes clean:
 > Recording done! Saved to `.vorec/<project-slug>/output.mp4` ([count] actions tracked).
 > Please review the video to make sure it looks good.
 
@@ -410,7 +415,8 @@ If not uploaded:
 
 ### Existing references
 - [./rules/playwright.md](./rules/playwright.md) — Playwright best practices
-- [./rules/validation.md](./rules/validation.md) — Test data, error recovery
+- [./rules/validation.md](./rules/validation.md) — Test data, error recovery during recording
+- [./rules/end-state-verify.md](./rules/end-state-verify.md) — Verify recording ended cleanly, fail loudly, ask user when stuck, rewrite script if needed
 - [./rules/auth.md](./rules/auth.md) — Session capture
 - [./rules/actions.md](./rules/actions.md) — Action types
 - [./rules/troubleshooting.md](./rules/troubleshooting.md) — Common errors
