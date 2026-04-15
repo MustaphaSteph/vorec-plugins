@@ -7,6 +7,28 @@ description: Explore mode — discovering a live page without source code access
 
 Use this mode when you **don't have the source code**. The agent has to discover the page at runtime using `playwright-cli snapshot` and semantic locators. It's slower than Connected mode because exploration costs tokens, but it works on any URL.
 
+## ⚠️ MANDATORY: Full dry-run BEFORE writing any script
+
+**Walk the entire flow end-to-end using playwright-cli FIRST.** Every page, every form, every click — manually verify each step works before writing the recording script.
+
+**Why:** If you discover validation rules, required fields, hidden dialogs, or unexpected page transitions during recording, the recording is already broken. Discover them during exploration when you can test freely.
+
+During the dry-run, document for each step:
+- **Selectors that work** — `getByRole`, `getByLabel`, `getByPlaceholder` (not CSS)
+- **Valid input data** — what formats pass validation (emails, phone numbers, passwords)
+- **Required fields** — what triggers "required" errors
+- **Unexpected dialogs/modals** — welcome popups, cookie banners, profile setup
+- **Success states** — what text/element appears after each successful action
+- **Gotchas** — disabled buttons, rate limits, rapid-click blocks, timing issues
+- **State carryover** — what gets saved to session/local storage between steps
+
+**Save this as `.vorec/<slug>/flow-notes.md`** — you'll reference it while writing the recording script.
+
+**If you hit a validation error during the dry-run, fix it THERE** — find the valid input, find the missing step, find the required field. Don't leave it for the recording.
+
+**Don't skip the dry-run** even if the flow seems obvious. "Obvious" flows still have surprises: hidden tooltips that block clicks, toggle buttons that need a second click, validation on blur, dialogs that appear only on first visit.
+
+
 ## When to use Explore mode
 
 - Third-party sites (signing up on vorec.ai, buying on Amazon, using Stripe dashboard)

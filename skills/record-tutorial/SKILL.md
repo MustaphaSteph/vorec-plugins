@@ -130,17 +130,32 @@ Look at the snapshot:
 
 **NEVER assume login is needed.** Most public websites (marketing sites, docs, tools) don't require auth. Only handle auth when you SEE a login wall or the user tells you it's needed.
 
-### 4. Explore the page
+### 4. Explore the page (full dry-run)
+
+**Walk the entire flow end-to-end BEFORE writing any script.** This is where you discover validation rules, required fields, unexpected dialogs, and success states. Fix all surprises HERE, not during recording.
 
 **Connected mode:** Deep-scan the codebase. Load [./rules/connected.md](./rules/connected.md).
 
-**Explore mode:** Use snapshots to discover the page structure:
+**Explore mode:** Dry-run the flow using `playwright-cli`:
 ```bash
+playwright-cli open <URL>
 playwright-cli snapshot
+playwright-cli click e15    # test each interaction
+playwright-cli fill e8 "test value"
+playwright-cli snapshot     # verify result
+# ... walk the whole flow to the success state
 ```
-Load [./rules/explore.md](./rules/explore.md) for semantic locators and page discovery.
+Load [./rules/explore.md](./rules/explore.md) for the full dry-run workflow.
 
-Find: selectors for elements to interact with, valid test data, expected results, wait conditions.
+Save findings to `.vorec/<slug>/flow-notes.md`:
+- Selectors that work
+- Valid input data (what passes validation)
+- Required fields + error messages
+- Hidden dialogs/modals that appear
+- Success states at each step
+- Gotchas (disabled buttons, timing issues, state carryover)
+
+The recording script in Step 9 just replays this known-working flow. No surprises.
 
 ### 5. Map the flow
 
