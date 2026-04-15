@@ -126,17 +126,77 @@ Go generic. "Fill in the required field" is safer than dictating a specific valu
 
 ## How this connects to tracked actions
 
-Each tracked action has a `narration` field. Write it following the style rules above. The word count of your narration determines the pause after the action (`words ÷ 3 = seconds`).
+Each tracked action has:
+- `narration` — what's spoken during this visual moment
+- `pause` — explicit duration in ms for how long to hold on screen
 
+### Rule: One visual moment = one tracked action
+
+The narration should match what the viewer SEES in that exact moment. Don't write a long narration that spans multiple visual events. Split into multiple tracked actions, one per visual moment.
+
+**Visual moments that deserve their own tracked action:**
+- Cursor moves to an element (focus shifts)
+- Button clicked (state change)
+- Dialog/modal opens (new UI appears)
+- Page navigates (new content loads)
+- Field gets focus (cursor enters input)
+- Dropdown opens (options visible)
+- Item selected from a list (selection highlights)
+- Result appears on screen (content updates)
+
+**Bad — one long narration covering multiple visual events:**
 ```js
-track('click', 'Create', 'Click Create', 'create-btn', coords, {
-  context: 'Clicks Create. A dialog opens with name, template, and visibility fields.',
-  narration: "Now let's make our first project. Click the Create button and you'll see a dialog pop up where you can name it and set who can see it.",
+track('click', 'Create', '...', 'create-btn', coords, {
+  narration: "Let's create a new project. Click Create — the dialog appears with a name field. Now enter the project name, then pick a template, and finally set the visibility.",
+  pause: 12000,
+});
+// The viewer is looking at a button being clicked but hearing about typing and selecting
+```
+
+**Good — split by visual moment:**
+```js
+// Moment 1: cursor on button, about to click
+track('click', 'Create', '...', 'create-btn', coords, {
+  narration: "Let's make our first project — click Create.",
+  pause: 2500,
+});
+
+// Moment 2: dialog appears
+track('narrate', 'Dialog opens', '...', null, coords, {
+  narration: "The project dialog slides in with a few fields to fill out.",
+  pause: 3000,
+});
+
+// Moment 3: typing the name
+track('type', 'Project name', '...', 'name-input', coords, {
+  narration: "Start with a name — this is how it appears in your dashboard.",
+  pause: 3000,
+  typed_text: '...',
 });
 ```
 
-- **`context`** = what's on screen (short, for scene reference)
-- **`narration`** = what will be spoken (follows style rules, sized to action duration)
-- **Pause** = `narration.wordCount ÷ 3` seconds
+### Pause is explicit, not calculated
 
-Write narration in the chosen style. Vorec validates it against these rules and uses it as the final script.
+The agent sets `pause` directly in milliseconds. The narration word count is a reference (roughly 3 words/second) but the agent picks the pause based on:
+- How long the visual moment lasts on screen
+- The narration style (Conversational = longer holds, Exact = short)
+- What happens next
+
+```js
+track('click', 'Submit', '...', 'submit-btn', coords, {
+  narration: "Click Submit. The form processes for a moment.",
+  pause: 4000, // explicit — long enough for narration + brief wait for processing
+});
+```
+
+### Fields summary
+
+| Field | What it's for |
+|-------|--------------|
+| `context` | Scene reference (what's on screen) |
+| `narration` | Spoken words over this moment (follows style rules) |
+| `pause` | Hold time in ms (agent-chosen, matches visual event) |
+| `typed_text` | Exact text typed (for type actions) |
+| `primary` | Gold star marker |
+
+Write narration per visual moment. Set pause explicitly. Vorec uses your narration as the final script.

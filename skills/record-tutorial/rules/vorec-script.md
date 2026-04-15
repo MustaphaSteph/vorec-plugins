@@ -159,15 +159,14 @@ await page.goto('TARGET_URL', { waitUntil: 'domcontentloaded' });
     y: Math.round(((box.y + box.height / 2) / VP.h) * 1000),
   } : { x: 500, y: 500 };
 
-  // ── Narration-driven timing ──────────────────────────────
-  // Agent writes the NARRATION that will be spoken over each action.
-  // Pause duration = time needed to speak the narration (~3 words/sec).
-  // Narration must follow rules/narration-rules.md for the chosen style.
+  // ── Timing ───────────────────────────────────────────────
+  // Agent sets explicit pause duration (ms) per action — matches the
+  // visual moment on screen. One tracked action = one visual moment.
+  // See rules/narration-rules.md for splitting by visual events.
   const STYLE = 'tutorial'; // set from user's choice
   const TYPING_DELAY = { exact: 50, concise: 60, tutorial: 80, professional: 80,
     conversational: 100, storytelling: 100, academic: 100, persuasive: 80,
   }[STYLE] || 80;
-  const pause = (narration) => Math.max(1500, Math.round(((narration || '').split(/\s+/).length / 3) * 1000));
 
   track('narrate', 'Intro', 'Recording starts', 'intro', null, {
     context: 'The page loads showing the main content.',
@@ -232,36 +231,35 @@ await page.goto('TARGET_URL', { waitUntil: 'domcontentloaded' });
     return box;
   };
 
-  // Glide + click. Pause duration = time to speak the narration.
-  // narration = what will be said aloud (sized to action duration, in style).
-  const glideClick = async (locator, name, description, target, context, narration) => {
+  // Glide + click. Agent passes explicit pause (ms) for the visual moment.
+  const glideClick = async (locator, name, description, target, context, narration, pauseMs = 2500) => {
     const box = await glideMove(locator);
     if (await page.evaluate(() => !!window.__vc?.clickPulse)) {
       await page.evaluate(() => window.__vc.clickPulse());
       await page.waitForTimeout(120);
     }
-    track('click', name, description, target, toCoords(box), { context, narration });
+    track('click', name, description, target, toCoords(box), { context, narration, pause: pauseMs });
     await locator.click();
-    await page.waitForTimeout(pause(narration || context));
+    await page.waitForTimeout(pauseMs);
   };
 
-  // Human-like typing. narration controls the pause after typing.
-  const slowType = async (locator, text, name, description, target, context, narration) => {
+  // Human-like typing. Agent passes explicit pause (ms) after typing.
+  const slowType = async (locator, text, name, description, target, context, narration, pauseMs = 2000) => {
     const box = await glideMove(locator);
     await locator.click();
     await page.waitForTimeout(300);
-    track('type', name, description, target, toCoords(box), { context, narration, typed_text: text });
+    track('type', name, description, target, toCoords(box), { context, narration, typed_text: text, pause: pauseMs });
     for (const ch of text) {
       await page.keyboard.type(ch, { delay: TYPING_DELAY + Math.random() * (TYPING_DELAY * 0.5) });
     }
-    await page.waitForTimeout(pause(narration || context));
+    await page.waitForTimeout(pauseMs);
   };
 
-  // Hover to explain an element. narration = what's spoken over the hover.
-  const hoverTour = async (locator, name, description, narration) => {
+  // Hover to explain an element. Agent passes explicit pause (ms).
+  const hoverTour = async (locator, name, description, narration, pauseMs = 3000) => {
     const box = await glideMove(locator);
-    track('narrate', name, description, null, toCoords(box), { context: description, narration });
-    await page.waitForTimeout(pause(narration || description));
+    track('narrate', name, description, null, toCoords(box), { context: description, narration, pause: pauseMs });
+    await page.waitForTimeout(pauseMs);
   };
 
   // ── Your flow starts here ────────────────────────────────
