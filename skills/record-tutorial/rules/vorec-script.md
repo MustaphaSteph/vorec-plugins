@@ -23,7 +23,7 @@ The script is a standalone Node.js file (`vorec-script.mjs`) — run it with `no
 7. **Scroll TO the element, not past it** — use `scrollToElement(locator)` to bring the next target into view. Never blindly scroll a fixed pixel amount.
 
 ### Pacing — this is what makes a tutorial watchable
-8. **Context length = video length.** Every action pauses for `words÷3` seconds. 30-word context = 10s pause. Keep contexts tight. For loops (adding multiple items), first item gets full context, middle items get 3-6 words. See [./pacing.md](./pacing.md) and [./context-writing.md](./context-writing.md).
+8. **Explicit pause per action** — agent sets `pauseMs` (milliseconds) on each helper call. The narration must FIT in the pause: `wordCount × 333 ≤ pauseMs` (3 words/second speaking rate). Longer narration needs longer pause, or split into multiple actions. See [./narration-rules.md](./narration-rules.md) for the freeze-sync prevention rules.
 
 ### Writing long scripts (10+ actions)
 These rules prevent drift when the script gets big:
@@ -55,26 +55,21 @@ track(type, name, description, target, coords, { context, typed_text, selected_v
 
 | Field | What it's for | Example |
 |-------|--------------|---------|
-| **`name`** | **Short label on timeline** (max 5 words). This is what appears on dots in the editor. | `"Generate Tournament"`, `"Enter email"`, `"Submit"` |
-| **`description`** | Longer description of the action (5-15 words) | `"Click Generate Tournament to start the wizard"` |
-| **`target`** | Element identifier (selector name) | `"generate-btn"`, `"email-input"` |
-| **`context`** | **Rich scene description for AI narration** (1-2 sentences). What happens, what appears, why it matters. | `"Clicks Generate Tournament. The format picker appears with 6 options."` |
-| **`typed_text`** | What was typed (auto-set by `slowType`) | `"sarah.demo@gmail.com"` |
+| **`name`** | **Short label on timeline** (max 5 words) | `"New Project"`, `"Enter email"`, `"Submit"` |
+| **`description`** | Longer description of the action (5-15 words) | `"Click New Project to open the dialog"` |
+| **`target`** | Element identifier (selector name) | `"new-project-btn"`, `"email-input"` |
+| **`context`** | Scene reference — what's on screen right now | `"Clicks New Project. A dialog slides in with name and template fields."` |
+| **`narration`** | **PRIMARY voice-over source** (follows style rules) — spoken over this moment | `"Let's create our first project — click New Project and the dialog opens."` |
+| **`pause`** (ms) | Explicit hold time; MUST fit narration (`words × 333 ≤ pauseMs`) | `3000` |
+| **`typed_text`** | What was typed (auto-set by `slowType`) | `"Q4 Marketing Site"` |
 | **`selected_value`** | What was picked from dropdown | `"Monthly"` |
-| **`coordinates`** | Auto-captured by helpers from `boundingBox()`. Normalized 0-1000. | `{ x: 850, y: 120 }` |
-| **`primary`** | Mark as a KEY action — **gold star** on timeline. Use for page state changes, goal completions, zoom-worthy moments. 2-4 per flow. | `true` |
+| **`coordinates`** | Auto-captured by helpers from `boundingBox()` (0-1000) | `{ x: 850, y: 120 }` |
+| **`primary`** | Mark as KEY action — gold star on timeline. 2-4 per flow. | `true` |
 
-### Writing good `context` — this is what makes narration great
+### Writing narration and context
 
-**Load [./context-writing.md](./context-writing.md) before writing ANY context.** It teaches the 7 rules for context that produces professional narration. Key points:
-
-1. Describe what you SEE, not just what you click
-2. Set the scene BEFORE the action (where are we, what's on screen)
-3. React to what CHANGED after the action (modal opened, page changed)
-4. Group by intent, not individual click
-5. Orient the viewer on every new page
-6. Vary context for repeated actions (don't copy-paste)
-7. Every action MUST have context — no empty fields
+- **`narration`** is the primary source for voice-over. Load [./narration-rules.md](./narration-rules.md) before writing narration — it contains the exact rules Vorec AI follows.
+- **`context`** is a short scene reference. Load [./context-writing.md](./context-writing.md) for context rules.
 
 ### Marking primary actions (gold stars)
 
@@ -170,8 +165,10 @@ await page.goto('TARGET_URL', { waitUntil: 'domcontentloaded' });
 
   track('narrate', 'Intro', 'Recording starts', 'intro', null, {
     context: 'The page loads showing the main content.',
+    narration: "Here's the page we'll be working with.",
+    pause: 3000,
   });
-  await page.waitForTimeout(pause('The page loads showing the main content.'));
+  await page.waitForTimeout(3000);
 
   // ── Helpers ──────────────────────────────────────────────
 
@@ -268,7 +265,12 @@ await page.goto('TARGET_URL', { waitUntil: 'domcontentloaded' });
   await page.waitForTimeout(2000);
 
   // Example actions — replace with your flow
-  //                                    name (5 words max)  description (longer)    target    context (1-2 sentences for narration)
+  // Signature: helper(locator, name, description, target, context, narration, pauseMs)
+  //   name       — 3-5 words (timeline label)
+  //   description — 5-15 words (what the user is doing)
+  //   context    — what's on screen (scene reference for Vorec)
+  //   narration  — what will be SPOKEN over this moment (follow narration-rules.md)
+  //   pauseMs    — explicit hold time; must be ≥ narration.wordCount × 333
 
   const emailField = page.getByPlaceholder('you@example.com');
   await scrollToElement(emailField, 'Sign-up form', 'Scroll down to the sign-up form section');
@@ -406,7 +408,9 @@ The resulting JSON matches the format Vorec's `agent-api/create-project` expects
 | `target` | Included in action data | Element identifier |
 | `timestamp` | `timestamp_seconds` | Position on timeline + narration timing |
 | `coordinates` | `coordinates_x/y` | Click markers, auto-zoom targets, cursor effects |
-| `context` | `ui_change` | **Fed to Vorec AI as narration source** |
+| `context` | `ui_change` | Scene reference — what's on screen |
+| `narration` | `narration` | **PRIMARY source for voice-over** — Vorec uses it as the script |
+| `pause` | `pause_ms` | Agent-set hold time in ms (must fit narration) |
 | `typed_text` | `typed_text` | Narration knows what was typed |
 | `selected_value` | `selected_value` | Narration knows what was picked |
 | `primary` | `is_primary` | **Gold star on timeline** — auto-zoom targets, article screenshots |
