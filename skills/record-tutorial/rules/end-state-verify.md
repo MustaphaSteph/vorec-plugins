@@ -55,12 +55,46 @@ await assertHealthyEndState(page);
 If the script throws or an action fails:
 
 1. **Stop the script immediately** — don't try to continue past a broken state
-2. **Read the current page** — snapshot + check for error messages, disabled buttons, missing elements
-3. **Diagnose the root cause:**
+2. **TAKE A SCREENSHOT** of the current page — this is how you SEE what went wrong. Never guess based on selectors or text alone.
+3. **Read the screenshot + snapshot** — look for error messages, disabled buttons, missing elements, unexpected UI state
+4. **Diagnose the root cause:**
    - Wrong selector? Element changed? → update the locator
-   - Validation error? → fix the input data
+   - Validation error shown? → fix the input data (read the error text in the screenshot)
    - Missing step? → add the missing action before the failing one
    - Page crashed? → check if auth expired or network issue
+
+### How to take a screenshot
+
+**From playwright-cli (during exploration or debugging):**
+```bash
+playwright-cli screenshot .vorec/<slug>/debug-$(date +%s).png
+```
+
+**From inside vorec-script.mjs (on error):**
+```js
+try {
+  // ... your flow ...
+} catch (err) {
+  await page.screenshot({ path: `${OUTPUT_DIR}/error-${Date.now()}.png`, fullPage: true });
+  console.error(`Error: ${err.message}. Screenshot saved.`);
+  throw err;
+}
+```
+
+**Always take a screenshot before asking the user for help** — then include the path so they can see the same thing you see.
+
+### Add try/catch wrapping to your script
+
+Wrap each major step (or the whole flow) in try/catch that screenshots on failure:
+
+```js
+try {
+  await glideClick(saveBtn, 'Save', '...', 'save-btn', context, narration, pauseFor(narration));
+} catch (err) {
+  await page.screenshot({ path: `${OUTPUT_DIR}/error-save.png`, fullPage: true });
+  throw new Error(`Save button click failed: ${err.message}. Screenshot: ${OUTPUT_DIR}/error-save.png`);
+}
+```
 
 ## When to ask the user for help
 
@@ -72,9 +106,13 @@ Ask the user when:
 
 **How to ask:**
 
-> I hit a problem during recording: [what you saw].
-> The screen shows: [current state].
-> 
+1. **First take a screenshot** of the current page
+2. **Read the screenshot yourself** — often the error is visible and you can fix without asking
+3. **Only if still stuck**, ask the user with the screenshot path included:
+
+> I hit a problem during recording. Screenshot saved at `.vorec/<slug>/error-XXX.png`.
+> The screen shows: [what you see in the screenshot].
+>
 > Can you tell me:
 > - [specific question about what they expect to happen]
 > - [anything else you need]
