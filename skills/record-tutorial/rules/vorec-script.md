@@ -23,7 +23,7 @@ The script is a standalone Node.js file (`vorec-script.mjs`) — run it with `no
 7. **Scroll TO the element, not past it** — use `scrollToElement(locator)` to bring the next target into view. Never blindly scroll a fixed pixel amount.
 
 ### Pacing — this is what makes a tutorial watchable
-8. **Calculate pauseMs from YOUR narration** — no defaults. For every action: (1) write the narration text, (2) count the words, (3) set `pauseMs = Math.max(1500, Math.ceil(wordCount × 333) + 500)` — 333ms per word at 3 words/second speaking speed, plus 500ms breathing room. If narration is 12 words → `pauseMs = 12 × 333 + 500 = 4496ms`. The helpers throw if you forget pauseMs. See [./narration-rules.md](./narration-rules.md) for freeze-sync prevention.
+8. **Calculate pauseMs from YOUR narration** — no defaults. For every action: (1) write the narration text, (2) count the words, (3) set `pauseMs = Math.max(1500, Math.ceil(wordCount × 350) + 500)` — 350ms per word (measured Vorec TTS rate ~2.86 words/sec), plus 500ms breathing buffer. If narration is 12 words → `pauseMs = 12 × 350 + 500 = 4700ms`. The helpers throw if you forget pauseMs. See [./narration-rules.md](./narration-rules.md) for freeze-sync prevention.
 
 ### Writing long scripts (10+ actions)
 These rules prevent drift when the script gets big:
@@ -60,7 +60,7 @@ track(type, name, description, target, coords, { context, typed_text, selected_v
 | **`target`** | Element identifier (selector name) | `"new-project-btn"`, `"email-input"` |
 | **`context`** | Scene reference — what's on screen right now | `"Clicks New Project. A dialog slides in with name and template fields."` |
 | **`narration`** | **PRIMARY voice-over source** (follows style rules) — spoken over this moment | `"Let's create our first project — click New Project and the dialog opens."` |
-| **`pause`** (ms) | Explicit hold time; MUST fit narration (`words × 333 ≤ pauseMs`) | `3000` |
+| **`pause`** (ms) | Explicit hold time; MUST fit narration (`words × 350 + 500 ≤ pauseMs`) | `4700` |
 | **`typed_text`** | What was typed (auto-set by `slowType`) | `"Q4 Marketing Site"` |
 | **`selected_value`** | What was picked from dropdown | `"Monthly"` |
 | **`coordinates`** | Auto-captured by helpers from `boundingBox()` (0-1000) | `{ x: 850, y: 120 }` |
@@ -163,11 +163,11 @@ await page.goto('TARGET_URL', { waitUntil: 'domcontentloaded' });
     conversational: 100, storytelling: 100, academic: 100, persuasive: 80,
   }[STYLE] || 80;
 
-  // pauseFor(narration) → milliseconds needed to speak the narration + breathing room.
-  // ~3 words/sec speaking rate (333ms/word) + 500ms buffer, minimum 1500ms.
-  // Agent calls this for EVERY pauseMs to keep narration and timing aligned.
+  // pauseFor(narration) → milliseconds needed to speak the narration + breathing buffer.
+  // 350ms/word (~2.86 words/sec, measured Vorec TTS rate) + 500ms buffer, minimum 1500ms.
+  // Agent calls this for EVERY pauseMs. Never eyeball — always run the formula.
   const pauseFor = (narration) =>
-    Math.max(1500, Math.ceil((narration || '').split(/\s+/).filter(Boolean).length * 333) + 500);
+    Math.max(1500, Math.ceil((narration || '').split(/\s+/).filter(Boolean).length * 350) + 500);
 
   // Intro narration
   const introNarration = "Here's the page we'll be working with.";

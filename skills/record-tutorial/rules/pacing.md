@@ -11,23 +11,33 @@ Every pause is calculated from the narration you wrote for that action:
 
 ```js
 const pauseFor = (narration) =>
-  Math.max(1500, Math.ceil(narration.split(/\s+/).filter(Boolean).length * 333) + 500);
+  Math.max(1500, Math.ceil(narration.split(/\s+/).filter(Boolean).length * 350) + 500);
 ```
 
-- `333ms per word` = 3 words/sec speaking rate
-- `+500ms` = breathing room so narration doesn't butt against the next action
+- `350ms per word` = ~2.86 words/sec (measured Vorec TTS rate)
+- `+500ms` = breathing buffer AFTER speech ends, so narration doesn't collide with the next click
 - `1500ms` minimum — even silent transitions need a beat
 
-**The agent writes narration first, counts words, calls `pauseFor()`.** No defaults. No tables. No hardcoded numbers.
+**`pauseMs` = speaking time + buffer. Not just speaking time.**
+Example: a 20-word line speaks in 7000ms, so its `pauseMs` is **7500ms** (speech + 500ms buffer).
+
+## ⛔ Never eyeball durations
+
+When drafting narration for the user, **never label lines with approximate seconds** like `(6s)` or `~5s`. Always run the formula and write the exact integer `pauseMs`. Eyeballing causes freeze-sync (narration overflows the pause).
+
+✅ `"Click Submit." → 2 words → pauseMs: 1500`
+❌ `"Click Submit." (2s)` ← no formula applied
+
+**Agent workflow:** write narration → count words → run formula → show exact `pauseMs` integer.
 
 ## Examples
 
 | Narration | Words | pauseFor() |
 |-----------|-------|-----------|
 | "Click Submit." | 2 | 1500ms (minimum) |
-| "Click Save. The dialog closes." | 5 | 2165ms |
-| "Now let's create a new project — click New Project in the top-right." | 12 | 4496ms |
-| "This is where the real magic happens. Every action you take here updates in real time, and the preview on the right shows exactly what your customers will see." | 28 | 9824ms |
+| "Click Save. The dialog closes." | 5 | 2250ms |
+| "Now let's create a new project — click New Project in the top-right." | 12 | 4700ms |
+| "This is where the real magic happens. Every action you take here updates in real time, and the preview on the right shows exactly what your customers will see." | 28 | 10300ms |
 
 ## Typing speed per style
 

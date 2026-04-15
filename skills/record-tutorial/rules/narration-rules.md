@@ -184,10 +184,11 @@ track('type', 'Project name', '...', 'name-input', coords, {
 Narration is spoken at ~3 words/second. If the narration is too long for the pause, it overflows into the next action → **FREEZE SYNC** (the video freezes while narration catches up — looks broken).
 
 **Math:**
-- `narration_duration_ms = wordCount × 333`
-- Rule: `narration_duration_ms ≤ pauseMs` (always)
-- Example: 10-word narration needs `pauseMs ≥ 3333`
-- Example: `pauseMs: 3000` allows max 9 words of narration
+- `narration_duration_ms = wordCount × 350` (measured Vorec TTS rate ~2.86 words/sec)
+- `pauseMs = narration_duration_ms + 500` (breathing buffer so narration doesn't collide with next action)
+- Rule: `pauseMs ≥ wordCount × 350 + 500`
+- Example: 10-word narration → `pauseMs ≥ 4000` (3500 speech + 500 buffer)
+- Example: `pauseMs: 3000` allows max 7 words of narration (2450 + 500 = 2950 ≤ 3000)
 
 **When narration is too long:**
 - Option A: increase `pauseMs` (if the visual moment supports a longer hold)
@@ -221,7 +222,7 @@ await glideClick(btn3, 'Save', ..., "Save the configuration.", 2500);       // 3
 ### Pause is explicit, not calculated
 
 The agent sets `pause` directly in milliseconds. The narration word count is a reference (roughly 3 words/second) but the agent picks the pause based on:
-- **Narration fit** — pause must hold long enough to speak the narration (`words × 333ms`)
+- **Narration fit** — pause must hold long enough to speak the narration (`words × 350ms + 500ms buffer`)
 - How long the visual moment lasts on screen
 - The narration style (Conversational = longer holds, Exact = short)
 - What happens next
