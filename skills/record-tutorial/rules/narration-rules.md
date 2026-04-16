@@ -40,6 +40,35 @@ Go generic. "Fill in the required field" is safer than dictating a specific valu
 
 ---
 
+## Narration structure
+
+Every recording must have an **intro** and an **outro**. Between them, every action narration must earn its pause — if you have nothing meaningful to say, don't add a narrate action.
+
+### Intro (first action)
+Set the scene: what app/site is this, what are we about to do. The viewer just pressed play and needs context.
+
+### Action narrations (middle)
+Each narration should describe what's happening RIGHT NOW on screen. If the action is self-explanatory (clicking a clearly labeled button), keep the narration short. If the action reveals something new (a dialog opens, a page changes), describe what appeared.
+
+**Every narration must add value.** If you can't think of something meaningful to say over an action, don't write narration for it — just track the action with context only and let Vorec handle it. An empty pause with no useful narration is worse than no pause at all.
+
+### Outro (last action)
+Wrap up: what was accomplished, what the user can do next. Give the viewer a sense of completion.
+
+### What makes narration "no sense"
+- Narrating what the user can obviously see ("The button says Submit" — they can read)
+- Repeating the same idea across multiple actions ("Adding another item" × 7)
+- Generic filler ("Now we'll move on to the next step")
+- Describing the UI element instead of the intent ("This is a blue button with rounded corners")
+
+### What makes narration valuable
+- Explaining WHY ("We pick this option because it gives the best balance")
+- Describing what CHANGED ("The dashboard now shows the new project at the top")
+- Orienting on new pages ("This is the settings panel — the key options are on the left")
+- Giving context the viewer needs ("This field accepts any email — use yours here")
+
+---
+
 ## Style-specific rules
 
 > **All quoted phrases below are examples, not scripts.** They show the TONE and APPROACH of each style. Write your own narration that matches the feel — don't copy these exact words. The examples are there to inspire, not to prescribe.

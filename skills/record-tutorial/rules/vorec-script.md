@@ -371,26 +371,28 @@ await page.evaluate(() => document.documentElement.style.scrollBehavior = 'smoot
   await page.video().saveAs(rawVideo);
   await browser.close();
 
-  // ── Upscale + re-encode + watermark ──────────────────────
-  // Video processing:
-  // 1. Re-encode WebM → MP4 at source resolution
-  // 2. Upscale to target quality with lanczos (sharp edges)
-  // 3. Add "vorec.ai" watermark to the PREVIEW video shown to the user.
-  //         Vorec strips/replaces this during its own rendering pipeline —
-  //         the watermark only exists on the local preview file.
+  // ── Save tracked actions FIRST ───────────────────────────
+  // Save immediately after browser closes, BEFORE FFmpeg.
+  // If FFmpeg crashes, tracked actions are still on disk.
+  writeFileSync(`${OUTPUT_DIR}/tracked-actions.json`, JSON.stringify(__actions, null, 2));
+  console.log(`${__actions.length} actions tracked → ${OUTPUT_DIR}/tracked-actions.json`);
+
+  // ── Re-encode (+ optional upscale) ──────────────────────
   const SIZES = { '4k': '3840:2160', '2k': '2560:1440', '1080p': null };
   const targetSize = SIZES[QUALITY];
 
-  // Watermark: bottom-right corner, semi-transparent, padded
-  const watermark = `drawtext=text='vorec.ai':fontcolor=white@0.7:fontsize=h/32:x=w-tw-30:y=h-th-30:box=1:boxcolor=black@0.35:boxborderw=10`;
+  // Check if drawtext filter is available for watermark
+  const hasDrawtext = execSync('ffmpeg -filters 2>&1', { encoding: 'utf8' }).includes('drawtext');
+  const watermark = hasDrawtext
+    ? `drawtext=text='vorec.ai':fontcolor=white@0.7:fontsize=h/32:x=w-tw-30:y=h-th-30:box=1:boxcolor=black@0.35:boxborderw=10`
+    : null;
 
-  // Chain filters: scale (if upscaling) + watermark
   const filterParts = [];
   if (targetSize) filterParts.push(`scale=${targetSize}:flags=lanczos`);
-  filterParts.push(watermark);
-  const vf = `-vf "${filterParts.join(',')}"`;
+  if (watermark) filterParts.push(watermark);
+  const vf = filterParts.length > 0 ? `-vf "${filterParts.join(',')}"` : '';
 
-  console.log(`Re-encoding to ${QUALITY} MP4 with watermark...`);
+  console.log(`Re-encoding to ${QUALITY} MP4${watermark ? ' with watermark' : ''}...`);
   execSync(`ffmpeg -y -i "${rawVideo}" \
     ${vf} \
     -c:v libx264 -preset slow -crf 18 -tune animation \
@@ -399,9 +401,6 @@ await page.evaluate(() => document.documentElement.style.scrollBehavior = 'smoot
   execSync(`rm "${rawVideo}"`);
 
   // ── Sync action timestamps to video duration ─────────────
-  // Date.now() and recordVideo are two separate clocks that drift.
-  // Use the final MP4 duration as source of truth and scale all
-  // timestamps so they fit inside the video exactly.
   const probe = execSync(
     `ffprobe -v error -show_entries format=duration -of csv=p=0 "${OUTPUT_DIR}/output.mp4"`,
     { encoding: 'utf8' },
@@ -409,14 +408,13 @@ await page.evaluate(() => document.documentElement.style.scrollBehavior = 'smoot
   const videoDuration = parseFloat(probe.trim());
   const lastAction = __actions[__actions.length - 1]?.timestamp || 0;
   if (videoDuration > 0 && lastAction > 0) {
-    const scale = (videoDuration - 1) / lastAction; // 1s margin before video end
+    const scale = (videoDuration - 1) / lastAction;
     for (const a of __actions) a.timestamp = +(a.timestamp * scale).toFixed(2);
+    // Re-save with synced timestamps
+    writeFileSync(`${OUTPUT_DIR}/tracked-actions.json`, JSON.stringify(__actions, null, 2));
     console.log(`Synced timestamps: video=${videoDuration.toFixed(1)}s, scale=${scale.toFixed(3)}`);
   }
 
-  // ── Save tracked actions ─────────────────────────────────
-  writeFileSync(`${OUTPUT_DIR}/tracked-actions.json`, JSON.stringify(__actions, null, 2));
-  console.log(`${__actions.length} actions tracked → ${OUTPUT_DIR}/tracked-actions.json`);
   console.log(`Recording saved → ${OUTPUT_DIR}/output.mp4`);
 ```
 
