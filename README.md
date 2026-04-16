@@ -8,7 +8,7 @@
 
 ## ✨ What's new in v11.0.0
 
-- **4K recording quality** — CDP lossless frame capture → FFmpeg at 8 Mbit/s. Near QuickTime-level sharpness
+- **4K recording quality** — Playwright `recordVideo` at 1080p with DPR 2, then FFmpeg lanczos upscaling for 2K/4K output
 - **Smart action tracking** — every click, type, and scroll is tracked with real coordinates, context, and timestamps. Vorec skips video analysis entirely
 - **8 narration styles** — Tutorial, Professional, Conversational, Storytelling, Persuasive, Academic, Concise, Exact
 - **Primary actions** — mark key steps that get gold stars on the Vorec timeline
@@ -106,7 +106,7 @@ No screen recording software. No microphone. No video editor. Just one command.
 ## What You Get
 
 ### The Recording
-- **1080p video** — smooth, professional-looking
+- **1080p by default, 2K/4K optional** — sharp browser recording with DPR 2 rendering and FFmpeg MP4 output
 - **Every action tracked** — clicks, keystrokes, navigation, timing
 - **MP4 file** — ready to use anywhere, even without Vorec
 - **Optional visible cursor** — big animated arrow/hand/text cursor with click feedback, baked into the recording
@@ -189,17 +189,26 @@ brew install ffmpeg          # macOS
 # apt install ffmpeg         # Ubuntu/Debian
 
 # Vorec CLI
-npx @vorec/cli@latest login
+npx @vorec/cli@latest --version
 ```
+
+When recording, the skill checks `~/.vorec/config.json`. If no API key is configured, Claude asks for a Vorec API key and writes the config directly so the non-interactive agent workflow can continue safely.
 
 ## CLI Commands
 
 ```bash
-vorec login          # Connect your Vorec account
-vorec check          # Verify credits and project limits
-vorec run <manifest> # Record, upload, and generate narration
-vorec status         # Check processing status
+npx @vorec/cli@latest check          # Verify API key, credits, and project limits
+npx @vorec/cli@latest run <manifest> # Upload/record and generate narration
+npx @vorec/cli@latest status         # Check processing status
 ```
+
+## Maintainer Checks
+
+```bash
+node scripts/validate-plugin.mjs
+```
+
+This verifies plugin JSON, internal markdown links, stale setup claims, root licensing, and accidental `.DS_Store` tracking.
 
 ## Links
 

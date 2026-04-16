@@ -38,19 +38,19 @@ These rules prevent drift when the script gets big:
 ## Action types for `track()` calls
 
 ```js
-track(type, name, description, target, coords, { context, typed_text, selected_value })
+track(type, name, description, target, coords, { context, narration, pause, typed_text, selected_value })
 ```
 
 | Type | When to use | Helper |
 |------|-------------|--------|
-| `click` | Click a button, link, tab, checkbox, toggle | `glideClick(locator, name, description, target, context)` |
-| `type` | Type text into an input field | `slowType(locator, text, name, description, target, context)` |
-| `select` | Pick from a dropdown/select | Manual `track()` with `{ context, selected_value }` |
-| `hover` | Hover to reveal tooltip/menu | Manual `track()` with `{ context }` |
+| `click` | Click a button, link, tab, checkbox, toggle | `glideClick(locator, name, description, target, context, narration, pauseMs)` |
+| `type` | Type text into an input field | `slowType(locator, text, name, description, target, context, narration, pauseMs)` |
+| `select` | Pick from a dropdown/select | Manual `track()` with `{ context, narration, pause, selected_value }` |
+| `hover` | Hover to reveal tooltip/menu | Manual `track()` with `{ context, narration, pause }` |
 | `scroll` | Scroll to reveal content | `scrollToElement(locator, name, description)` — auto-tracks |
-| `wait` | Pause for animation/loading | Manual `track()` with `{ context }` |
-| `navigate` | Navigate to a new page/URL | Manual `track()` with `{ context }` |
-| `narrate` | Describe scene — NO interaction | `hoverTour(locator, name, description)` or manual `track()` |
+| `wait` | Pause for animation/loading | Manual `track()` with `{ context, narration, pause }` |
+| `navigate` | Navigate to a new page/URL | Manual `track()` with `{ context, narration, pause }` |
+| `narrate` | Describe scene — NO interaction | `hoverTour(locator, name, description, narration, pauseMs)` or manual `track()` |
 
 ### Fields explained
 
@@ -89,8 +89,16 @@ Set `primary: true` on the most important actions in the flow. These get a **gol
 
 ```js
 // Set primary after a glideClick call:
-await glideClick(submitBtn, 'Submit the form', 'submit-btn',
-  'Clicks Submit. The account is created and a welcome page appears.');
+const nSubmit = "Click Submit. The account is created.";
+await glideClick(
+  submitBtn,
+  'Submit',
+  'Click submit to create the account',
+  'submit-btn',
+  'The signup form is complete. Submitting it creates the account and opens the welcome page.',
+  nSubmit,
+  pauseFor(nSubmit),
+);
 __actions[__actions.length - 1].primary = true;
 ```
 
@@ -104,7 +112,7 @@ Run it with: `node vorec-script.mjs`
 // vorec-script.mjs — standalone Node.js recording script
 import { chromium } from 'playwright';
 import { execSync } from 'child_process';
-import { mkdirSync, writeFileSync, existsSync } from 'fs';
+import { mkdirSync, writeFileSync } from 'fs';
 
 const OUTPUT_DIR = '.vorec/PROJECT_SLUG';
 mkdirSync(OUTPUT_DIR, { recursive: true });
@@ -293,6 +301,7 @@ await page.goto('TARGET_URL', { waitUntil: 'domcontentloaded' });
   await slowType(
     emailField, 'sarah.demo@gmail.com',
     'Enter email', 'Type email address', 'email',
+    'The email field is focused. The viewer should use their own email address here.',
     n2, pauseFor(n2),
   );
 
@@ -301,6 +310,7 @@ await page.goto('TARGET_URL', { waitUntil: 'domcontentloaded' });
   await glideClick(
     page.getByRole('button', { name: 'Submit' }),
     'Submit', 'Click submit to create account', 'submit',
+    'The signup fields are complete. Submitting creates the account and moves to the success state.',
     n3, pauseFor(n3),
   );
   __actions[__actions.length - 1].primary = true;
@@ -335,9 +345,10 @@ await page.goto('TARGET_URL', { waitUntil: 'domcontentloaded' });
   await browser.close();
 
   // ── Upscale + re-encode + watermark ──────────────────────
-  // Step 1: Re-encode WebM → MP4 at source resolution
-  // Step 2: Upscale to target quality with lanczos (sharp edges)
-  // Step 3: Add "vorec.ai" watermark to the PREVIEW video shown to the user.
+  // Video processing:
+  // 1. Re-encode WebM → MP4 at source resolution
+  // 2. Upscale to target quality with lanczos (sharp edges)
+  // 3. Add "vorec.ai" watermark to the PREVIEW video shown to the user.
   //         Vorec strips/replaces this during its own rendering pipeline —
   //         the watermark only exists on the local preview file.
   const SIZES = { '4k': '3840:2160', '2k': '2560:1440', '1080p': null };
@@ -393,11 +404,11 @@ The script:
 2. Opens the target URL directly (no white frame)
 3. `recordVideo` captures the browser in real-time (all pauses appear in video)
 4. Runs the flow (clicks, types, scrolls)
-5. Closes context → FFmpeg upscales to 4K with lanczos + re-encodes to MP4
+5. Closes context → FFmpeg re-encodes to MP4, with lanczos upscaling only for 2K/4K
 6. Saves tracked actions
 
 Output (inside `.vorec/<project-slug>/`):
-- `output.mp4` — 4K H.264 video
+- `output.mp4` — H.264 video at the selected quality (`1080p`, `2k`, or `4k`)
 - `tracked-actions.json` — action data for Vorec
 
 The resulting JSON matches the format Vorec's `agent-api/create-project` expects:

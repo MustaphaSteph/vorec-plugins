@@ -91,7 +91,7 @@ Once the user provides the key, save it directly:
 ```bash
 mkdir -p ~/.vorec && echo '{"apiKey":"USER_KEY_HERE","apiBase":"api.vorec.ai/agent"}' > ~/.vorec/config.json
 ```
-Replace `USER_KEY_HERE` with the key the user pasted. Do NOT use `vorec init` — it hangs because it waits for interactive input.
+Replace `USER_KEY_HERE` with the key the user pasted. Do NOT use `vorec init` for the agent workflow — it can hang because it waits for interactive input.
 
 Verify the key works:
 ```bash
@@ -161,7 +161,7 @@ Save findings to `.vorec/<slug>/flow-notes.md`:
 - Success states at each step
 - Gotchas (disabled buttons, timing issues, state carryover)
 
-The recording script in Step 9 just replays this known-working flow. No surprises.
+The recording script just replays this known-working flow. No surprises.
 
 ### 5. Map the flow
 
@@ -169,9 +169,9 @@ Plan the sequence of steps you'll record. For each step, note:
 - What page/section we're on
 - What interactions will happen (clicks, types, hovers)
 
-Don't write narration yet. Don't estimate durations. Just the structure of visual steps. This becomes the outline you'll show the user in Step 7. Real timing comes from Step 8 when narration is written.
+Don't write narration yet. Don't estimate durations. Just the structure of visual steps. This becomes the outline you'll show the user when asking preferences and showing the plan. Real timing comes from the narration draft.
 
-See [./rules/narration-styles.md](./rules/narration-styles.md) for style descriptions (ready for when the user picks a style in Step 7).
+See [./rules/narration-styles.md](./rules/narration-styles.md) for style descriptions (ready for when the user picks a style).
 
 ### 6. Create the project folder
 
@@ -225,7 +225,7 @@ After the user answers (or says "defaults"), show the plan:
 >
 > Adjust anything or say "go" to start.
 
-Real durations are calculated in Step 8 from narration word count.
+Real durations are calculated from narration word count.
 
 **Wait for the user.** They might:
 - Adjust steps: "Skip step 2", "Step 5 is too long", "Add settings step"
@@ -268,22 +268,28 @@ Now that the narration is written, build `vorec-script.mjs` using those narratio
 
 ```js
 const n1 = "Let's start by building a gender-balanced tournament...";
-await hoverTour(card, 'Mixed Americano card', '...', n1, pauseFor(n1));
+await hoverTour(card, 'Mixed Americano card', 'Explain the tournament type card', n1, pauseFor(n1));
 
 const n2 = "Click Mixed Americano to jump into the setup wizard.";
-await glideClick(link, 'Mixed Americano', '...', 'mixed-link', '...', n2, pauseFor(n2));
+await glideClick(
+  link,
+  'Mixed Americano',
+  'Open the Mixed Americano setup',
+  'mixed-link',
+  'The tournament type cards are visible. Mixed Americano is the option for gender-balanced rotation.',
+  n2,
+  pauseFor(n2),
+);
 ```
 
 Each `pauseMs` is calculated from the narration you already wrote. No guessing.
-
-Load [./rules/vorec-script.md](./rules/vorec-script.md) for the template.
 
 Load [./rules/vorec-script.md](./rules/vorec-script.md) for the template. Write the script to `.vorec/<project-slug>/vorec-script.mjs`.
 
 What to include:
 - Quality preset based on user's choice (4K / 2K / 1080p)
 - `scrollToElement`, `glideClick`, `slowType`, `hoverTour` helpers
-- A `track()` call for every action — with `name`, `description`, `context`, and `primary` markers
+- A `track()` call for every action — with `name`, `description`, `context`, `narration`, `pause`, and `primary` markers
 - `scrollToElement` before every interaction (never scroll blindly)
 - Timing from [./rules/pacing.md](./rules/pacing.md) matched to the narration style
 - Output paths pointing to the project folder
@@ -370,7 +376,7 @@ Tell the user:
 
 **How data flows to Vorec:**
 
-1. **Tracked actions** (`.vorec/tracked-actions.json`) → sent to `create-project` API → saved as `project_clicks` in Vorec DB. Each action has: `type`, `timestamp`, `coordinates` (0-1000), `description`, `context`, `target`, `typed_text`, `primary`.
+1. **Tracked actions** (`.vorec/<project-slug>/tracked-actions.json`) → sent to `create-project` API → saved as `project_clicks` in Vorec DB. Each action has: `type`, `timestamp`, `coordinates` (0-1000), `description`, `context`, `narration`, `pause`, `target`, `typed_text`, `primary`.
 
 2. **Video** (`.vorec/<project-slug>/output.mp4`) → uploaded to Vorec storage via presigned URL.
 
@@ -414,7 +420,5 @@ If the user declined upload:
 - [./rules/cli-session.md](./rules/cli-session.md) — Session management
 - [./rules/cli-video.md](./rules/cli-video.md) — Video quality settings
 - [./rules/playwright.md](./rules/playwright.md) — Playwright best practices
-- [./rules/end-state-verify.md](./rules/end-state-verify.md) — Verify recording ended cleanly, fail loudly, ask user when stuck, rewrite script if needed
-- [./rules/auth.md](./rules/auth.md) — Session capture
 - [./rules/actions.md](./rules/actions.md) — Action types
 - [./rules/troubleshooting.md](./rules/troubleshooting.md) — Common errors

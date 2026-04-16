@@ -89,7 +89,7 @@ Wrap each major step (or the whole flow) in try/catch that screenshots on failur
 
 ```js
 try {
-  await glideClick(saveBtn, 'Save', '...', 'save-btn', context, narration, pauseFor(narration));
+  await glideClick(saveBtn, 'Save', 'Save the changes', 'save-btn', context, narration, pauseFor(narration));
 } catch (err) {
   await page.screenshot({ path: `${OUTPUT_DIR}/error-save.png`, fullPage: true });
   throw new Error(`Save button click failed: ${err.message}. Screenshot: ${OUTPUT_DIR}/error-save.png`);

@@ -23,9 +23,9 @@ Read frontend AND backend code to understand:
 
 **Never use placeholder data.** The recording should look professional.
 
-## Error recovery during recording
+## Error recovery during dry-run
 
-When an action produces a visible error, **keep recording** — show the error AND the fix:
+When an action produces a visible error during exploration or dry-run, fix it there and update `flow-notes.md`. The final recording should replay the known-good path. Only include an error-and-fix sequence in the final video if the user explicitly asked for a troubleshooting tutorial.
 
 ```javascript
 await actionElement.click();
@@ -34,13 +34,14 @@ await page.waitForTimeout(1000);
 const errorEl = page.locator('.error, [role="alert"], .toast-error, [class*="error"]');
 if (await errorEl.count() > 0 && await errorEl.first().isVisible()) {
   const errorText = await errorEl.first().textContent();
-  console.log(`  ⚠ Error detected: ${errorText}`);
+  console.log(`Error detected: ${errorText}`);
 
-  // Track as narrate — Vorec will explain the error
-  track('narrate', '', null,
-    'Error appeared',
-    `An error message appeared: "${errorText}". Let me fix this.`
-  );
+  const narration = "An error appeared. Fix the highlighted field before continuing.";
+  track('narrate', 'Validation error', 'Show validation error', 'validation-error', null, {
+    context: `An error message appeared: "${errorText}". The next action should fix the invalid input.`,
+    narration,
+    pause: pauseFor(narration),
+  });
   await page.waitForTimeout(2000); // Let viewer see the error
 
   // RECOVER: fix the input and retry
@@ -49,5 +50,6 @@ if (await errorEl.count() > 0 && await errorEl.first().isVisible()) {
 
 ## When to stop vs recover
 
-- **Recover in recording** (preferred): validation errors, wrong format, missing fields — teaches viewers
-- **Stop and re-record**: wrong selector, page crash, auth expired — recording problems
+- **Recover during dry-run**: validation errors, wrong format, missing fields — learn the valid path before recording
+- **Stop and re-record final videos**: wrong selector, page crash, auth expired, or unexpected validation errors
+- **Keep the error in the final video only when requested**: troubleshooting flows where the error is the lesson

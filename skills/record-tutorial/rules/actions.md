@@ -5,14 +5,15 @@ description: Manifest action types, tracked action fields, and how Vorec uses th
 
 # Action Reference
 
-Every tracked action needs **`description`** (short timeline label) and **`context`** (rich scene description for AI narration).
+Every tracked action needs **`description`** (short timeline label), **`context`** (rich scene description), and usually **`narration`** (the spoken script for that visual moment).
 
 ## The two text fields
 
 | Field | Length | Purpose | Example |
 |-------|--------|---------|---------|
 | `description` | 5-10 words | Timeline label, what the user does | `"Click the Create Project button"` |
-| `context` | 1-2 sentences | **Fed to Vorec AI for narration.** Describe what happens, what appears on screen, why it matters. | `"Clicks the blue Create Project button. A dialog slides in with title and template fields."` |
+| `context` | 1-2 sentences | Scene reference for the AI and editor. Describe what happens, what appears on screen, why it matters. | `"Clicks the blue Create Project button. A dialog slides in with title and template fields."` |
+| `narration` | 1 spoken segment | Primary voice-over script for this visual moment. Must fit the explicit `pause`. | `"Click Create Project. The setup dialog opens with the first fields ready to fill in."` |
 
 **Good descriptions:** "Open the create dialog", "Enter the project name"
 **Bad descriptions:** "button:has-text('Create')", "input[type='email']"
@@ -35,7 +36,7 @@ The description is the intent, not the selector.
 | `wait` | — | Pause for animations |
 | `navigate` | — | Navigate to page |
 
-All actions also have: `description`, `context`, `target`, `timestamp`, `coordinates`.
+All actions also have: `description`, `context`, `target`, `timestamp`, `coordinates`. Most actions also include `narration` and `pause`.
 
 ## When to use `narrate`
 
@@ -54,7 +55,7 @@ Not just clicks. If the user types text → `type` action with `typed_text`. Dro
 ## How Vorec uses tracked actions
 
 1. **Timeline** — each action appears as a color-coded dot at its `timestamp`
-2. **Narration** — Vorec AI reads `context` to write voice-over scripts for each segment
+2. **Narration** — Vorec uses `narration` as the primary voice-over script and `context` as scene reference/fallback
 3. **Auto-zoom** — click `coordinates` become zoom targets (centered on the element)
 4. **Cursor effects** — click ripples render at `coordinates` position
 5. **Click markers** — `description` shown as tooltip, `target` as element label

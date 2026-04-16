@@ -190,4 +190,4 @@ You're ready to write the vorec script. Load [./vorec-script.md](./vorec-script.
 
 ## Both modes converge
 
-Explore mode ends at the same place as Connected mode: write the recording script, run it (`node vorec-script.mjs`), upload the MP4 to Vorec. Return to the main `SKILL.md` at **Step 8 (Build the recording script)** when you're done exploring.
+Explore mode ends at the same place as Connected mode: write the recording script, run it (`node vorec-script.mjs`), upload the MP4 to Vorec. Return to the main `SKILL.md` at **Build the recording script** when you're done exploring.

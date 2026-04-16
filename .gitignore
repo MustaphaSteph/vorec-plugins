@@ -1,0 +1,9 @@
+.DS_Store
+skills/.DS_Store
+skills/*/.DS_Store
+.vorec/
+.playwright-cli/
+node_modules/
+dist/
+build/
+coverage/

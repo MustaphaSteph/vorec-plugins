@@ -92,4 +92,4 @@ After your script is written, both Connected and Explore follow the same steps:
 - [./vorec-script.md](./vorec-script.md) — write the recording script
 - [./cursor-pack.md](./cursor-pack.md) — optional visible cursors
 - Run with `node vorec-script.mjs`
-- Upload to Vorec via `vorec run --skip-record` (see main SKILL.md Step 10)
+- Upload to Vorec via `vorec run --skip-record` (see the upload stage in the main SKILL.md)

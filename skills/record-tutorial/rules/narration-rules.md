@@ -150,7 +150,8 @@ The narration should match what the viewer SEES in that exact moment. Don't writ
 
 **Bad — one long narration covering multiple visual events:**
 ```js
-track('click', 'Create', '...', 'create-btn', coords, {
+track('click', 'Create', 'Click Create to open project setup', 'create-btn', coords, {
+  context: 'The dashboard is visible with the Create button ready to open the project setup dialog.',
   narration: "Let's create a new project. Click Create — the dialog appears with a name field. Now enter the project name, then pick a template, and finally set the visibility.",
   pause: 12000,
 });
@@ -160,22 +161,25 @@ track('click', 'Create', '...', 'create-btn', coords, {
 **Good — split by visual moment:**
 ```js
 // Moment 1: cursor on button, about to click
-track('click', 'Create', '...', 'create-btn', coords, {
+track('click', 'Create', 'Click Create to open project setup', 'create-btn', coords, {
+  context: 'The dashboard is visible with the Create button ready to open the project setup dialog.',
   narration: "Let's make our first project — click Create.",
   pause: 2500,
 });
 
 // Moment 2: dialog appears
-track('narrate', 'Dialog opens', '...', null, coords, {
+track('narrate', 'Dialog opens', 'Explain the project setup dialog', null, coords, {
+  context: 'The project setup dialog is now open, showing fields for the project name and setup choices.',
   narration: "The project dialog slides in with a few fields to fill out.",
   pause: 3000,
 });
 
 // Moment 3: typing the name
-track('type', 'Project name', '...', 'name-input', coords, {
+track('type', 'Project name', 'Type the project name', 'name-input', coords, {
+  context: 'The project name field is focused. The typed value is example data; viewers should enter their own name.',
   narration: "Start with a name — this is how it appears in your dashboard.",
   pause: 3000,
-  typed_text: '...',
+  typed_text: 'Q4 Marketing Site',
 });
 ```
 
@@ -205,7 +209,7 @@ If several clicks happen within 2-3 seconds (rapid navigation, multi-step clicks
 // → ONE tracked action covering all 3, with combined narration
 await btn1.click();
 await btn2.click();
-await glideClick(btn3, 'Configure', '...', 'save', context,
+await glideClick(btn3, 'Configure', 'Save grouped settings', 'save', context,
   "We're setting up the defaults — courts, rounds, and scoring all in one pass.",
   4500  // long enough for the combined narration
 );
@@ -214,9 +218,9 @@ await glideClick(btn3, 'Configure', '...', 'save', context,
 **Option B — Separate actions with fitting narration:**
 ```js
 // If each click deserves its own narration beat
-await glideClick(btn1, 'Courts', ..., "Set the number of courts.", 2500);  // 5 words, 1.7s ✓
-await glideClick(btn2, 'Rounds', ..., "Then pick rounds.", 2000);           // 3 words, 1s ✓
-await glideClick(btn3, 'Save', ..., "Save the configuration.", 2500);       // 3 words, 1s ✓
+await glideClick(btn1, 'Courts', 'Choose court count', 'courts', context1, "Set the number of courts.", 2500);  // 5 words, 1.7s ✓
+await glideClick(btn2, 'Rounds', 'Choose round count', 'rounds', context2, "Then pick rounds.", 2000);          // 3 words, 1s ✓
+await glideClick(btn3, 'Save', 'Save settings', 'save', context3, "Save the configuration.", 2500);             // 3 words, 1s ✓
 ```
 
 ### Pause is explicit, not calculated
@@ -228,7 +232,8 @@ The agent sets `pause` directly in milliseconds. The narration word count is a r
 - What happens next
 
 ```js
-track('click', 'Submit', '...', 'submit-btn', coords, {
+track('click', 'Submit', 'Click Submit to process the form', 'submit-btn', coords, {
+  context: 'The form is complete and ready to submit. The button starts processing the entered details.',
   narration: "Click Submit. The form processes for a moment.",
   pause: 4000, // explicit — long enough for narration + brief wait for processing
 });

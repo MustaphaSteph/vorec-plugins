@@ -5,7 +5,7 @@ description: Visible cursor injection with auto-morph and click shrink animation
 
 # Cursor Pack (Opt-in)
 
-When the user answered **Yes** to "visible cursors?" in Step 6 of the main workflow, this rule is loaded. The vorec script gets an extra cursor-injection block that:
+When the user answered **Yes** to "visible cursors?" in the preferences stage of the main workflow, this rule is loaded. The vorec script gets an extra cursor-injection block that:
 
 - Shows a big, visible cursor overlay on top of every page
 - Auto-morphs between arrow / pointer / text / grabbing / crosshair based on what element is under the mouse (uses the CSS `cursor` property of the hovered element)

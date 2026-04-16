@@ -26,7 +26,7 @@ The user didn't come here to answer meta-questions. They came for a recording.
 
 Ask at most **2 questions at a time**. Prefer sensible defaults over asking.
 
-**Exception:** Step 7 asks 4 preferences (language, style, quality, cursors) in one message — this is OK because they all have defaults and the user can just say "go".
+**Exception:** the "Ask preferences, then show the plan" stage asks 4 preferences (language, style, quality, cursors) in one message — this is OK because they all have defaults and the user can just say "go".
 
 ❌ **Don't:**
 > "Quick setup for your recording:
@@ -60,7 +60,7 @@ Keep updates to **1-2 sentences**. The user wants a video, not a lecture.
 
 For technical decisions (mode detection, wait strategy, selectors), use defaults and proceed. Don't ask.
 
-**But ALWAYS ask the recording preferences** (Step 5 in SKILL.md) before building the script:
+**But ALWAYS ask the recording preferences** before building the script:
 - Language, narration style, quality, cursors
 
 These affect the entire recording (pacing, context writing tone, output resolution). The user must confirm or say "defaults" before you start.

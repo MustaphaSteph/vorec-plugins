@@ -5,16 +5,13 @@ description: How to write great context fields for tracked actions — the key t
 
 # Writing Context for Tracked Actions
 
-The `context` field on each tracked action is what Vorec's AI turns into voice-over narration. Better context = better narration. This is the most important part of your recording script.
+The `context` field on each tracked action tells Vorec what is on screen and what changed. The `narration` field is the spoken script, but better context still gives the AI and editor the scene reference they need.
 
-## ⚠️ CRITICAL: Context length determines video length
+## ⚠️ CRITICAL: Narration length determines video length
 
-Every tracked action pauses the recording for `word_count ÷ 3` seconds (at the average speaking rate). This means:
+Every tracked action has an explicit `pause` sized from the `narration` field. Long narration creates long pauses in the video. Context is not timed directly, but bloated context tends to produce bloated narration and weaker scene references.
 
-- **A 30-word context = 10 second pause in the video**
-- **A 6-word context = 2 second pause**
-
-If you write long contexts on every action, the video will be 5+ minutes. Keep contexts **tight and action-sized**:
+Keep contexts **tight and action-sized**:
 
 | Action type | Ideal context length |
 |-------------|---------------------|
@@ -24,7 +21,7 @@ If you write long contexts on every action, the video will be 5+ minutes. Keep c
 | Hover/narrate (explains something) | 15-25 words |
 | Repeated actions (adding items) | 5-8 words (terse) |
 
-**The narration AI expands your short context into full sentences during TTS.** You don't need to write the final narration — just give the scene. "Clicks Save. Dialog closes, table refreshes." becomes "Now let's save our changes. The dialog disappears and you can see the table has updated with the new entry."
+The agent writes the final `narration` field separately. Use `context` to give the AI and editor a compact scene reference: what is visible, what changes, and why the action matters.
 
 ## ⚠️ CRITICAL: For repeated actions (loops), drop context to bare minimum
 
@@ -41,7 +38,7 @@ This cuts 8 × 20 words = 160 words (53s pause) down to ~60 words (20s pause). S
 |-------|--------|---------|---------|
 | `name` | 3-5 words | Timeline dot label | `"New Project"` |
 | `description` | 5-15 words | What the user is doing | `"Click New Project to open the creation dialog"` |
-| `context` | 1-3 sentences | **Scene description for AI narration** | `"Clicks the New Project button in the top-right corner. A dialog slides in with fields for name, description, and visibility settings."` |
+| `context` | 1-3 sentences | Scene description for the AI/editor | `"Clicks the New Project button in the top-right corner. A dialog slides in with fields for name, description, and visibility settings."` |
 
 ## The 7 rules
 
@@ -172,7 +169,7 @@ Good (for a real choice): `"Selects 'Monthly' billing. This charges once a month
 
 ## How Vorec uses your context
 
-Vorec's AI reads each action like this:
+Vorec reads each action like this:
 
 ```
 [0] 2.5s — narrate "Dashboard" — The dashboard shows three project cards...
@@ -181,6 +178,6 @@ Vorec's AI reads each action like this:
 [3] 22.7s — click "Create" ★ — Clicks Create. The project is created and the editor opens...
 ```
 
-The AI expands your context into natural voice-over, timed to the video. It trusts your context completely — if you say a modal appeared, it narrates a modal appearing. If your context is empty or generic, the narration will be empty and generic.
+The `narration` field is the primary spoken script. The AI still trusts your context as scene reference — if you say a modal appeared, it treats that as true. If your context is empty or generic, the editor and any regenerated narration will be empty and generic.
 
 **You are the eyes. Write what you see.**
