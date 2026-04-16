@@ -28,6 +28,12 @@ Vorec then:
 
 **The better your action tracking (name, description, context), the better Vorec's narration will be.** You are the eyes — Vorec is the voice.
 
+**Recording benchmarks:**
+- Short tutorial: 5–15 tracked actions
+- Deep walkthrough: 15–30 tracked actions
+- Final video sweet spot: 1–3 minutes
+- More than 30 actions or 4 minutes → consider splitting into multiple recordings
+
 **Work cleanly:** Temp files created fresh, deleted after upload. User sees only the editor URL.
 
 ## 🎯 FIRST: Load agent-behavior rules
@@ -81,13 +87,13 @@ If no API key is configured, ask the user:
 > **I need your Vorec API key to continue.**
 > Go to [vorec.ai/settings](https://vorec.ai/settings) → API Keys → Create Key → copy it and paste it here.
 
-Once the user provides the key, save it:
+Once the user provides the key, save it directly:
 ```bash
-npx @vorec/cli@latest init
+mkdir -p ~/.vorec && echo '{"apiKey":"USER_KEY_HERE","apiBase":"api.vorec.ai/agent"}' > ~/.vorec/config.json
 ```
-Then enter the key when prompted.
+Replace `USER_KEY_HERE` with the key the user pasted. Do NOT use `vorec init` — it hangs because it waits for interactive input.
 
-**���️ DO NOT proceed with ANY recording steps until you have a valid API key.** No key = no upload = wasted recording. Check credits to verify:
+Verify the key works:
 ```bash
 npx @vorec/cli@latest check
 ```
@@ -191,13 +197,23 @@ This way:
 - Different sessions working in the same project stay separate
 - The user can see which recording is which by the timestamp
 
-### 7. Show the recording plan + ask preferences
+### 7. Ask preferences, then show the plan
 
-Present the flow structure AND ask the 4 preference questions in ONE message:
+Ask preferences FIRST — style affects how narration is written and how the plan reads:
 
-> I've mapped the flow. Here's the plan:
+> Before I start recording, four quick choices:
+> 1. **Language?** (default: English)
+> 2. **Narration style?** Tutorial / Professional / Conversational / Storytelling / Persuasive / Academic / Concise / Exact (default: Tutorial)
+> 3. **Quality?** 1080p / 2K / 4K (default: 1080p)
+> 4. **Visible cursor?** Yes / No (default: No)
 >
-> **Tutorial: [Title]**
+> Or say "defaults" for English, Tutorial, 1080p, no cursor.
+
+After the user answers (or says "defaults"), show the plan:
+
+> Here's the recording plan:
+>
+> **[Title]**
 >
 > **Step 1 — [Section name]**
 > — [What you'll do: hover this, click that, narrate over X]
@@ -207,13 +223,7 @@ Present the flow structure AND ask the 4 preference questions in ONE message:
 >
 > ...
 >
-> Before I start, four quick choices:
-> 1. **Language?** (default: English)
-> 2. **Narration style?** Tutorial / Professional / Conversational / Storytelling / Persuasive / Academic / Concise / Exact (default: Tutorial)
-> 3. **Quality?** 1080p / 2K / 4K (default: 1080p)
-> 4. **Visible cursor?** Yes / No (default: No)
->
-> Reply with adjustments or say "go" to use these defaults.
+> Adjust anything or say "go" to start.
 
 Real durations are calculated in Step 8 from narration word count.
 
@@ -370,67 +380,40 @@ Tell the user:
 
 **Without tracked actions**, Vorec would have to watch the video and guess where clicks happened (slower, less accurate, same cost). The agent's tracked actions are what make the narration precise.
 
-### 12. Clean up
+### 12. Clean up + share the result
 
-After successful upload, remove the script and manifest (keep the video):
+After successful upload:
 ```bash
-rm -f .vorec/<project-slug>/vorec-script.mjs .vorec/<project-slug>/vorec.json .vorec/<project-slug>/tracked-actions.json
+rm -f .vorec/<project-slug>/vorec-script.mjs .vorec/<project-slug>/vorec.json .vorec/<project-slug>/tracked-actions.json .vorec/<project-slug>/narration-drafts.json .vorec/<project-slug>/flow-notes.md
 ```
+Keep `output.mp4` — the user may want it.
 
-Keep `output.mp4` — the user may want it. If the user declined upload, keep everything.
-
-### 13. Share the result
-
-If uploaded:
 > Your tutorial is ready! Open the editor here: [EDITOR_URL]
 
-If not uploaded:
-> Video saved at: [VIDEO_PATH]
-
-## Key Rules
-
-1. **Tell the user what you're doing** — before every step, explain in plain language what's about to happen. Show the recording plan before starting. Never leave the user wondering.
-2. **API key first** — do NOT start anything without a valid API key. Ask user to get one from vorec.ai/settings → API Keys.
-3. **Act first, ask later** — do blocking actions (install tools, open browser) then announce. Don't ask permission.
-4. **Never batch 3+ questions** — max 2 at a time, prefer defaults
-5. **Always use `--headed`** for `playwright-cli open` when the user needs to see/interact (login, session capture)
-6. **Auto-detect mode** — external URL = Explore, own project = Connected. Don't ask unless genuinely unsure.
-7. **Never assume login** — check the page first with a snapshot. Only handle auth if you SEE a login wall.
-8. **Use `playwright-cli` for exploration**, standalone vorec script (`node vorec-script.mjs`) for recording
-9. **1080p by default** — record 1080p DPR 2 via recordVideo. For 2K/4K, FFmpeg upscales with lanczos
-10. **Scroll to the element, not past it** — use `scrollToElement`, never blind pixel scrolling
-11. **Use semantic locators** — `getByRole`, `getByLabel`, `getByPlaceholder`
-12. **Track every action** — with `name`, `description`, `context`, and `primary` markers
-13. **User validates video before upload** — show the path, ask them to review
-14. **Always offer Vorec upload** after recording
-15. **End with a link** — editor URL or video path, not a summary essay
-16. Never ask for passwords — use `storageState` for app auth
-17. Clean up temp files (keep video if user declined upload)
+If the user declined upload:
+> Video saved at: `.vorec/<project-slug>/output.mp4`
 
 ## Reference Files
 
-### Agent behavior (load this FIRST)
-- [./rules/agent-behavior.md](./rules/agent-behavior.md) — Act first, ask later, prefer defaults, fix silently
-
-### Workflow rules
-- [./rules/connected.md](./rules/connected.md) — Connected mode (codebase-driven)
-- [./rules/explore.md](./rules/explore.md) — Explore mode (page-driven)
+### CORE — load always
+- [./rules/agent-behavior.md](./rules/agent-behavior.md) — Communication rules, defaults, preferences
 - [./rules/vorec-script.md](./rules/vorec-script.md) — Recording script template + action types
-- [./rules/narration-styles.md](./rules/narration-styles.md) — All 8 narration styles with examples
-- [./rules/pacing.md](./rules/pacing.md) — Timing rules per narration style
-- [./rules/context-writing.md](./rules/context-writing.md) — How to write context
-- [./rules/narration-rules.md](./rules/narration-rules.md) — The exact rules Vorec AI follows — agent writes narration matching these rules
-- [./rules/cursor-pack.md](./rules/cursor-pack.md) — Visible cursor injection (opt-in)
+- [./rules/narration-rules.md](./rules/narration-rules.md) — How to write narration (per-style rules)
+- [./rules/pacing.md](./rules/pacing.md) — pauseFor() formula + typing delays
 
-### playwright-cli reference
-- [./rules/cli-commands.md](./rules/cli-commands.md) — Core commands
-- [./rules/cli-video.md](./rules/cli-video.md) — Video recording API
-- [./rules/cli-running-code.md](./rules/cli-running-code.md) — Running vorec scripts
+### CONDITIONAL — load when needed
+- [./rules/connected.md](./rules/connected.md) — Only in Connected mode
+- [./rules/explore.md](./rules/explore.md) — Only in Explore mode
+- [./rules/cursor-pack.md](./rules/cursor-pack.md) — Only if user wants visible cursors
+- [./rules/auth.md](./rules/auth.md) — Only if login wall detected
+- [./rules/end-state-verify.md](./rules/end-state-verify.md) — Only if recording fails or needs debugging
+- [./rules/context-writing.md](./rules/context-writing.md) — Reference for writing context fields
+- [./rules/narration-styles.md](./rules/narration-styles.md) — Reference for helping user pick a style
+- [./rules/validation.md](./rules/validation.md) — Test data + error recovery
+- [./rules/cli-commands.md](./rules/cli-commands.md) — playwright-cli commands (Explore mode)
 - [./rules/cli-session.md](./rules/cli-session.md) — Session management
-
-### Existing references
+- [./rules/cli-video.md](./rules/cli-video.md) — Video quality settings
 - [./rules/playwright.md](./rules/playwright.md) — Playwright best practices
-- [./rules/validation.md](./rules/validation.md) — Test data, error recovery during recording
 - [./rules/end-state-verify.md](./rules/end-state-verify.md) — Verify recording ended cleanly, fail loudly, ask user when stuck, rewrite script if needed
 - [./rules/auth.md](./rules/auth.md) — Session capture
 - [./rules/actions.md](./rules/actions.md) — Action types

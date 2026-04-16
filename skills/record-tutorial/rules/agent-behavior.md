@@ -26,6 +26,8 @@ The user didn't come here to answer meta-questions. They came for a recording.
 
 Ask at most **2 questions at a time**. Prefer sensible defaults over asking.
 
+**Exception:** Step 7 asks 4 preferences (language, style, quality, cursors) in one message — this is OK because they all have defaults and the user can just say "go".
+
 ❌ **Don't:**
 > "Quick setup for your recording:
 > 1. Is this a local app or a live website?
