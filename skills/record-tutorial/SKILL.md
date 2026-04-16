@@ -255,12 +255,22 @@ Save as `.vorec/<project-slug>/narration-drafts.json`:
 ]
 ```
 
-This way you see the full narration script as a document. Check:
-- Does it flow naturally from step to step?
-- Does each narration match the chosen style?
-- Are there any freeze-sync risks (narration too long for the visual moment)?
+**Show the narration drafts to the user before building the script:**
 
-Fix it here before writing the script.
+> Here's what I'll say over each step:
+>
+> **1. [name]** (pauseMs: [N]) — "[narration text]"
+> **2. [name]** (pauseMs: [N]) — "[narration text]"
+> ...
+>
+> Total: ~[X]s ([M:SS]). Adjust any line or say "go".
+
+**Wait for user confirmation.** They might:
+- Reword a narration line
+- Say a step needs more/less explanation
+- Cut steps that feel redundant
+
+Fix narration here before writing the script. This is the cheapest place to iterate — no video to re-record.
 
 ### 9. Build the recording script
 

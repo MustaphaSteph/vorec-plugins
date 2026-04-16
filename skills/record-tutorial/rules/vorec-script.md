@@ -136,6 +136,9 @@ const context = await browser.newContext({
 const page = await context.newPage();
 await page.goto('TARGET_URL', { waitUntil: 'domcontentloaded' });
 
+// Enable smooth scrolling — makes all scroll-into-view look natural in recordings
+await page.evaluate(() => document.documentElement.style.scrollBehavior = 'smooth');
+
   // ── Action tracking (for Vorec narration) ────────────────
   // Timestamps are relative — they get scaled to match the actual
   // video duration after recording (see "Sync action timestamps" below).
@@ -233,6 +236,22 @@ await page.goto('TARGET_URL', { waitUntil: 'domcontentloaded' });
     }
   };
 
+  // Retry wrapper — tries an action up to 3 times with increasing wait.
+  // If all retries fail, takes a screenshot and throws with the path.
+  const retry = async (fn, label, maxAttempts = 3) => {
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        return await fn();
+      } catch (err) {
+        if (attempt === maxAttempts) {
+          await page.screenshot({ path: `${OUTPUT_DIR}/error-${label}-${Date.now()}.png`, fullPage: true });
+          throw new Error(`${label} failed after ${maxAttempts} attempts: ${err.message}`);
+        }
+        await page.waitForTimeout(1000 * attempt); // wait 1s, 2s, 3s
+      }
+    }
+  };
+
   // Glide cursor to an element over 35 animation frames (smooth cursor movement).
   // Auto-scrolls to bring the element into view first if needed.
   // Returns the boundingBox so callers can track coordinates.
@@ -245,17 +264,18 @@ await page.goto('TARGET_URL', { waitUntil: 'domcontentloaded' });
     return box;
   };
 
-  // Glide + click. Agent MUST pass pauseMs calculated from narration word count.
-  // No default — the agent writes narration first, then sizes pauseMs to fit.
+  // Glide + click with retry. If the click fails (overlay, timing), retries up to 3 times.
   const glideClick = async (locator, name, description, target, context, narration, pauseMs) => {
     if (typeof pauseMs !== 'number') throw new Error('pauseMs required — calculate from narration word count');
-    const box = await glideMove(locator);
-    if (await page.evaluate(() => !!window.__vc?.clickPulse)) {
-      await page.evaluate(() => window.__vc.clickPulse());
-      await page.waitForTimeout(120);
-    }
-    track('click', name, description, target, toCoords(box), { context, narration, pause: pauseMs });
-    await locator.click();
+    await retry(async () => {
+      const box = await glideMove(locator);
+      if (await page.evaluate(() => !!window.__vc?.clickPulse)) {
+        await page.evaluate(() => window.__vc.clickPulse());
+        await page.waitForTimeout(120);
+      }
+      track('click', name, description, target, toCoords(box), { context, narration, pause: pauseMs });
+      await locator.click();
+    }, name);
     await page.waitForTimeout(pauseMs);
   };
 
