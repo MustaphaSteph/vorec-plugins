@@ -4,9 +4,9 @@
 
 [![npm](https://img.shields.io/npm/v/@vorec/cli)](https://www.npmjs.com/package/@vorec/cli)
 [![Claude Code Plugin](https://img.shields.io/badge/Claude_Code-Plugin-blueviolet)](https://vorec.ai)
-[![Plugin Version](https://img.shields.io/badge/plugin-v12.0.0-success)](https://github.com/MustaphaSteph/vorec-plugins)
+[![Plugin Version](https://img.shields.io/badge/plugin-v12.1.0-success)](https://github.com/MustaphaSteph/vorec-plugins)
 
-## ✨ What's new in v12.0.0
+## ✨ What's new in v12.1.0
 
 - **4K recording quality** — Playwright `recordVideo` at 1080p with DPR 2, then FFmpeg lanczos upscaling for 2K/4K output
 - **Smart action tracking** — every click, type, and scroll is tracked with real coordinates, context, and timestamps. Vorec skips video analysis entirely

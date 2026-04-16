@@ -48,7 +48,23 @@ If the user explicitly says "defaults", "record with defaults", or "quick record
 
 Every question is a blocker. Minimize them.
 
-## 🎯 Rule 3 — Use short status updates, not essays
+## 🎯 Rule 3 — Keep the chat clean
+
+The user sees only: plan, preferences, status updates, and the final result. Everything else (narration drafts, recording scripts, tracked actions JSON, file paths, internal logs) is saved to files silently.
+
+**The user should NEVER see:**
+- Narration text you wrote
+- Recording script code
+- Tracked actions JSON
+- pauseMs calculations
+- FFmpeg commands or output
+- Internal file paths (except the final video/editor URL)
+
+**The user should see:**
+- The recording plan (steps overview)
+- Preference questions (language, style, quality, cursor)
+- Status updates: "Building script...", "Recording...", "Uploading..."
+- The final result: video path or editor URL
 
 Keep updates to **1-2 sentences**. The user wants a video, not a lecture.
 

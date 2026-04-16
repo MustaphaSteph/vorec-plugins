@@ -236,78 +236,31 @@ Real durations are calculated from narration word count.
 
 This is the user's last checkpoint before recording.
 
-### 8. Write narration drafts (BEFORE writing the script)
+### 8. Build the recording script (silently)
 
-**Generate the narration text for every tracked action FIRST, before any code.**
+**Do all of this silently — don't show narration drafts, code, or internals to the user.**
 
-For each step in the approved plan, write:
-- One narration per visual moment (see [./rules/narration-rules.md](./rules/narration-rules.md))
-- In the chosen style's tone
-- Sized to fit the visual moment (if 3 clicks happen in 2 seconds, ONE combined narration — don't split)
-- Demo data vs real choices rules apply (typed = demo, clicked = real)
+Behind the scenes:
+1. Write narration for every tracked action (following [./rules/narration-rules.md](./rules/narration-rules.md))
+2. Calculate `pauseMs` for each from word count (following [./rules/pacing.md](./rules/pacing.md))
+3. Save narration drafts to `.vorec/<project-slug>/narration-drafts.json`
+4. Build `vorec-script.mjs` using those narrations
+5. Save to `.vorec/<project-slug>/vorec-script.mjs`
 
-Save as `.vorec/<project-slug>/narration-drafts.json`:
-```json
-[
-  { "step": 1, "action": "hover", "name": "Dashboard overview",
-    "narration": "Here's the dashboard — this is where everything starts. The main actions are on the right panel." },
-  { "step": 2, "action": "click", "name": "New item",
-    "narration": "Click the primary button to open the creation dialog." },
-  ...
-]
-```
-
-**Show the narration drafts to the user before building the script:**
-
-> Here's what I'll say over each step:
->
-> **1. [name]** (pauseMs: [N]) — "[narration text]"
-> **2. [name]** (pauseMs: [N]) — "[narration text]"
-> ...
->
-> Total: ~[X]s ([M:SS]). Adjust any line or say "go".
-
-**Wait for user confirmation.** They might:
-- Reword a narration line
-- Say a step needs more/less explanation
-- Cut steps that feel redundant
-
-Fix narration here before writing the script. This is the cheapest place to iterate — no video to re-record.
-
-### 9. Build the recording script
-
-Now that the narration is written, build `vorec-script.mjs` using those narrations:
-
-```js
-const n1 = "Let's start by building a gender-balanced tournament...";
-await hoverTour(card, 'Mixed Americano card', 'Explain the tournament type card', n1, pauseFor(n1));
-
-const n2 = "Click Mixed Americano to jump into the setup wizard.";
-await glideClick(
-  link,
-  'Mixed Americano',
-  'Open the Mixed Americano setup',
-  'mixed-link',
-  'The tournament type cards are visible. Mixed Americano is the option for gender-balanced rotation.',
-  n2,
-  pauseFor(n2),
-);
-```
-
-Each `pauseMs` is calculated from the narration you already wrote. No guessing.
-
-Load [./rules/vorec-script.md](./rules/vorec-script.md) for the template. Write the script to `.vorec/<project-slug>/vorec-script.mjs`.
+Load [./rules/vorec-script.md](./rules/vorec-script.md) for the template.
 
 What to include:
-- Quality preset based on user's choice (4K / 2K / 1080p)
+- Quality preset based on user's choice
 - `scrollToElement`, `glideClick`, `slowType`, `hoverTour` helpers
-- A `track()` call for every action — with `name`, `description`, `context`, `narration`, `pause`, and `primary` markers
-- Storage-state loading when `.vorec/storageState.json` exists, so authenticated recordings reuse captured sessions
-- `scrollToElement` before every interaction (never scroll blindly)
-- Timing from [./rules/pacing.md](./rules/pacing.md) matched to the narration style
-- Output paths pointing to the project folder
+- A `track()` call for every action — with `name`, `description`, `context`, `narration`, `pause`, and `primary`
+- Storage-state loading when `.vorec/storageState.json` exists
+- `scrollToElement` before every interaction
+- Timing from [./rules/pacing.md](./rules/pacing.md)
 
 If **visible cursors = Yes**, also load [./rules/cursor-pack.md](./rules/cursor-pack.md).
+
+**Tell the user only:**
+> Building the recording script...
 
 For **Explore mode** page discovery (before writing the script), use `playwright-cli`:
 - [./rules/cli-commands.md](./rules/cli-commands.md) — `open`, `click`, `snapshot`, `resize`, etc.
@@ -322,7 +275,7 @@ For end-state verification + asking user for help when stuck: [./rules/end-state
 Tell the user:
 > Writing the recording script now...
 
-### 10. Record the video
+### 9. Record the video
 
 ```bash
 node .vorec/<project-slug>/vorec-script.mjs
@@ -341,7 +294,7 @@ When it finishes clean:
 
 Ask user to validate the video before uploading.
 
-### 11. Upload to Vorec
+### 10. Upload to Vorec
 
 After the user validates the recording, ask:
 
@@ -399,7 +352,7 @@ Tell the user:
 
 **Without tracked actions**, Vorec would have to watch the video and guess where clicks happened (slower, less accurate, same cost). The agent's tracked actions are what make the narration precise.
 
-### 12. Clean up + share the result
+### 11. Clean up + share the result
 
 After successful upload, delete only known temporary files inside the specific project folder. Do not use globs, do not delete `.vorec/` itself, and keep `output.mp4`.
 
