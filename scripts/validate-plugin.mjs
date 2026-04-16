@@ -15,6 +15,7 @@ const check = (condition, message) => {
 for (const file of [
   '.claude-plugin/plugin.json',
   '.claude-plugin/marketplace.json',
+  'schemas/tracked-action.schema.json',
   'skills/record-tutorial/cursors/hotspots.json',
 ]) {
   try {
@@ -24,7 +25,7 @@ for (const file of [
   }
 }
 
-const trackedFiles = execFileSync('git', ['ls-files'], { cwd: root, encoding: 'utf8' })
+const trackedFiles = execFileSync('git', ['ls-files', '--cached', '--others', '--exclude-standard'], { cwd: root, encoding: 'utf8' })
   .trim()
   .split('\n')
   .filter(Boolean);
@@ -45,6 +46,8 @@ for (const file of markdownFiles) {
 
 const skill = read('skills/record-tutorial/SKILL.md');
 check(!skill.includes('Load [./rules/vorec-script.md](./rules/vorec-script.md) for the template.\n\nLoad [./rules/vorec-script.md]'), 'SKILL.md: duplicate vorec-script load instruction');
+check(skill.includes('Storage-state loading when `.vorec/storageState.json` exists'), 'SKILL.md: missing storage-state recording requirement');
+check(skill.includes('delete only known temporary files inside the specific project folder'), 'SKILL.md: missing cleanup safety rule');
 
 const agentBehavior = read('skills/record-tutorial/rules/agent-behavior.md');
 check(!agentBehavior.includes('Step 5 in SKILL.md'), 'agent-behavior.md: stale Step 5 reference');
@@ -59,6 +62,31 @@ const readme = read('README.md');
 check(!readme.includes('CDP lossless frame capture'), 'README.md: stale CDP recording claim');
 check(!readme.includes('FFmpeg at 8 Mbit/s'), 'README.md: stale bitrate claim');
 check(!readme.includes('@vorec/cli@latest login'), 'README.md: stale interactive login setup');
+check(readme.includes('docs/release-checklist.md'), 'README.md: missing release checklist link');
+check(readme.includes('examples/common-flows.md'), 'README.md: missing common flows link');
+
+const template = read('templates/vorec-script.template.mjs');
+check(template.includes("existsSync('.vorec/storageState.json')"), 'template: missing storageState loading');
+check(template.includes('validate-tracked-actions') === false, 'template: should not depend on repository validation scripts');
+
+for (const file of [
+  'scripts/validate-plugin.mjs',
+  'scripts/validate-tracked-actions.mjs',
+  'scripts/smoke-test-template.mjs',
+  'templates/vorec-script.template.mjs',
+]) {
+  try {
+    execFileSync('node', ['--check', file], { cwd: root, stdio: 'pipe' });
+  } catch (error) {
+    failures.push(`${file}: JavaScript syntax check failed\n${error.stderr?.toString() || error.message}`);
+  }
+}
+
+try {
+  execFileSync('node', ['scripts/validate-tracked-actions.mjs', 'examples/tracked-actions.sample.json'], { cwd: root, stdio: 'pipe' });
+} catch (error) {
+  failures.push(`examples/tracked-actions.sample.json: tracked-action validation failed\n${error.stderr?.toString() || error.message}`);
+}
 
 const license = join(root, 'LICENSE');
 check(existsSync(license) && statSync(license).isFile(), 'LICENSE: root MIT license is missing');

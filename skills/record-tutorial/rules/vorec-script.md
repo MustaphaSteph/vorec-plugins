@@ -106,13 +106,15 @@ __actions[__actions.length - 1].primary = true;
 
 The vorec script is a **standalone Node.js file**. It uses Playwright's `recordVideo` for real-time recording (pauses are captured correctly), then upscales and re-encodes with FFmpeg.
 
+The source-of-truth scaffold lives at [../../../templates/vorec-script.template.mjs](../../../templates/vorec-script.template.mjs). The embedded example below mirrors that template; if you change helper signatures or required tracked-action fields, update the template and run `node scripts/validate-plugin.mjs`.
+
 Run it with: `node vorec-script.mjs`
 
 ```js
 // vorec-script.mjs — standalone Node.js recording script
 import { chromium } from 'playwright';
 import { execSync } from 'child_process';
-import { mkdirSync, writeFileSync } from 'fs';
+import { existsSync, mkdirSync, writeFileSync } from 'fs';
 
 const OUTPUT_DIR = '.vorec/PROJECT_SLUG';
 mkdirSync(OUTPUT_DIR, { recursive: true });
@@ -125,7 +127,9 @@ mkdirSync(OUTPUT_DIR, { recursive: true });
 const QUALITY = '1080p'; // '1080p' (default), '2k', or '4k' — based on user choice
 
 const browser = await chromium.launch({ headless: true });
+const storageState = existsSync('.vorec/storageState.json') ? '.vorec/storageState.json' : undefined;
 const context = await browser.newContext({
+  ...(storageState ? { storageState } : {}),
   viewport: { width: 1920, height: 1080 },
   deviceScaleFactor: 2, // always 2 — renders sharp text/UI internally
   recordVideo: {
@@ -219,8 +223,11 @@ await page.evaluate(() => document.documentElement.style.scrollBehavior = 'smoot
     });
     await page.waitForTimeout(400);
     if (name) {
+      const narration = description || name;
       track('scroll', name, description || name, null, toCoords(await locator.boundingBox()), {
         context: description || name,
+        narration,
+        pause: pauseFor(narration),
       });
     }
   };
@@ -437,24 +444,32 @@ The resulting JSON matches the format Vorec's `agent-api/create-project` expects
   {
     "type": "narrate", "name": "Intro", "description": "Recording starts", "target": "intro",
     "timestamp": 0, "coordinates": { "x": 500, "y": 500 },
-    "context": "The landing page loads showing the hero section with a sign-up form."
+    "context": "The landing page loads showing the hero section with a sign-up form.",
+    "narration": "Here's the signup page we'll use for this walkthrough.",
+    "pause": 3650
   },
   {
     "type": "type", "name": "Enter email", "description": "Enter email address into signup form",
     "target": "email", "timestamp": 4.5, "coordinates": { "x": 480, "y": 420 },
     "context": "Types a demo email. This will be the account login.",
+    "narration": "Enter your email address. This becomes the account login.",
+    "pause": 3650,
     "typed_text": "sarah.demo@gmail.com"
   },
   {
     "type": "click", "name": "Submit", "description": "Click submit to create account",
     "target": "submit", "timestamp": 8.2, "coordinates": { "x": 510, "y": 580 },
     "context": "Clicks Submit. A success message confirms registration.",
+    "narration": "Click Submit. The account is created.",
+    "pause": 2600,
     "primary": true
   },
   {
     "type": "narrate", "name": "Complete", "description": "Flow complete",
     "target": null, "timestamp": 12.0, "coordinates": { "x": 500, "y": 500 },
-    "context": "The signup flow is complete. The user now has an account."
+    "context": "The signup flow is complete. The user now has an account.",
+    "narration": "And that's it - the signup flow is complete.",
+    "pause": 3300
   }
 ]
 ```

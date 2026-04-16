@@ -1,0 +1,99 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vorec.ai/schemas/tracked-action.schema.json",
+  "title": "Vorec tracked action",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "type",
+    "name",
+    "description",
+    "target",
+    "timestamp",
+    "coordinates",
+    "context",
+    "narration",
+    "pause"
+  ],
+  "properties": {
+    "type": {
+      "type": "string",
+      "enum": ["click", "type", "narrate", "hover", "scroll", "select", "wait", "navigate"]
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 80
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 240
+    },
+    "target": {
+      "type": ["string", "null"]
+    },
+    "timestamp": {
+      "type": "number",
+      "minimum": 0
+    },
+    "coordinates": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["x", "y"],
+      "properties": {
+        "x": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000
+        },
+        "y": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000
+        }
+      }
+    },
+    "context": {
+      "type": "string",
+      "minLength": 1
+    },
+    "narration": {
+      "type": "string",
+      "minLength": 1
+    },
+    "pause": {
+      "type": "integer",
+      "minimum": 1500
+    },
+    "typed_text": {
+      "type": "string"
+    },
+    "selected_value": {
+      "type": "string"
+    },
+    "primary": {
+      "type": "boolean"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": { "type": { "const": "type" } },
+        "required": ["type"]
+      },
+      "then": {
+        "required": ["typed_text"]
+      }
+    },
+    {
+      "if": {
+        "properties": { "type": { "const": "select" } },
+        "required": ["type"]
+      },
+      "then": {
+        "required": ["selected_value"]
+      }
+    }
+  ]
+}

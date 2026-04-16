@@ -199,7 +199,9 @@ This way:
 
 ### 7. Ask preferences, then show the plan
 
-Ask preferences FIRST — style affects how narration is written and how the plan reads:
+Ask preferences FIRST — style affects how narration is written and how the plan reads.
+
+If the user already said "defaults", "record with defaults", or "quick record", use English, Tutorial, 1080p, no visible cursor and continue without asking this preference block.
 
 > Before I start recording, four quick choices:
 > 1. **Language?** (default: English)
@@ -209,7 +211,7 @@ Ask preferences FIRST — style affects how narration is written and how the pla
 >
 > Or say "defaults" for English, Tutorial, 1080p, no cursor.
 
-After the user answers (or says "defaults"), show the plan:
+After the user answers (or after applying explicit defaults), show the plan:
 
 > Here's the recording plan:
 >
@@ -300,6 +302,7 @@ What to include:
 - Quality preset based on user's choice (4K / 2K / 1080p)
 - `scrollToElement`, `glideClick`, `slowType`, `hoverTour` helpers
 - A `track()` call for every action — with `name`, `description`, `context`, `narration`, `pause`, and `primary` markers
+- Storage-state loading when `.vorec/storageState.json` exists, so authenticated recordings reuse captured sessions
 - `scrollToElement` before every interaction (never scroll blindly)
 - Timing from [./rules/pacing.md](./rules/pacing.md) matched to the narration style
 - Output paths pointing to the project folder
@@ -390,7 +393,7 @@ Tell the user:
 
 2. **Video** (`.vorec/<project-slug>/output.mp4`) → uploaded to Vorec storage via presigned URL.
 
-3. **Generate narration** → Vorec AI reads the tracked actions (`description` + `context` fields) and writes voice-over scripts. **Because the agent sent tracked actions, Vorec skips video-based click detection** — it already knows what was clicked, when, and where.
+3. **Generate narration** → Vorec uses the tracked action `narration` as the proposed script, with `description` and `context` as scene reference/fallback. **Because the agent sent tracked actions, Vorec skips video-based click detection** — it already knows what was clicked, when, and where.
 
 4. **CLI polls** until narration is ready → shows the editor URL.
 
@@ -398,11 +401,11 @@ Tell the user:
 
 ### 12. Clean up + share the result
 
-After successful upload:
+After successful upload, delete only known temporary files inside the specific project folder. Do not use globs, do not delete `.vorec/` itself, and keep `output.mp4`.
+
 ```bash
 rm -f .vorec/<project-slug>/vorec-script.mjs .vorec/<project-slug>/vorec.json .vorec/<project-slug>/tracked-actions.json .vorec/<project-slug>/narration-drafts.json .vorec/<project-slug>/flow-notes.md
 ```
-Keep `output.mp4` — the user may want it.
 
 > Your tutorial is ready! Open the editor here: [EDITOR_URL]
 

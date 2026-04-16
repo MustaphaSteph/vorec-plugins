@@ -1,0 +1,37 @@
+[
+  {
+    "type": "narrate",
+    "name": "Intro",
+    "description": "Recording starts",
+    "target": "intro",
+    "timestamp": 0,
+    "coordinates": { "x": 500, "y": 500 },
+    "context": "The signup page is visible with email and submit controls ready.",
+    "narration": "Here's the signup page we'll use for this walkthrough.",
+    "pause": 3650
+  },
+  {
+    "type": "type",
+    "name": "Enter email",
+    "description": "Type email address",
+    "target": "email",
+    "timestamp": 3.4,
+    "coordinates": { "x": 480, "y": 420 },
+    "context": "The email field is focused. This value is example data for the recording.",
+    "narration": "Enter your email address. This becomes the account login.",
+    "pause": 3650,
+    "typed_text": "sarah.demo@gmail.com"
+  },
+  {
+    "type": "click",
+    "name": "Submit",
+    "description": "Click submit to create account",
+    "target": "submit",
+    "timestamp": 7.2,
+    "coordinates": { "x": 510, "y": 580 },
+    "context": "The form is complete and ready to submit. A success message appears afterward.",
+    "narration": "Click Submit. The account is created.",
+    "pause": 2600,
+    "primary": true
+  }
+]

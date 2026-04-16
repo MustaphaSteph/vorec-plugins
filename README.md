@@ -4,9 +4,9 @@
 
 [![npm](https://img.shields.io/npm/v/@vorec/cli)](https://www.npmjs.com/package/@vorec/cli)
 [![Claude Code Plugin](https://img.shields.io/badge/Claude_Code-Plugin-blueviolet)](https://vorec.ai)
-[![Plugin Version](https://img.shields.io/badge/plugin-v11.2.0-success)](https://github.com/MustaphaSteph/vorec-plugins)
+[![Plugin Version](https://img.shields.io/badge/plugin-v12.0.0-success)](https://github.com/MustaphaSteph/vorec-plugins)
 
-## ✨ What's new in v11.2.0
+## ✨ What's new in v12.0.0
 
 - **4K recording quality** — Playwright `recordVideo` at 1080p with DPR 2, then FFmpeg lanczos upscaling for 2K/4K output
 - **Smart action tracking** — every click, type, and scroll is tracked with real coordinates, context, and timestamps. Vorec skips video analysis entirely
@@ -102,6 +102,10 @@ You add zoom, callouts, subtitles → export
 ```
 
 No screen recording software. No microphone. No video editor. Just one command.
+
+## Compatibility
+
+This repository is packaged as a Claude Code plugin marketplace entry. The `record-tutorial` skill itself is written as agent-readable instructions, so the workflow can be adapted by other coding agents that support local skills, Playwright automation, FFmpeg, and the Vorec CLI.
 
 ## What You Get
 
@@ -208,7 +212,9 @@ npx @vorec/cli@latest status         # Check processing status
 node scripts/validate-plugin.mjs
 ```
 
-This verifies plugin JSON, internal markdown links, stale setup claims, root licensing, and accidental `.DS_Store` tracking.
+This verifies plugin JSON, tracked-action sample data, internal markdown links, stale setup claims, script syntax, root licensing, and accidental `.DS_Store` tracking.
+
+See [docs/release-checklist.md](docs/release-checklist.md) for the full release checklist and [examples/common-flows.md](examples/common-flows.md) for common recording patterns.
 
 ## Links
 
