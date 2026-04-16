@@ -28,6 +28,8 @@ During the dry-run, document for each step:
 
 **Don't skip the dry-run** even if the flow seems obvious. "Obvious" flows still have surprises: hidden tooltips that block clicks, toggle buttons that need a second click, validation on blur, dialogs that appear only on first visit.
 
+For live external websites, also load [./live-site-discovery.md](./live-site-discovery.md) and save `.vorec/<slug>/live-site-map.json`. The recording script should be based on that map, not memory or guesses.
+
 
 ## When to use Explore mode
 

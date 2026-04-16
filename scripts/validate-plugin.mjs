@@ -15,6 +15,7 @@ const check = (condition, message) => {
 for (const file of [
   '.claude-plugin/plugin.json',
   '.claude-plugin/marketplace.json',
+  'schemas/live-site-map.schema.json',
   'schemas/tracked-action.schema.json',
   'skills/record-tutorial/cursors/hotspots.json',
 ]) {
@@ -48,6 +49,9 @@ const skill = read('skills/record-tutorial/SKILL.md');
 check(!skill.includes('Load [./rules/vorec-script.md](./rules/vorec-script.md) for the template.\n\nLoad [./rules/vorec-script.md]'), 'SKILL.md: duplicate vorec-script load instruction');
 check(skill.includes('Storage-state loading when `.vorec/storageState.json` exists'), 'SKILL.md: missing storage-state recording requirement');
 check(skill.includes('delete only known temporary files inside the specific project folder'), 'SKILL.md: missing cleanup safety rule');
+check(skill.includes('live-site-map.json'), 'SKILL.md: missing live-site map workflow');
+check(skill.includes('./rules/recording-types.md'), 'SKILL.md: missing recording-types reference');
+check(skill.includes('./rules/live-site-discovery.md'), 'SKILL.md: missing live-site-discovery reference');
 
 const agentBehavior = read('skills/record-tutorial/rules/agent-behavior.md');
 check(!agentBehavior.includes('Step 5 in SKILL.md'), 'agent-behavior.md: stale Step 5 reference');
@@ -64,6 +68,7 @@ check(!readme.includes('FFmpeg at 8 Mbit/s'), 'README.md: stale bitrate claim');
 check(!readme.includes('@vorec/cli@latest login'), 'README.md: stale interactive login setup');
 check(readme.includes('docs/release-checklist.md'), 'README.md: missing release checklist link');
 check(readme.includes('examples/common-flows.md'), 'README.md: missing common flows link');
+check(readme.includes('examples/live-site-map.sample.json'), 'README.md: missing live-site map sample link');
 
 const template = read('templates/vorec-script.template.mjs');
 check(template.includes("existsSync('.vorec/storageState.json')"), 'template: missing storageState loading');
@@ -71,6 +76,7 @@ check(template.includes('validate-tracked-actions') === false, 'template: should
 
 for (const file of [
   'scripts/validate-plugin.mjs',
+  'scripts/validate-live-site-map.mjs',
   'scripts/validate-tracked-actions.mjs',
   'scripts/smoke-test-template.mjs',
   'templates/vorec-script.template.mjs',
@@ -86,6 +92,12 @@ try {
   execFileSync('node', ['scripts/validate-tracked-actions.mjs', 'examples/tracked-actions.sample.json'], { cwd: root, stdio: 'pipe' });
 } catch (error) {
   failures.push(`examples/tracked-actions.sample.json: tracked-action validation failed\n${error.stderr?.toString() || error.message}`);
+}
+
+try {
+  execFileSync('node', ['scripts/validate-live-site-map.mjs', 'examples/live-site-map.sample.json'], { cwd: root, stdio: 'pipe' });
+} catch (error) {
+  failures.push(`examples/live-site-map.sample.json: live-site map validation failed\n${error.stderr?.toString() || error.message}`);
 }
 
 const license = join(root, 'LICENSE');

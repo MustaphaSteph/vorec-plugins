@@ -60,6 +60,17 @@ Before anything else, load [./rules/agent-behavior.md](./rules/agent-behavior.md
 **Connected:** you have the source code — read components for selectors, validation, success states.
 **Explore:** you don't have the code — discover the page via snapshots and semantic locators. Load [./rules/explore.md](./rules/explore.md).
 
+## Step 0.5: Detect the recording type
+
+Load [./rules/recording-types.md](./rules/recording-types.md), then classify the request:
+
+- **Task tutorial** — "how to create", "show how to set up", "record checkout"
+- **Website tour** — "showcase this site", "tour the homepage", "explain the landing page"
+- **Bug reproduction** — "record the bug", "show the error"
+- **UX review** — "review this website", "compare competitor", "critique flow"
+
+If the user asks how to do something, default to **task tutorial**. For external URLs in Explore mode, also load [./rules/live-site-discovery.md](./rules/live-site-discovery.md).
+
 Both modes follow the same workflow below and end with the same upload pipeline.
 
 ## Prerequisites
@@ -152,6 +163,7 @@ playwright-cli snapshot     # verify result
 # ... walk the whole flow to the success state
 ```
 Load [./rules/explore.md](./rules/explore.md) for the full dry-run workflow.
+For live websites, also build `.vorec/<slug>/live-site-map.json` using [./rules/live-site-discovery.md](./rules/live-site-discovery.md).
 
 Save findings to `.vorec/<slug>/flow-notes.md`:
 - Selectors that work
@@ -160,6 +172,20 @@ Save findings to `.vorec/<slug>/flow-notes.md`:
 - Hidden dialogs/modals that appear
 - Success states at each step
 - Gotchas (disabled buttons, timing issues, state carryover)
+
+Save structured live-site discovery to `.vorec/<slug>/live-site-map.json`:
+- Recording type
+- Auth evidence
+- Page tree and headings
+- Candidate actions and stable selectors
+- Field labels, roles, attributes, required state, valid demo values
+- Button enabled/disabled rules
+- Validation messages
+- Success state and evidence
+- Blockers and sensitive actions
+- Readiness booleans
+
+**Pre-recording gate for live websites:** do not build `vorec-script.mjs` until `live-site-map.json` has all readiness booleans set to `true`. If a value is unknown, continue discovery or ask the smallest possible user question.
 
 The recording script just replays this known-working flow. No surprises.
 
@@ -246,6 +272,8 @@ Behind the scenes:
 3. Save narration drafts to `.vorec/<project-slug>/narration-drafts.json`
 4. Build `vorec-script.mjs` using those narrations
 5. Save to `.vorec/<project-slug>/vorec-script.mjs`
+
+For live websites, read `.vorec/<project-slug>/live-site-map.json` first and use it as the source of truth for selectors, fields, valid demo values, assertions, blockers, and sensitive-action handling.
 
 Load [./rules/vorec-script.md](./rules/vorec-script.md) for the template.
 
@@ -369,6 +397,7 @@ If the user declined upload:
 
 ### CORE — load always
 - [./rules/agent-behavior.md](./rules/agent-behavior.md) — Communication rules, defaults, preferences
+- [./rules/recording-types.md](./rules/recording-types.md) — Task tutorial vs website tour vs bug reproduction vs UX review
 - [./rules/vorec-script.md](./rules/vorec-script.md) — Recording script template + action types
 - [./rules/narration-rules.md](./rules/narration-rules.md) — How to write narration (per-style rules)
 - [./rules/pacing.md](./rules/pacing.md) — pauseFor() formula + typing delays
@@ -376,6 +405,7 @@ If the user declined upload:
 ### CONDITIONAL — load when needed
 - [./rules/connected.md](./rules/connected.md) — Only in Connected mode
 - [./rules/explore.md](./rules/explore.md) — Only in Explore mode
+- [./rules/live-site-discovery.md](./rules/live-site-discovery.md) — Only for live external websites
 - [./rules/cursor-pack.md](./rules/cursor-pack.md) — Only if user wants visible cursors
 - [./rules/auth.md](./rules/auth.md) — Only if login wall detected
 - [./rules/end-state-verify.md](./rules/end-state-verify.md) — Only if recording fails or needs debugging

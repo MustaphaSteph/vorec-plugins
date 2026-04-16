@@ -1,0 +1,90 @@
+{
+  "url": "https://padelmake.com",
+  "recording_type": "task_tutorial",
+  "goal": "Create an Americano tournament",
+  "auth": {
+    "required": false,
+    "evidence": "The dry-run reached the tournament creation form without a login redirect."
+  },
+  "pages": [
+    {
+      "url": "https://padelmake.com",
+      "purpose": "Landing page entry point",
+      "headings": ["PadelMake", "Create Padel Tournaments"],
+      "actions": [
+        {
+          "label": "Create tournament",
+          "role": "link",
+          "selector": "page.getByRole('link', { name: /create tournament/i })",
+          "result": "Navigates to the tournament format selection page",
+          "primary": true
+        }
+      ],
+      "fields": [],
+      "buttons": [],
+      "risks": ["Cookie banner can block the first CTA"]
+    },
+    {
+      "url": "https://padelmake.com/create",
+      "purpose": "Tournament setup",
+      "headings": ["Choose tournament type", "Tournament details"],
+      "actions": [
+        {
+          "label": "Americano",
+          "role": "button",
+          "selector": "page.getByRole('button', { name: /americano/i })",
+          "result": "Selects Americano as the tournament format",
+          "primary": true
+        }
+      ],
+      "fields": [
+        {
+          "label": "Tournament name",
+          "selector": "page.getByLabel(/tournament name/i)",
+          "required": true,
+          "type": "text",
+          "placeholder": "Summer Open",
+          "valid_demo_value": "Spring Americano Demo",
+          "validation_errors": ["Tournament name is required"],
+          "evidence": "Empty submit displayed a required-field message during dry-run."
+        },
+        {
+          "label": "Number of players",
+          "selector": "page.getByLabel(/players/i)",
+          "required": true,
+          "type": "number",
+          "min": 4,
+          "max": 32,
+          "valid_demo_value": "8",
+          "validation_errors": ["Minimum 4 players required"],
+          "evidence": "The button stayed disabled until at least four players were configured."
+        }
+      ],
+      "buttons": [
+        {
+          "label": "Create tournament",
+          "selector": "page.getByRole('button', { name: /create tournament/i })",
+          "initial_state": "disabled",
+          "enabled_when": ["Tournament type selected", "Tournament name filled", "Players >= 4"],
+          "primary": true
+        }
+      ],
+      "success_state": {
+        "selector": "page.getByText(/tournament created|dashboard/i)",
+        "evidence": "A success message appears and the tournament dashboard opens."
+      },
+      "risks": ["Create may publish a real event if the user is logged into a production account"]
+    }
+  ],
+  "blockers": ["Cookie banner can block the first CTA"],
+  "sensitive_actions": ["Creating a tournament may publish or save a real event"],
+  "readiness": {
+    "entry_action_known": true,
+    "required_fields_known": true,
+    "valid_demo_values_known": true,
+    "primary_buttons_known": true,
+    "success_state_known": true,
+    "blockers_reviewed": true,
+    "sensitive_actions_reviewed": true
+  }
+}

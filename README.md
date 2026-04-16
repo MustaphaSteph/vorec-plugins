@@ -4,9 +4,9 @@
 
 [![npm](https://img.shields.io/npm/v/@vorec/cli)](https://www.npmjs.com/package/@vorec/cli)
 [![Claude Code Plugin](https://img.shields.io/badge/Claude_Code-Plugin-blueviolet)](https://vorec.ai)
-[![Plugin Version](https://img.shields.io/badge/plugin-v12.2.0-success)](https://github.com/MustaphaSteph/vorec-plugins)
+[![Plugin Version](https://img.shields.io/badge/plugin-v13.0.0-success)](https://github.com/MustaphaSteph/vorec-plugins)
 
-## ✨ What's new in v12.2.0
+## ✨ What's new in v13.0.0
 
 - **4K recording quality** — Playwright `recordVideo` at 1080p with DPR 2, then FFmpeg lanczos upscaling for 2K/4K output
 - **Smart action tracking** — every click, type, and scroll is tracked with real coordinates, context, and timestamps. Vorec skips video analysis entirely
@@ -215,6 +215,8 @@ node scripts/validate-plugin.mjs
 This verifies plugin JSON, tracked-action sample data, internal markdown links, stale setup claims, script syntax, root licensing, and accidental `.DS_Store` tracking.
 
 See [docs/release-checklist.md](docs/release-checklist.md) for the full release checklist and [examples/common-flows.md](examples/common-flows.md) for common recording patterns.
+
+For unknown live websites, the skill builds a structured `.vorec/<slug>/live-site-map.json` before recording. See [examples/live-site-map.sample.json](examples/live-site-map.sample.json) for the expected discovery output.
 
 ## Links
 

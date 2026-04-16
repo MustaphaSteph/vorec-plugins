@@ -16,6 +16,8 @@ Recommended flow:
 
 Use:
 - Explore mode unless the codebase is available.
+- `website_tour` recording type.
+- `live-site-map.json` with section scroll targets.
 - No login.
 - Few tracked actions, usually 5-8.
 
@@ -45,6 +47,8 @@ Recommended flow:
 5. End on a healthy success state with no validation or permission errors.
 
 Use:
+- `task_tutorial` recording type.
+- `live-site-map.json` with required fields, valid demo values, and success state.
 - `rules/auth.md` for session capture.
 - The storage-state snippet in `templates/vorec-script.template.mjs`.
 
