@@ -308,9 +308,9 @@ await page.evaluate(() => document.documentElement.style.scrollBehavior = 'smoot
   };
 
   // ── Your flow starts here ────────────────────────────────
-  // Wait for the page to stabilize after page.goto()
-  await page.waitForLoadState('networkidle').catch(() => {});
-  await page.waitForTimeout(2000);
+  // Don't wait for networkidle — it can take 3-5s of dead video time.
+  // The page is already loaded (domcontentloaded from page.goto).
+  // Start the intro narration immediately — it covers any remaining load.
 
   // Example actions — replace with your flow
   // Signature: helper(locator, name, description, target, context, narration, pauseMs)

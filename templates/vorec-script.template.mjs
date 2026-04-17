@@ -170,8 +170,9 @@ const assertHealthyEndState = async () => {
 };
 
 try {
-  await page.waitForLoadState('networkidle').catch(() => {});
-  await page.waitForTimeout(2000);
+  // Don't wait for networkidle — it adds 3-5s of dead video time.
+  // Page is already loaded (domcontentloaded from page.goto).
+  // Start intro narration immediately — it covers any remaining load.
 
   const intro = "Here's the page we'll be working with.";
   track('narrate', 'Intro', 'Recording starts', 'intro', { x: 500, y: 500 }, {
