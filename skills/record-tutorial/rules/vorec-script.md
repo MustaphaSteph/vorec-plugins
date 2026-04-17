@@ -185,14 +185,7 @@ await page.evaluate(() => document.documentElement.style.scrollBehavior = 'smoot
   const pauseFor = (narration) =>
     Math.max(1500, Math.ceil((narration || '').split(/\s+/).filter(Boolean).length * 350) + 500);
 
-  // Intro narration
-  const introNarration = "Here's the page we'll be working with.";
-  track('narrate', 'Intro', 'Recording starts', 'intro', null, {
-    context: 'The page loads showing the main content.',
-    narration: introNarration,
-    pause: pauseFor(introNarration),
-  });
-  await page.waitForTimeout(pauseFor(introNarration));
+  // Start with the first real action.
 
   // ── Helpers ──────────────────────────────────────────────
 
@@ -349,13 +342,6 @@ await page.evaluate(() => document.documentElement.style.scrollBehavior = 'smoot
     .waitFor({ state: 'visible', timeout: 15000 })
     .catch(() => {});
   await page.waitForTimeout(3000);
-  const nFinal = "And that's it — the task is done.";
-  track('narrate', 'Complete', 'Flow complete', null, null, {
-    context: 'The flow is complete. The user has successfully finished the task.',
-    narration: nFinal,
-    pause: pauseFor(nFinal),
-  });
-  await page.waitForTimeout(pauseFor(nFinal));
 
   // ── Stop recording ────────────────────────────────────────
   // Render flush to avoid glitched last frame
@@ -440,16 +426,9 @@ The resulting JSON matches the format Vorec's `agent-api/create-project` expects
 ```json
 [
   {
-    "type": "narrate", "name": "Intro", "description": "Recording starts", "target": "intro",
-    "timestamp": 0, "coordinates": { "x": 500, "y": 500 },
-    "context": "The landing page loads showing the hero section with a sign-up form.",
-    "narration": "Here's the signup page we'll use for this walkthrough.",
-    "pause": 3650
-  },
-  {
-    "type": "type", "name": "Enter email", "description": "Enter email address into signup form",
-    "target": "email", "timestamp": 4.5, "coordinates": { "x": 480, "y": 420 },
-    "context": "Types a demo email. This will be the account login.",
+    "type": "type", "name": "Enter email", "description": "Type email address",
+    "target": "email", "timestamp": 2.5, "coordinates": { "x": 480, "y": 420 },
+    "context": "The email field is focused. This value is demo data.",
     "narration": "Enter your email address. This becomes the account login.",
     "pause": 3650,
     "typed_text": "sarah.demo@gmail.com"
@@ -461,13 +440,6 @@ The resulting JSON matches the format Vorec's `agent-api/create-project` expects
     "narration": "Click Submit. The account is created.",
     "pause": 2600,
     "primary": true
-  },
-  {
-    "type": "narrate", "name": "Complete", "description": "Flow complete",
-    "target": null, "timestamp": 12.0, "coordinates": { "x": 500, "y": 500 },
-    "context": "The signup flow is complete. The user now has an account.",
-    "narration": "And that's it - the signup flow is complete.",
-    "pause": 3300
   }
 ]
 ```

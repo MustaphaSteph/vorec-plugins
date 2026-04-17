@@ -42,18 +42,9 @@ Go generic. "Fill in the required field" is safer than dictating a specific valu
 
 ## Narration structure
 
-Every recording must have an **intro** and an **outro**. Between them, every action narration must earn its pause — if you have nothing meaningful to say, don't add a narrate action.
+Every action narration must add value. If the action is self-explanatory, keep narration short. If something new appears (dialog, page change), describe what appeared.
 
-### Intro (first action)
-Set the scene: what app/site is this, what are we about to do. The viewer just pressed play and needs context.
-
-### Action narrations (middle)
-Each narration should describe what's happening RIGHT NOW on screen. If the action is self-explanatory (clicking a clearly labeled button), keep the narration short. If the action reveals something new (a dialog opens, a page changes), describe what appeared.
-
-**Every narration must add value.** If you can't think of something meaningful to say over an action, don't write narration for it — just track the action with context only and let Vorec handle it. An empty pause with no useful narration is worse than no pause at all.
-
-### Outro (last action)
-Wrap up: what was accomplished, what the user can do next. Give the viewer a sense of completion.
+If you have nothing meaningful to say over an action, don't write narration for it — just track the action with context only and let Vorec handle it.
 
 ### What makes narration "no sense"
 - Narrating what the user can obviously see ("The button says Submit" — they can read)
