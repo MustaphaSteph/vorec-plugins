@@ -371,10 +371,18 @@ No need for `actions` in the manifest — the real action data comes from `--tra
 
 Then upload:
 ```bash
+# If user chose "Vorec AI" narration (default):
 npx @vorec/cli@latest run .vorec/<project-slug>/vorec.json --skip-record \
   --video .vorec/<project-slug>/output.mp4 \
   --tracked-actions .vorec/<project-slug>/tracked-actions.json
+
+# If user chose "Claude" narration:
+npx @vorec/cli@latest run .vorec/<project-slug>/vorec.json --skip-record --skip-narration \
+  --video .vorec/<project-slug>/output.mp4 \
+  --tracked-actions .vorec/<project-slug>/tracked-actions.json
 ```
+
+`--skip-narration` tells Vorec to use the agent's narration from tracked actions instead of generating its own.
 
 Tell the user:
 > Uploading video and action data to Vorec now...
