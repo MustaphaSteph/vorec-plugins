@@ -227,15 +227,18 @@ This way:
 
 Ask preferences FIRST — style affects how narration is written and how the plan reads.
 
-If the user already said "defaults", "record with defaults", or "quick record", use English, Tutorial, 1080p, no visible cursor and continue without asking this preference block.
+If the user already said "defaults", "record with defaults", or "quick record", use English, Tutorial, 1080p, no visible cursor, Vorec AI narration and continue without asking this preference block.
 
-> Before I start recording, four quick choices:
+> Before I start recording, a few quick choices:
 > 1. **Language?** (default: English)
 > 2. **Narration style?** Tutorial / Professional / Conversational / Storytelling / Persuasive / Academic / Concise / Exact (default: Tutorial)
 > 3. **Quality?** 1080p / 2K / 4K (default: 1080p)
 > 4. **Visible cursor?** Yes / No (default: No)
+> 5. **Narration by?** Vorec AI / Claude (default: Vorec AI)
+>    - **Vorec AI** — Vorec writes the narration from your tracked actions and video
+>    - **Claude** — I write the narration myself and Vorec uses it directly
 >
-> Or say "defaults" for English, Tutorial, 1080p, no cursor.
+> Or say "defaults" for English, Tutorial, 1080p, no cursor, Vorec AI narration.
 
 After the user answers (or after applying explicit defaults), show the plan:
 
@@ -266,12 +269,20 @@ This is the user's last checkpoint before recording.
 
 **Do all of this silently — don't show narration drafts, code, or internals to the user.**
 
-Behind the scenes:
+Behind the scenes, depending on the user's "Narration by" choice:
+
+**If Vorec AI narration (default):**
+1. Don't write narration — just track actions with `context` (scene description)
+2. Set reasonable pauses between actions for the viewer to see the screen
+3. Build `vorec-script.mjs`
+4. Vorec AI writes narration later from your context + the video
+
+**If Claude narration:**
 1. Write narration for every tracked action (following [./rules/narration-rules.md](./rules/narration-rules.md))
 2. Calculate `pauseMs` for each from word count (following [./rules/pacing.md](./rules/pacing.md))
 3. Save narration drafts to `.vorec/<project-slug>/narration-drafts.json`
 4. Build `vorec-script.mjs` using those narrations
-5. Save to `.vorec/<project-slug>/vorec-script.mjs`
+5. Vorec uses your narration directly as the initial segments
 
 For live websites, read `.vorec/<project-slug>/live-site-map.json` first and use it as the source of truth for selectors, fields, valid demo values, assertions, blockers, and sensitive-action handling.
 
