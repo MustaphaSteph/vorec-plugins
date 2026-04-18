@@ -3,7 +3,8 @@ name: record-tutorial
 description: >
   Record screen and generate narrated tutorial videos with AI voice-over.
   Use when the user wants to record a tutorial, demo video, screencast, walkthrough,
-  or any screen recording with narration.
+  or any screen recording with narration. Also use when the user wants to update
+  narration on an existing Vorec project.
 ---
 
 # Record Tutorial with Vorec
@@ -411,6 +412,50 @@ rm -f .vorec/<project-slug>/vorec-script.mjs .vorec/<project-slug>/vorec.json .v
 
 If the user declined upload:
 > Video saved at: `.vorec/<project-slug>/output.mp4`
+
+## Updating narration on an existing project
+
+You don't need to have recorded the project. If the user wants to update narration on any project they own, ask for the **project ID** (a UUID from the editor URL or dashboard).
+
+### Read current narration + actions
+
+```bash
+npx @vorec/cli@latest segments --project <PROJECT_ID> --json
+```
+
+This returns:
+- **`segments`** — current narration (id, sort_order, timestamp, action_name, script, has_audio)
+- **`actions`** — tracked clicks (index, timestamp, type, target, description, context, typed_text, primary)
+
+Use the actions as context to understand what happened on screen. Use the segments to see what narration was written.
+
+### Update narration
+
+Write a JSON file with the segments to update. Each entry needs the segment `id` and the new `script` and/or `action_name`:
+
+```json
+[
+  { "id": "seg-uuid-1", "script": "New narration text for this step" },
+  { "id": "seg-uuid-2", "action_name": "Better step name", "script": "Updated script" }
+]
+```
+
+Then push the updates:
+```bash
+npx @vorec/cli@latest update-narration .vorec/updated-segments.json --project <PROJECT_ID>
+```
+
+**What happens:**
+- Narration text is updated immediately in the Vorec DB
+- Old audio is cleared (user regenerates TTS in the editor with the new text)
+- User refreshes the editor and sees the new narration
+
+**When to use this:**
+- User says "update the narration on my project"
+- User says "rewrite step 3 to be more concise"
+- User shares a project ID and wants narration changes
+- User wants to translate narration to a different language
+- User recorded with Vorec AI narration but wants you to rewrite specific segments
 
 ## Reference Files
 
