@@ -457,6 +457,70 @@ npx @vorec/cli@latest update-narration .vorec/updated-segments.json --project <P
 - User wants to translate narration to a different language
 - User recorded with Vorec AI narration but wants you to rewrite specific segments
 
+## Translating narration to other languages
+
+You can translate narration for any project the user owns — **for free** (0 credits, since you write the translations yourself instead of using Vorec AI).
+
+### Check existing translations
+
+```bash
+npx @vorec/cli@latest languages --project <PROJECT_ID>
+```
+
+Shows the source language and all existing translations with segment counts.
+
+### Read current translations for a language
+
+```bash
+npx @vorec/cli@latest translations es --project <PROJECT_ID>
+```
+
+Returns JSON with each segment's source text and translated text side-by-side. Use this to see what's already translated.
+
+### Read source segments first
+
+```bash
+npx @vorec/cli@latest segments --project <PROJECT_ID> --json
+```
+
+Get the source narration + tracked actions. Use the actions as context to understand what happens on screen.
+
+### Write and push translations
+
+1. Read the source segments
+2. Translate each segment's `action_name` and `script` into the target language
+3. Write a JSON file:
+
+```json
+[
+  { "segment_id": "seg-uuid-1", "action_name": "Translated label", "script": "Translated narration" },
+  { "segment_id": "seg-uuid-2", "action_name": "Translated label", "script": "Translated narration" }
+]
+```
+
+4. Push:
+```bash
+npx @vorec/cli@latest update-translations .vorec/translations-es.json --language es --project <PROJECT_ID>
+```
+
+**Translation rules:**
+- Do NOT translate word-by-word — rewrite as a native speaker would say it
+- Keep the same narration style (tutorial, conversational, etc.)
+- Keep brand names and UI labels in their original form if the app isn't localized
+- Match the length of the original (translated script must fit the same time gap)
+- For Arabic dialects: `ar-MA` = Moroccan Darija, `ar-KW` = Gulf Arabic — use colloquial, not MSA
+
+**What happens:**
+- Translations are saved to the Vorec DB immediately
+- Old audio for that language is cleared (user regenerates TTS in the editor)
+- User refreshes the editor, switches to the new language, and sees the translation
+- **0 credits** — no Gemini call, the agent wrote the translation
+
+**When to use this:**
+- User says "translate to Spanish" or "add French narration"
+- User wants narration in multiple languages
+- User wants to fix a specific translation
+
 ## Reference Files
 
 ### CORE — load always
