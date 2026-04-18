@@ -459,7 +459,7 @@ npx @vorec/cli@latest update-narration .vorec/updated-segments.json --project <P
 
 ## Translating narration to other languages
 
-You can translate narration for any project the user owns — **for free** (0 credits, since you write the translations yourself instead of using Vorec AI).
+You can translate narration for any project the user owns.
 
 ### Check existing translations
 
@@ -514,7 +514,7 @@ npx @vorec/cli@latest update-translations .vorec/translations-es.json --language
 - Translations are saved to the Vorec DB immediately
 - Old audio for that language is cleared (user regenerates TTS in the editor)
 - User refreshes the editor, switches to the new language, and sees the translation
-- **0 credits** — the agent wrote the translation directly
+- Translations are saved directly — no extra processing needed
 
 **When to use this:**
 - User says "translate to Spanish" or "add French narration"
