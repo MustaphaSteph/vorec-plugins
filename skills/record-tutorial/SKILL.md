@@ -514,7 +514,7 @@ npx @vorec/cli@latest update-translations .vorec/translations-es.json --language
 - Translations are saved to the Vorec DB immediately
 - Old audio for that language is cleared (user regenerates TTS in the editor)
 - User refreshes the editor, switches to the new language, and sees the translation
-- **0 credits** — no Gemini call, the agent wrote the translation
+- **0 credits** — the agent wrote the translation directly
 
 **When to use this:**
 - User says "translate to Spanish" or "add French narration"
