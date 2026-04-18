@@ -25,20 +25,15 @@ recordVideo → real-time WebM (VP8) → FFmpeg re-encode → H.264 MP4
 ## FFmpeg re-encode
 
 ```bash
-ffmpeg -y -i raw.webm \
-  -c:v libx264 -preset veryslow -crf 14 -tune animation \
-  -pix_fmt yuv420p -color_range pc -colorspace bt709 -color_primaries bt709 -color_trc bt709 \
-  -movflags +faststart output.mp4
+ffmpeg -y -i raw.webm -c:v libx264 -preset slow -crf 18 -tune animation -pix_fmt yuv420p -movflags +faststart output.mp4
 ```
 
 | Setting | Value | Why |
 |---------|-------|-----|
 | Codec | `libx264` (H.264) | Universal playback |
-| CRF | 14 | Near-lossless, preserves color fidelity |
-| Preset | `veryslow` | Best compression at same quality |
+| CRF | 18 | Visually lossless |
+| Preset | `slow` | Better compression at same quality |
 | Tune | `animation` | Optimized for UI content |
-| Color range | `pc` (full 0-255) | Prevents washed-out colors from VP8→H.264 conversion |
-| Color space | BT.709 | Standard HD color space |
 | Watermark | `drawtext` filter | "vorec.ai" bottom-right on preview file |
 
 ## Watermark
