@@ -228,18 +228,17 @@ This way:
 
 Ask preferences FIRST — style affects how narration is written and how the plan reads.
 
-If the user already said "defaults", "record with defaults", or "quick record", use English, Tutorial, 1080p, no visible cursor, Vorec AI narration and continue without asking this preference block.
+If the user already said "defaults", "record with defaults", or "quick record", use English, Tutorial, no visible cursor, Vorec AI narration and continue without asking this preference block.
 
 > Before I start recording, a few quick choices:
 > 1. **Language?** (default: English)
 > 2. **Narration style?** Tutorial / Professional / Conversational / Storytelling / Persuasive / Academic / Concise / Exact (default: Tutorial)
-> 3. **Quality?** 1080p / 2K / 4K (default: 1080p)
-> 4. **Visible cursor?** Yes / No (default: No)
-> 5. **Narration by?** Vorec AI / Claude (default: Vorec AI)
+> 3. **Visible cursor?** Yes / No (default: No)
+> 4. **Narration by?** Vorec AI / Claude (default: Vorec AI)
 >    - **Vorec AI** — Vorec writes the narration from your tracked actions and video
 >    - **Claude** — I write the narration myself and Vorec uses it directly
 >
-> Or say "defaults" for English, Tutorial, 1080p, no cursor, Vorec AI narration.
+> Or say "defaults" for English, Tutorial, no cursor, Vorec AI narration.
 
 After the user answers (or after applying explicit defaults), show the plan:
 
@@ -261,7 +260,7 @@ Real durations are calculated from narration word count.
 
 **Wait for the user.** They might:
 - Adjust steps: "Skip step 2", "Step 5 is too long", "Add settings step"
-- Pick preferences: "Conversational style, 4K quality"
+- Pick preferences: "Conversational style"
 - Just say "go" → use defaults
 
 This is the user's last checkpoint before recording.
@@ -290,7 +289,7 @@ For live websites, read `.vorec/<project-slug>/live-site-map.json` first and use
 Load [./rules/vorec-script.md](./rules/vorec-script.md) for the template.
 
 What to include:
-- Quality preset based on user's choice
+- 1080p recording (1920×1080 viewport with DPR 2)
 - `scrollToElement`, `glideClick`, `slowType`, `hoverTour` helpers
 - A `track()` call for every action — with `name`, `description`, `context`, `narration`, `pause`, and `primary`
 - Storage-state loading when `.vorec/storageState.json` exists
@@ -346,7 +345,7 @@ After the user validates the recording, ask:
 > - **Background & intro** — gradients, title cards, music
 > - **Subtitles** — auto-generated in any language
 > - **Timeline editor** — adjust timing, trim, re-record
-> - **Export** — up to 4K, 60fps
+> - **Export** — HD video
 
 If yes, write the manifest to `.vorec/<project-slug>/vorec.json`:
 

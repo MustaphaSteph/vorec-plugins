@@ -8,7 +8,7 @@
 
 ## ✨ What's new in v13.6.0
 
-- **4K recording quality** — Playwright `recordVideo` at 1080p with DPR 2, then FFmpeg lanczos upscaling for 2K/4K output
+- **Sharp 1080p recording** — Playwright `recordVideo` at 1080p with DPR 2 for retina-sharp text rendering
 - **Smart action tracking** — every click, type, and scroll is tracked with real coordinates, context, and timestamps. Vorec skips video analysis entirely
 - **8 narration styles** — Tutorial, Professional, Conversational, Storytelling, Persuasive, Academic, Concise, Exact
 - **Primary actions** — mark key steps that get gold stars on the Vorec timeline
@@ -25,7 +25,7 @@ Vorec records any web app and generates professional narrated videos — right f
 - **Works on your code or any live site** — the plugin picks the right approach automatically
 - **Smart automation** — forms filled correctly, buttons clicked at the right time, natural timing
 - **AI narration** — professional voice-over generated automatically
-- **Full video editor** — zoom, callouts, subtitles, background music, 4K export
+- **Full video editor** — zoom, callouts, subtitles, background music, HD export
 
 ## Who It's For
 
@@ -110,7 +110,7 @@ This repository is packaged as a Claude Code plugin marketplace entry. The `reco
 ## What You Get
 
 ### The Recording
-- **1080p by default, 2K/4K optional** — sharp browser recording with DPR 2 rendering and FFmpeg MP4 output
+- **1080p with DPR 2** — sharp browser recording with retina rendering and FFmpeg MP4 output
 - **Every action tracked** — clicks, keystrokes, navigation, timing
 - **MP4 file** — ready to use anywhere, even without Vorec
 - **Optional visible cursor** — big animated arrow/hand/text cursor with click feedback, baked into the recording
@@ -126,7 +126,7 @@ This repository is packaged as a Claude Code plugin marketplace entry. The `reco
 - **Subtitles** — auto-generated, customizable
 - **Multi-language** — translate narration to any language
 - **Timeline editor** — adjust timing, re-record segments, trim
-- **Export** — up to 4K, 60fps
+- **Export** — HD video
 
 ## Features
 

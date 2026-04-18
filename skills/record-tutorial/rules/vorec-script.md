@@ -12,7 +12,7 @@ The script is a standalone Node.js file (`vorec-script.mjs`) — run it with `no
 ## Critical rules
 
 ### Recording quality
-1. **1080p by default** — record at 1920×1080 with DPR 2 via `recordVideo`. For 2K/4K (only if user asks), FFmpeg upscales with lanczos.
+1. **Always 1080p** — record at 1920×1080 with DPR 2 via `recordVideo`. No upscaling, no quality options.
 2. **Navigate to the target URL directly** — `page.goto(url)`. Never leave the page on `about:blank` (avoids white start frame).
 3. **Verify end state before stopping** — scan for validation errors, disabled buttons, failure messages. If the flow broke, throw loudly with a clear message and re-record. Don't ship a broken video. See [./end-state-verify.md](./end-state-verify.md).
 4. **Stop recording correctly** — (a) render flush with `requestAnimationFrame × 2`, (b) `page.close()`, (c) `page.video().saveAs(path)` which waits until the video is fully written, (d) `browser.close()`. Use `saveAs()` not `path()` — `path()` returns before the video is finalized.
@@ -121,10 +121,8 @@ mkdirSync(OUTPUT_DIR, { recursive: true });
 
 // ── Recording setup ─────────────────────────────────────────
 // Record at 1080p with DPR 2 (retina-sharp rendering internally).
-// Then upscale to 4K with FFmpeg lanczos after recording.
 // Uses recordVideo (standard Playwright API) — NOT page.screencast
 // (which only exists in playwright-cli run-code, not standalone scripts).
-const QUALITY = '1080p'; // '1080p' (default), '2k', or '4k' — based on user choice
 
 const browser = await chromium.launch({ headless: true });
 const storageState = existsSync('.vorec/storageState.json') ? '.vorec/storageState.json' : undefined;
@@ -363,22 +361,16 @@ await page.evaluate(() => document.documentElement.style.scrollBehavior = 'smoot
   writeFileSync(`${OUTPUT_DIR}/tracked-actions.json`, JSON.stringify(__actions, null, 2));
   console.log(`${__actions.length} actions tracked → ${OUTPUT_DIR}/tracked-actions.json`);
 
-  // ── Re-encode (+ optional upscale) ──────────────────────
-  const SIZES = { '4k': '3840:2160', '2k': '2560:1440', '1080p': null };
-  const targetSize = SIZES[QUALITY];
-
+  // ── Re-encode to MP4 ────────────────────────────────────
   // Check if drawtext filter is available for watermark
   const hasDrawtext = execSync('ffmpeg -filters 2>&1', { encoding: 'utf8' }).includes('drawtext');
   const watermark = hasDrawtext
     ? `drawtext=text='vorec.ai':fontcolor=white@0.7:fontsize=h/32:x=w-tw-30:y=h-th-30:box=1:boxcolor=black@0.35:boxborderw=10`
     : null;
 
-  const filterParts = [];
-  if (targetSize) filterParts.push(`scale=${targetSize}:flags=lanczos`);
-  if (watermark) filterParts.push(watermark);
-  const vf = filterParts.length > 0 ? `-vf "${filterParts.join(',')}"` : '';
+  const vf = watermark ? `-vf "${watermark}"` : '';
 
-  console.log(`Re-encoding to ${QUALITY} MP4${watermark ? ' with watermark' : ''}...`);
+  console.log(`Re-encoding to MP4${watermark ? ' with watermark' : ''}...`);
   execSync(`ffmpeg -y -i "${rawVideo}" \
     ${vf} \
     -c:v libx264 -preset slow -crf 18 -tune animation \
@@ -415,11 +407,11 @@ The script:
 2. Opens the target URL directly (no white frame)
 3. `recordVideo` captures the browser in real-time (all pauses appear in video)
 4. Runs the flow (clicks, types, scrolls)
-5. Closes context → FFmpeg re-encodes to MP4, with lanczos upscaling only for 2K/4K
+5. Closes context → FFmpeg re-encodes to MP4
 6. Saves tracked actions
 
 Output (inside `.vorec/<project-slug>/`):
-- `output.mp4` — H.264 video at the selected quality (`1080p`, `2k`, or `4k`)
+- `output.mp4` — H.264 1080p video
 - `tracked-actions.json` — action data for Vorec
 
 The resulting JSON matches the format Vorec's `agent-api/create-project` expects:
@@ -465,17 +457,9 @@ The resulting JSON matches the format Vorec's `agent-api/create-project` expects
 
 **Why this matters:** When Vorec receives tracked actions, it skips video-based click detection entirely. The agent already knows what was clicked, when, and why — so Vorec only needs to write narration scripts using the action descriptions as context. This is faster, cheaper, and more accurate.
 
-## Video quality presets
+## Recording resolution
 
-Recording always happens at 1920×1080 with DPR 2 (sharp text/UI). FFmpeg upscales to the target resolution after recording using lanczos (preserves sharp edges).
-
-| Preset | Output | How |
-|--------|--------|-----|
-| `'1080p'` (default) | 1920×1080 | Record 1080p DPR 2 → re-encode only (no upscale) |
-| `'2k'` | 2560×1440 | Record 1080p DPR 2 → upscale with lanczos |
-| `'4k'` | 3840×2160 | Record 1080p DPR 2 → upscale with lanczos |
-
-DPR 2 is always on — even 1080p gets retina-sharp rendering. The upscale works because the source pixels are already crisp from DPR 2.
+Always 1920×1080 with `deviceScaleFactor: 2` (DPR 2). This gives retina-sharp text and UI rendering. FFmpeg re-encodes to MP4 without any upscaling.
 
 ## No dead-time trimming needed
 

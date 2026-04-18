@@ -1,12 +1,12 @@
 // vorec-script.mjs - standalone Node.js recording script template.
-// Replace PROJECT_SLUG, TARGET_URL, STYLE, QUALITY, and the example flow.
+// Replace PROJECT_SLUG, TARGET_URL, STYLE, and the example flow.
 import { chromium } from 'playwright';
 import { execSync } from 'node:child_process';
 import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
 
 const OUTPUT_DIR = '.vorec/PROJECT_SLUG';
 const TARGET_URL = 'TARGET_URL';
-const QUALITY = '1080p'; // '1080p', '2k', or '4k'
+// Recording is always 1080p with DPR 2 (retina-sharp rendering)
 const STYLE = 'tutorial';
 
 mkdirSync(OUTPUT_DIR, { recursive: true });
@@ -236,13 +236,12 @@ await page.close();
 await page.video().saveAs(rawVideo);
 await browser.close();
 
-const SIZES = { '4k': '3840:2160', '2k': '2560:1440', '1080p': null };
-const targetSize = SIZES[QUALITY];
-const watermark = "drawtext=text='vorec.ai':fontcolor=white@0.7:fontsize=h/32:x=w-tw-30:y=h-th-30:box=1:boxcolor=black@0.35:boxborderw=10";
-const filterParts = [];
-if (targetSize) filterParts.push(`scale=${targetSize}:flags=lanczos`);
-filterParts.push(watermark);
-const vf = `-vf "${filterParts.join(',')}"`;
+// Check if drawtext filter is available for watermark
+const hasDrawtext = execSync('ffmpeg -filters 2>&1', { encoding: 'utf8' }).includes('drawtext');
+const watermark = hasDrawtext
+  ? "drawtext=text='vorec.ai':fontcolor=white@0.7:fontsize=h/32:x=w-tw-30:y=h-th-30:box=1:boxcolor=black@0.35:boxborderw=10"
+  : null;
+const vf = watermark ? `-vf "${watermark}"` : '';
 
 execSync(`ffmpeg -y -i "${rawVideo}" \
   ${vf} \

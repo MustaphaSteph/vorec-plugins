@@ -1,54 +1,35 @@
 ---
 name: recording-quality
-description: How Vorec records video — recordVideo for real-time + FFmpeg lanczos upscale for quality
+description: How Vorec records video — recordVideo for real-time capture + FFmpeg re-encode
 ---
 
 # Video Recording
 
-Vorec records video using Playwright's `recordVideo` API which captures the browser in **real-time** — all pauses, typing, and animations appear at their actual speed. The WebM output is then upscaled and re-encoded with FFmpeg.
+Vorec records video using Playwright's `recordVideo` API which captures the browser in **real-time** — all pauses, typing, and animations appear at their actual speed. The WebM output is then re-encoded to MP4 with FFmpeg.
 
 **Note:** `page.screencast` is a playwright-cli extension (only works inside `playwright-cli run-code`). The standalone vorec script uses `recordVideo` instead (standard Playwright API).
 
 ## How it works
 
 ```
-recordVideo → real-time WebM (VP8) → FFmpeg lanczos upscale → H.264 MP4
+recordVideo → real-time WebM (VP8) → FFmpeg re-encode → H.264 MP4
 ```
 
-1. `browser.newContext({ recordVideo: { dir, size } })` — records in real-time
-2. All `waitForTimeout` pauses are captured (video matches what a viewer would see)
-3. `context.close()` — saves and finalizes the WebM file
-4. FFmpeg upscales with lanczos + re-encodes to H.264 MP4
-5. Delete the intermediate WebM
+1. `browser.newContext({ recordVideo: { dir, size } })` — records in real-time at 1920×1080
+2. `deviceScaleFactor: 2` — retina-sharp text and UI rendering
+3. All `waitForTimeout` pauses are captured (video matches what a viewer would see)
+4. `context.close()` — saves and finalizes the WebM file
+5. FFmpeg re-encodes to H.264 MP4
+6. Delete the intermediate WebM
 
-## Quality presets
-
-| Preset | Output resolution | Best for |
-|--------|-------------------|----------|
-| `'1080p'` (default) | 1920×1080 | Tutorials, onboarding, most use cases |
-| `'2k'` | 2560×1440 | Product demos |
-| `'4k'` | 3840×2160 | Marketing, investor pitches |
-
-Recording always happens at 1920×1080 with DPR 2. For 2K/4K, FFmpeg upscales with lanczos after.
-
-Viewport is always 1920×1080. DPR controls pixel sharpness.
-
-## FFmpeg upscale + re-encode
+## FFmpeg re-encode
 
 ```bash
-# 1080p output (default — no upscale, just re-encode):
 ffmpeg -y -i raw.webm -c:v libx264 -preset slow -crf 18 -tune animation -pix_fmt yuv420p -movflags +faststart output.mp4
-
-# 2K output:
-ffmpeg -y -i raw.webm -vf "scale=2560:1440:flags=lanczos" -c:v libx264 -preset slow -crf 18 -tune animation -pix_fmt yuv420p -movflags +faststart output.mp4
-
-# 4K output:
-ffmpeg -y -i raw.webm -vf "scale=3840:2160:flags=lanczos" -c:v libx264 -preset slow -crf 18 -tune animation -pix_fmt yuv420p -movflags +faststart output.mp4
 ```
 
 | Setting | Value | Why |
 |---------|-------|-----|
-| Upscale | `lanczos` | Preserves sharp edges (text, buttons, icons) |
 | Codec | `libx264` (H.264) | Universal playback |
 | CRF | 18 | Visually lossless |
 | Preset | `slow` | Better compression at same quality |
@@ -57,7 +38,7 @@ ffmpeg -y -i raw.webm -vf "scale=3840:2160:flags=lanczos" -c:v libx264 -preset s
 
 ## Watermark
 
-The preview MP4 saved locally (for the user to review before upload) has a "vorec.ai" watermark in the bottom-right corner. This is added during the FFmpeg upscale step via the `drawtext` filter:
+The preview MP4 saved locally (for the user to review before upload) has a "vorec.ai" watermark in the bottom-right corner. This is added during the FFmpeg re-encode step via the `drawtext` filter:
 
 ```
 drawtext=text='vorec.ai':fontcolor=white@0.7:fontsize=h/32:x=w-tw-30:y=h-th-30:box=1:boxcolor=black@0.35:boxborderw=10
