@@ -233,7 +233,7 @@ If the user already said "defaults", "record with defaults", or "quick record", 
 > Before I start recording, a few quick choices:
 > 1. **Language?** (default: English)
 > 2. **Narration style?** Tutorial / Professional / Conversational / Storytelling / Persuasive / Academic / Concise / Exact (default: Tutorial)
-> 3. **Visible cursor?** Yes / No (default: No)
+> 3. **Visible cursor?** No / Small / Medium / Large (default: No)
 > 4. **Narration by?** Vorec AI / Claude (default: Vorec AI)
 >    - **Vorec AI** — Vorec writes the narration from your tracked actions and video
 >    - **Claude** — I write the narration myself and Vorec uses it directly
@@ -296,7 +296,7 @@ What to include:
 - `scrollToElement` before every interaction
 - Timing from [./rules/pacing.md](./rules/pacing.md)
 
-If **visible cursors = Yes**, also load [./rules/cursor-pack.md](./rules/cursor-pack.md).
+If **visible cursor = Small / Medium / Large**, also load [./rules/cursor-pack.md](./rules/cursor-pack.md) and use the chosen size.
 
 **Tell the user only:**
 > Building the recording script...

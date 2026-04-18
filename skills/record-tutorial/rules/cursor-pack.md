@@ -5,7 +5,7 @@ description: Visible cursor injection with auto-morph and click shrink animation
 
 # Cursor Pack (Opt-in)
 
-When the user answered **Yes** to "visible cursors?" in the preferences stage of the main workflow, this rule is loaded. The vorec script gets an extra cursor-injection block that:
+When the user chose a visible cursor size (Small / Medium / Large) in the preferences, this rule is loaded. The vorec script gets an extra cursor-injection block that:
 
 - Shows a big, visible cursor overlay on top of every page
 - Auto-morphs between arrow / pointer / text / grabbing / crosshair based on what element is under the mouse (uses the CSS `cursor` property of the hovered element)
@@ -13,6 +13,16 @@ When the user answered **Yes** to "visible cursors?" in the preferences stage of
 - Uses Vorec's bundled SVG cursor pack — no user-provided assets
 
 If the user answered **No**, skip this file entirely.
+
+## Cursor sizes
+
+| User choice | CSS size | Best for |
+|-------------|----------|----------|
+| Small | `32px` | Subtle, closer to OS cursor |
+| Medium | `48px` | Visible but not obtrusive |
+| Large | `64px` | Very visible, great for tutorials |
+
+Use the chosen size in the CSS block below (replace `48px` with the correct value).
 
 ## The bundled cursor pack
 
@@ -207,11 +217,4 @@ If the cursor pack is loaded, every click fires a ~160ms shrink-and-return anima
 
 Everything the cursor pack does is just cursor-level visual feedback. All post-production effects (zoom, spotlight, callouts, branding) come from Vorec after upload.
 
-## Bigger or smaller cursors?
-
-Change the `width: 48px; height: 48px` in the CSS to whatever you want:
-- **48px** (default) — visible but not obtrusive
-- **64px** — for 4K recordings or emphasis
-- **32px** — minimal, closer to OS size
-
-The hotspot math scales automatically.
+The hotspot math scales automatically with any size — just change the `width` and `height` in the CSS.
