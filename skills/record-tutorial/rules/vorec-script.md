@@ -373,8 +373,9 @@ await page.evaluate(() => document.documentElement.style.scrollBehavior = 'smoot
   console.log(`Re-encoding to MP4${watermark ? ' with watermark' : ''}...`);
   execSync(`ffmpeg -y -i "${rawVideo}" \
     ${vf} \
-    -c:v libx264 -preset slow -crf 18 -tune animation \
-    -pix_fmt yuv420p -movflags +faststart \
+    -c:v libx264 -preset veryslow -crf 14 -tune animation \
+    -pix_fmt yuv420p -color_range pc -colorspace bt709 -color_primaries bt709 -color_trc bt709 \
+    -movflags +faststart \
     "${OUTPUT_DIR}/output.mp4"`, { stdio: 'pipe' });
   execSync(`rm "${rawVideo}"`);
 
