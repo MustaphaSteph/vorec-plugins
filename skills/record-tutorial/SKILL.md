@@ -123,8 +123,20 @@ Create `vorec.json` in the repo. This is the script the CLI runs.
 ```
 
 **Optional top-level fields that matter for specific surfaces:**
-- `"recordFrame": "<iframe css selector>"` — auto-crops the MP4 to just that iframe's pixels. Works for any embedded app: Shopify Admin (`iframe[src*='myshopify']`), Stripe Checkout, Salesforce Lightning, Intercom, YouTube embeds — anywhere the target UI lives inside a cross-origin `<iframe>` and the host chrome shouldn't end up in the tutorial.
+
+- `"chromeless": true` — **use this by default for single-URL tutorials on regular websites** (acme.com, google.com, any SaaS dashboard, any landing page). Launches Chromium in `--app=<url>` mode: no tab bar, no address bar, no bookmarks bar — the entire window is the webpage. Clean, tutorial-ready video with no browser UI bleed-through.
+- `"recordFrame": "<iframe css selector>"` — auto-crops the MP4 to just that iframe's pixels. For **embedded apps** where the target UI lives inside a cross-origin `<iframe>` and the host chrome shouldn't end up in the tutorial: Shopify Admin (`iframe[src*='myshopify']`), Stripe Checkout, Salesforce Lightning, Intercom, YouTube embeds. Do **not** set `chromeless` together with `recordFrame` — the iframe crop already removes host chrome.
 - `"viewport": "full"` — maximize the browser window instead of a fixed size.
+
+### Decision tree for "do I want browser chrome in my recording?"
+
+| Situation | Field to set |
+|---|---|
+| Recording a regular website (google.com, stripe.com, your SaaS dashboard) | `"chromeless": true` |
+| Recording an embedded app inside another host (Shopify Admin, Salesforce, etc.) | `"recordFrame": "<iframe selector>"` |
+| Recording a tutorial about the browser itself (extensions, DevTools, etc.) | neither — leave the full window visible |
+
+**Default recommendation:** always set `"chromeless": true` unless you have a reason not to. Nobody wants Chrome's tab bar and address bar in their tutorial video.
 
 **Action types:** `click` · `type` · `select` · `hover` · `scroll` · `wait` · `navigate` · `narrate`.
 
