@@ -101,9 +101,25 @@ Run `brew install cliclick`. Without it, the mouse cursor is not visible in the 
 
 The CLI needs a Vorec API key for analysis steps. Save once: `npx @vorec/cli init` (the skill's rule files cover this — see [./rules/auth.md](./rules/auth.md)).
 
-## Step 1: Write the manifest
+## Step 1: Create a project folder + write the manifest
 
-Create `vorec.json` in the repo. This is the script the CLI runs.
+Every recording gets its own folder under `.vorec/` so multiple recordings in the same repo don't overwrite each other. Pick a short slug from the tutorial title.
+
+```bash
+# Example: "How to Create a Tournament" → tournament
+mkdir -p .vorec/<project-slug>
+```
+
+Write `.vorec/<project-slug>/vorec.json`. Structure:
+
+```
+.vorec/
+├── storageState.json                  # shared session (one per origin)
+└── <project-slug>/
+    └── vorec.json                     # manifest for this recording
+```
+
+Manifest contents:
 
 ```json
 {
@@ -167,10 +183,29 @@ Full action reference: [./rules/actions.md](./rules/actions.md).
 Narration guidance: [./rules/narration-rules.md](./rules/narration-rules.md) and [./rules/narration-styles.md](./rules/narration-styles.md).
 Writing good `context`: [./rules/context-writing.md](./rules/context-writing.md).
 
+## Step 1.5: Show the recording plan to the user
+
+Before you run anything, print a short numbered plan in plain language and wait for the user's OK. This protects the user from surprises and gives them a last chance to edit the scope.
+
+Use this format:
+
+> Here's what the recording will do:
+> 1. Open `<url>` in a fresh browser window
+> 2. `<plain-language description of action 1>`
+> 3. `<plain-language description of action 2>`
+> 4. … (one line per action)
+> 5. Stop recording and save locally (no upload yet)
+>
+> Narration mode: **<Vorec polishes | verbatim>** — language **<en|…>**, style **<tutorial|…>**
+>
+> Ready to record? (yes to start, or tell me what to change)
+
+Keep it to one sentence per action. Don't explain selectors, timings, or credits. If the user asks to adjust, rewrite the manifest and show the plan again — never start recording until the user explicitly says yes.
+
 ## Step 2: Record (no upload yet)
 
 ```bash
-npx @vorec/cli run vorec.json
+npx @vorec/cli run .vorec/<project-slug>/vorec.json
 ```
 
 What happens:
