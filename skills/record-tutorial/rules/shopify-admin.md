@@ -136,17 +136,44 @@ If you see only the Shopify chrome (top nav, sidebar) but not your app's content
 
 **Do not start recording until the app's content is visible inside the iframe.** A recording of the Shopify shell with a blank iframe is useless.
 
-## The full Shopify Admin recording flow
+## The two-step Shopify Admin flow
+
+Shopify + Google auth is fragile. **Do the login in a separate step from the recording**, reusing the same profile directory for both.
+
+### Step 1 — One-time login (no recording)
+
+```bash
+# Open headed real Chrome against the Shopify Admin app URL, pointed at our dedicated profile
+playwright-cli open \
+  --headed \
+  --browser=chrome \
+  --profile=~/Library/Application\ Support/Vorec/Profiles/shopify-dev \
+  "https://admin.shopify.com/store/<store>/apps/<app-handle>"
+
+# User logs into Shopify (and Google SSO if asked) manually in that window.
+# When they're on the embedded app page, release the profile lock:
+playwright-cli close-all
+```
+
+### Step 2 — Record (uses the authenticated profile)
+
+```bash
+npx @vorec/cli run vorec.json \
+  --profile ~/Library/Application\ Support/Vorec/Profiles/shopify-dev
+```
+
+The CLI auto-runs a pre-flight on the profile (patches `Default/Preferences` to mark the last exit clean, removes session/lock files, kills any lingering Chrome processes) — so the next launch doesn't show the "Restore pages?" dialog that would otherwise hijack the recording window.
+
+Default channel when `--profile` is set is `chrome` (real Chrome, friendlier to Google OAuth). If the login in Step 1 used `--browser=chromium` instead, pass `--channel chromium` in Step 2 so the same bundled browser is reused.
+
+### What happens under the hood
 
 1. **Detect** — any trigger from "How to detect" above
-2. **Start dev server** — user runs `shopify app dev` in their terminal (or verify it's already running)
-3. **Launch Chrome with the Vorec profile** — `chromium.launchPersistentContext(profileDir, { channel: 'chrome', headless: false })`
-4. **Navigate** — `page.goto('https://admin.shopify.com/store/<store>/apps/<app>')`
-5. **Wait for login if needed** — if a Shopify or Google login appears, hand off to user, wait for "done"
-6. **Verify the embedded app rendered** — grep snapshot for an app-specific element
-7. **Tell the Vorec Recorder app to record the Chrome window** — same as any other recording
-8. **Drive actions via the app iframe** — `frameLocator` for all interactions
-9. **Stop + upload** — the app handles capture and upload like any other recording
+2. **Start dev server** (once) — user runs `shopify app dev` in their terminal
+3. **Login step** — Step 1 above, manual by the user
+4. **Recording step** — `vorec run --profile ...`
+5. **Wait for the embedded app to render** — `frameLocator` based (see Rule 4 / manifest `frame` field)
+6. **Stop + upload** — the app handles capture and upload like any other recording
 
 ## What the skill rules boil down to
 
