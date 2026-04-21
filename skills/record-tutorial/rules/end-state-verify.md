@@ -70,7 +70,7 @@ If the script throws or an action fails:
 playwright-cli screenshot .vorec/<slug>/debug-$(date +%s).png
 ```
 
-**From inside vorec-script.mjs (on error):**
+**During a recording (on error):**
 ```js
 try {
   // ... your flow ...

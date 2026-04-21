@@ -9,7 +9,7 @@ Use this mode when you **don't have the source code**. The agent has to discover
 
 ## ⚠️ MANDATORY: Full dry-run BEFORE writing any script
 
-**Walk the entire flow end-to-end using playwright-cli FIRST.** Every page, every form, every click — manually verify each step works before writing the recording script.
+**Walk the entire flow end-to-end using playwright-cli FIRST.** Every page, every form, every click — manually verify each step works before writing `vorec.json`.
 
 **Why:** If you discover validation rules, required fields, hidden dialogs, or unexpected page transitions during recording, the recording is already broken. Discover them during exploration when you can test freely.
 
@@ -22,13 +22,13 @@ During the dry-run, document for each step:
 - **Gotchas** — disabled buttons, rate limits, rapid-click blocks, timing issues
 - **State carryover** — what gets saved to session/local storage between steps
 
-**Save this as `.vorec/<slug>/flow-notes.md`** — you'll reference it while writing the recording script.
+**Save this as `.vorec/<slug>/flow-notes.md`** — you'll reference it while writing `vorec.json`.
 
 **If you hit a validation error during the dry-run, fix it THERE** — find the valid input, find the missing step, find the required field. Don't leave it for the recording.
 
 **Don't skip the dry-run** even if the flow seems obvious. "Obvious" flows still have surprises: hidden tooltips that block clicks, toggle buttons that need a second click, validation on blur, dialogs that appear only on first visit.
 
-For live external websites, also load [./live-site-discovery.md](./live-site-discovery.md) and save `.vorec/<slug>/live-site-map.json`. The recording script should be based on that map, not memory or guesses.
+For live external websites, also load [./live-site-discovery.md](./live-site-discovery.md) and save `.vorec/<slug>/live-site-map.json`. The `vorec.json` should be based on that map, not memory or guesses.
 
 
 ## When to use Explore mode
@@ -188,8 +188,8 @@ Once you have:
 - The success state to wait for
 - Any overlays/popups to dismiss first
 
-You're ready to write the vorec script. Load [./vorec-script.md](./vorec-script.md) for the canonical template and all the helpers (slowScroll, glideClick, slowType, etc.).
+You're ready to write the vorec script. See the manifest section in [../SKILL.md](../SKILL.md) for the schema and action types.
 
 ## Both modes converge
 
-Explore mode ends at the same place as Connected mode: write the recording script, run it (`node vorec-script.mjs`), upload the MP4 to Vorec. Return to the main `SKILL.md` at **Build the recording script** when you're done exploring.
+Explore mode ends at the same place as Connected mode: write `vorec.json`, run `npx @vorec/cli run vorec.json`, the Vorec Recorder app captures + uploads. Return to the main `SKILL.md` when you're done exploring.

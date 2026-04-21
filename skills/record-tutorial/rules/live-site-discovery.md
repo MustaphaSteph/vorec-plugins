@@ -9,7 +9,7 @@ Use this for Explore mode on external websites. The agent has no source code, so
 
 ## Core Rule
 
-Do not write `vorec-script.mjs` for a live website task until `.vorec/<slug>/live-site-map.json` proves:
+Do not write `vorec.json` for a live website task until `.vorec/<slug>/live-site-map.json` proves:
 - The entry action is known
 - Required fields are known or explicitly marked unknown
 - Valid demo values are known for every field the script fills
@@ -141,7 +141,7 @@ Mark unknowns explicitly. Unknown is better than invented.
 
 ## Pre-Recording Gate
 
-Before building the recording script, read the map and ask:
+Before building `vorec.json`, read the map and ask:
 - Is there a known entry action?
 - Do all scripted fields have valid demo values?
 - Is every primary action followed by an observable assertion?

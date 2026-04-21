@@ -26,45 +26,41 @@ The user didn't come here to answer meta-questions. They came for a recording.
 
 Ask at most **2 questions at a time**. Prefer sensible defaults over asking.
 
-**Exception:** the "Ask preferences, then show the plan" stage asks 4 preferences (language, style, quality, cursors) in one message — this is OK because they all have defaults and the user can just say "go".
+**Exception:** the "Ask preferences, then show the plan" stage asks 2 preferences (language, narration style) in one message — this is OK because they both have defaults and the user can just say "go".
 
-If the user explicitly says "defaults", "record with defaults", or "quick record", apply English, Tutorial, 1080p, no visible cursor without asking again.
+If the user explicitly says "defaults", "record with defaults", or "quick record", apply English + Tutorial style without asking again.
 
 ❌ **Don't:**
 > "Quick setup for your recording:
 > 1. Is this a local app or a live website?
 > 2. Cinematic / Natural / Fast style?
-> 3. Cursor style: dot / big / mac / branded / system?
+> 3. What's the target URL?
 > 4. Explain first or go straight to action?
-> 5. What's the target URL?
-> 6. Include chapters?"
+> 5. Include chapters?"
 
 ✅ **Do:**
 > "I'll record the vorec.ai signup flow. One thing — is this your project (I can read the code) or should I explore the page?"
->
-> *(later)*
->
-> "Session saved. Visible cursors in the video? (yes/no)"
 
 Every question is a blocker. Minimize them.
 
+Quality, resolution, codec, and cursor styling are **not** configurable — the Vorec Recorder app records at a fixed 2× retina H.264, with the real macOS cursor captured automatically. Never ask the user about those.
+
 ## 🎯 Rule 3 — Keep the chat clean
 
-The user sees only: plan, preferences, status updates, and the final result. Everything else (narration drafts, recording scripts, tracked actions JSON, file paths, internal logs) is saved to files silently.
+The user sees only: plan, preferences, status updates, and the final result. Everything else (narration drafts, manifests, tracked actions JSON, file paths, internal logs) is saved to files silently.
 
 **The user should NEVER see:**
 - Narration text you wrote
-- Recording script code
+- Manifest code
 - Tracked actions JSON
 - pauseMs calculations
-- FFmpeg commands or output
-- Internal file paths (except the final video/editor URL)
+- Internal file paths (except the final editor URL)
 
 **The user should see:**
 - The recording plan (steps overview)
-- Preference questions (language, style, quality, cursor)
-- Status updates: "Building script...", "Recording...", "Uploading..."
-- The final result: video path or editor URL
+- Preference questions (language, narration style)
+- Status updates: "Writing manifest...", "Recording...", "Uploading..."
+- The final result: editor URL
 
 Keep updates to **1-2 sentences**. The user wants a video, not a lecture.
 
@@ -74,36 +70,38 @@ Keep updates to **1-2 sentences**. The user wants a video, not a lecture.
 ✅ **Do:**
 > "No valid session yet. Opening Chromium for login now."
 
-## 🎯 Rule 4 — Prefer sensible defaults, but ALWAYS ask recording preferences
+## 🎯 Rule 4 — Prefer sensible defaults, but ALWAYS ask narration preferences
 
 For technical decisions (mode detection, wait strategy, selectors), use defaults and proceed. Don't ask.
 
-**But ALWAYS ask the recording preferences** before building the script unless the user explicitly requested defaults:
-- Language, narration style, quality, cursors
+**Always ask the narration preferences** before writing the manifest unless the user requested defaults:
+- Language, narration style
 
-These affect the entire recording (pacing, context writing tone, output resolution). The user must confirm or say "defaults" before you start.
+These affect pacing and context tone. Quality, cursors, codec, and viewport are fixed — don't ask about those.
 
 | Thing | Default | Ask? |
 |---|---|---|
-| **API key** | MUST have | Always |
+| **App + permission + CLI key** | MUST pass `vorec check` | Block if failing |
 | **Language** | English | **Always ask** |
 | **Narration style** | Tutorial | **Always ask** |
-| **Quality** | 1080p | **Always ask** |
-| **Visible cursors** | No | **Always ask** |
+| Quality / codec / retina / cursor | Fixed by the app | **Never ask** |
 | Mode (Connected/Explore) | Auto-detect | Only if unsure |
 | Scope | Minimum-viable | Only if user says "full walkthrough" |
 | Test data | Generated fresh | Only if user provides specific values |
 | Session | Reuse if valid | Never ask |
 
-## 🎯 Rule 5 — Default to headed when the user needs to see anything
+## 🎯 Rule 5 — Use `--headed` for any interactive playwright-cli step
 
-`playwright-cli open` **defaults to headless**. The user won't see the browser window.
+Recording itself is done by the Vorec Recorder app, not playwright-cli. But you'll still use `playwright-cli` for **exploration** (finding selectors) and **session capture** (user login).
 
-- **User needs to see/interact** (login, manual validation, session capture): `playwright-cli open --headed <url>`
-- **Automated recording** (no user interaction): default (headless) is fine
-- **When in doubt during setup**: use `--headed`
+`playwright-cli open` **defaults to headless** — the user won't see the window. For anything the user needs to see or do:
 
-See [./cli-session.md](./cli-session.md) for details.
+- **User needs to log in** → `playwright-cli open --headed <url>`
+- **User needs to validate a page** → `playwright-cli open --headed <url>`
+- **Pure reconnaissance** (you grep the snapshot, user does nothing) → default headless is fine
+- **When in doubt** → use `--headed`
+
+See [./cli-commands.md](./cli-commands.md) for details.
 
 ## 🎯 Rule 6 — Re-check state before blocking the user
 
@@ -147,8 +145,8 @@ If you hit something you can't decide, ask **ONE specific question** — not fiv
 
 The user should always know what's happening. Give clear status updates in plain language — not technical jargon.
 
-**Before writing the script:**
-> "I'm writing the recording script now. It will open a browser, fill in the signup form, click Submit, and capture the whole flow as a video."
+**Before writing the manifest:**
+> "Writing vorec.json now — it describes the flow the app will record."
 
 **Before recording:**
 > "Here's the plan:
@@ -175,7 +173,7 @@ The user should always know what's happening. Give clear status updates in plain
 - "Let me think about the next step..."
 - "I'm about to run a command. Is that okay?"
 - "Here's what I'm going to do in detail: first I'll..."
-- Technical details like "Running recordVideo with DPR 2 and lanczos upscale..."
+- Technical details like "Capturing at 2× retina with H.264 high profile..."
 
 ## 🎯 Rule 9 — On failure, fix silently when you can
 
@@ -183,7 +181,7 @@ If a command fails because of a known-fixable issue, **fix it and retry** rather
 
 **Fix silently:**
 - `playwright-cli open` opened headless → retry with `--headed`
-- `.webm` file path rejected → retry inside allowed roots
+- `.mp4` file path rejected → retry inside allowed roots
 - Screencast already running → `close-all` and retry
 - Locator strict-mode violation → add `.first()` or `exact: true`
 - Cart has leftover items → clear them then proceed

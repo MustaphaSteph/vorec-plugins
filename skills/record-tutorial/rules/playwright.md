@@ -5,11 +5,11 @@ description: Playwright techniques for reliable browser automation and recording
 
 # Playwright Best Practices
 
-> **For Vorec recordings**, write a standalone Node.js recording script (`vorec-script.mjs`) using the Playwright library.
-> See [./vorec-script.md](./vorec-script.md) for the template with scrollToElement, glideClick, slowType helpers.
-> Use `playwright-cli` for **page exploration only** — see [./cli-commands.md](./cli-commands.md) and [./cli-session.md](./cli-session.md).
+> **Vorec does not record with Playwright.** Recording is always done by the Vorec Recorder macOS app, driven by `npx @vorec/cli run vorec.json`. Playwright is used only for:
+> 1. **Exploration** — finding selectors on a page before writing the manifest (`playwright-cli`, see [./cli-commands.md](./cli-commands.md)).
+> 2. **Automation during `vorec run`** — the CLI internally launches Chromium with Playwright and drives the manifest actions. You don't write Playwright scripts yourself.
 >
-> The patterns below apply to the recording script and any Playwright code.
+> The patterns below are best practices for writing **selectors in your `vorec.json` manifest** — they're the same locators Playwright uses.
 
 ## Semantic Locators — NOT CSS selectors
 

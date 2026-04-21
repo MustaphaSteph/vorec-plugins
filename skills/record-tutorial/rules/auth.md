@@ -7,6 +7,10 @@ description: How to handle login flows and save browser sessions for local, host
 
 Load this file when the target site requires login.
 
+**⚠️ If the login flow uses Google, stop automation and hand off to the user.** Google blocks OAuth in browsers it considers embedded/unsafe/automated, and fighting that is both unreliable and against Google's policy. Open a headed real-Chrome window, ask the user to log in manually, and resume once they're authenticated. Never fill Google email/password with Playwright, never spoof the user agent, never inject Google cookies.
+
+**⚠️ If the site is Shopify Admin, read [./shopify-admin.md](./shopify-admin.md) first.** Embedded Shopify apps require a dedicated Chrome profile and must be opened through `admin.shopify.com`, not the raw tunnel URL.
+
 ## Check if auth is needed
 
 - **Connected mode**: read the router/auth guard in the codebase. Look for auth guards wrapping routes, redirect to `/login`, protected route middleware.
@@ -41,7 +45,7 @@ If `valid=no` OR file missing → continue to Step 2.
 ```bash
 playwright-cli close-all
 playwright-cli open --headed https://SITE/login
-playwright-cli resize 1920 1080
+playwright-cli resize 1600 1000
 ```
 
 **⚠️ CRITICAL: `playwright-cli open` defaults to HEADLESS.** You MUST use `--headed` for user login — otherwise the user can't see the window and won't know what to do.
@@ -67,7 +71,7 @@ The saved file has cookies + localStorage + sessionStorage for the origin, reusa
 
 After the session is saved, continue with the rest of the workflow. If there are still decisions to make, ask them now:
 
-> "Session saved. Ready to record — want visible cursors in the video?"
+> "Session saved. Ready to record — English narration in tutorial style, or something different?"
 
 ## ❌ Bad behavior (don't do this)
 

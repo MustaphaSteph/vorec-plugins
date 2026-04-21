@@ -7,7 +7,27 @@ description: playwright-cli core commands — open, click, snapshot, resize, etc
 
 `playwright-cli` is the CLI front-end for Playwright. It runs a persistent browser session you can drive command-by-command, and it supports page exploration via snapshots, clicks, and inline scripts.
 
-> This file is adapted from Microsoft's official [playwright-cli skill](https://github.com/microsoft/playwright-cli/blob/main/skills/playwright-cli/SKILL.md) (Apache 2.0). Bundled for reference inside the Vorec record-tutorial plugin.
+> This file is adapted from Microsoft's official [playwright-cli skill](https://github.com/microsoft/playwright-cli/blob/main/skills/playwright-cli/SKILL.md) (Apache 2.0). Bundled for reference inside the Vorec record-tutorial plugin. See [../LICENSE_playwright-cli.txt](../LICENSE_playwright-cli.txt).
+
+## ⚠️ Headed vs headless — read this before opening a browser
+
+**`playwright-cli open` defaults to HEADLESS.** The browser window is invisible — the user will not see it and cannot interact.
+
+| Use case | Flag |
+|---|---|
+| User needs to see or interact (login, session capture, visual validation) | **`--headed`** (REQUIRED) |
+| Automated reconnaissance (snapshot + grep) | default (headless) is fine |
+| When in doubt during setup | **`--headed`** |
+
+```bash
+# WRONG — user can't see the browser to log in
+playwright-cli open https://vorec.ai/login
+
+# RIGHT — browser window is visible
+playwright-cli open --headed https://vorec.ai/login
+```
+
+If you open for a user-interactive flow without `--headed`, the user will ask "I don't see anything". Don't make them.
 
 ## Install / verify
 
@@ -95,7 +115,7 @@ playwright-cli mousewheel 0 100     # scroll down by 100px
 ### Viewport
 
 ```bash
-playwright-cli resize 1920 1080     # ALWAYS use 1920x1080 for Vorec recordings
+playwright-cli resize 1600 1000     # Use 1600x1000 for Vorec manifest exploration
 ```
 
 ### Snapshots
@@ -184,6 +204,6 @@ playwright-cli delete-data
 
 ## Related files
 
-- [./cli-video.md](./cli-video.md) — Video recording quality (recordVideo → FFmpeg)
 - [./cli-running-code.md](./cli-running-code.md) — Running inline scripts for page exploration
-- [./cli-session.md](./cli-session.md) — Multi-session management (named sessions, close-all, kill-all)
+
+> `playwright-cli` is only used for **exploration** (discovering selectors on a page before writing the manifest). Actual recording is always done by the Vorec Recorder app via `npx @vorec/cli run vorec.json`.

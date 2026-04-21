@@ -74,4 +74,4 @@ Required before recording:
 "Record how to create a tournament in padelmake.com" is:
 - Mode: Explore
 - Type: `task_tutorial`
-- Priority: discover the tournament creation path, required fields, valid demo values, and final success state before writing the recording script.
+- Priority: discover the tournament creation path, required fields, valid demo values, and final success state before writing `vorec.json`.

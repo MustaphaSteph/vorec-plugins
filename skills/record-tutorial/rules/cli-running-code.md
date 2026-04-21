@@ -5,9 +5,9 @@ description: Running inline scripts via playwright-cli run-code for page explora
 
 # playwright-cli — Running Code
 
-`playwright-cli run-code` executes JavaScript inside the current browser session. Use it in **Explore mode** to inspect pages, test selectors, and discover elements before writing the recording script.
+`playwright-cli run-code` executes JavaScript inside the current browser session. Use it in **Explore mode** to inspect pages, test selectors, and discover elements before writing `vorec.json`.
 
-**Note:** The recording script itself is a standalone Node.js file (`vorec-script.mjs`) — NOT a `run-code` function. See [./vorec-script.md](./vorec-script.md).
+**Note:** Recording is done by the Vorec Recorder app via `npx @vorec/cli run vorec.json`. You do not write a recording script — you write a `vorec.json` manifest. See [../SKILL.md](../SKILL.md).
 
 ## Basic usage
 
@@ -80,4 +80,4 @@ import { chromium } from 'playwright';
 ## Related files
 
 - [./cli-commands.md](./cli-commands.md) — Core commands (open, click, snapshot)
-- [./vorec-script.md](./vorec-script.md) — Recording script template (standalone Node.js)
+- [../SKILL.md](../SKILL.md) — Manifest format + full recording workflow

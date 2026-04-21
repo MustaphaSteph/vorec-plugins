@@ -9,7 +9,7 @@ Use this mode when you have the project's source code in front of you. Read the 
 
 ## Deep-scan the codebase
 
-**This is your main advantage over Explore mode.** Before writing any vorec script, analyze the project.
+**This is your main advantage over Explore mode.** Before writing the `vorec.json` manifest, analyze the project.
 
 ### Project structure
 - Read `package.json` — framework, dependencies, scripts, dev server port
@@ -61,9 +61,9 @@ From this you know:
 - Valid password: `StrongPass2026!` (12 chars + upper + digit + special = Strong)
 - Unique email per run: use digits in local-part since Gmail strips dots and `+suffix`
 
-## Writing the vorec script
+## Writing the manifest
 
-Once you have the selectors and validation rules, write the vorec script using the canonical template from [./vorec-script.md](./vorec-script.md). Every selector comes from the source code — **no snapshots, no guessing**.
+Once you have the selectors and validation rules, write `vorec.json` — see the manifest section in [../SKILL.md](../SKILL.md). Every selector comes from the source code — **no snapshots, no guessing**.
 
 ### The big win
 - **Zero runtime exploration tokens** — no `playwright-cli snapshot` needed
@@ -88,8 +88,7 @@ If any of these are true, switch to [./explore.md](./explore.md):
 
 ## Both modes converge
 
-After your script is written, both Connected and Explore follow the same steps:
-- [./vorec-script.md](./vorec-script.md) — write the recording script
-- [./cursor-pack.md](./cursor-pack.md) — optional visible cursors
-- Run with `node vorec-script.mjs`
-- Upload to Vorec via `vorec run --skip-record` (see the upload stage in the main SKILL.md)
+After your manifest is written, Connected and Explore follow the same steps:
+1. Run `npx @vorec/cli run vorec.json`
+2. The Vorec Recorder app captures + uploads automatically
+3. CLI triggers analysis and prints the editor URL
