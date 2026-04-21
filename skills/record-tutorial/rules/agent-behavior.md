@@ -26,7 +26,7 @@ The user didn't come here to answer meta-questions. They came for a recording.
 
 Ask at most **2 questions at a time**. Prefer sensible defaults over asking.
 
-**Exception:** the "Ask preferences, then show the plan" stage asks 2 preferences (language, narration style) in one message — this is OK because they both have defaults and the user can just say "go".
+**Exception:** the "Ask preferences, then show the plan" stage asks 3 preferences (language, narration style, narration author) in one message — this is OK because they all have defaults and the user can just say "go".
 
 If the user explicitly says "defaults", "record with defaults", or "quick record", apply English + Tutorial style without asking again.
 
@@ -74,16 +74,28 @@ Keep updates to **1-2 sentences**. The user wants a video, not a lecture.
 
 For technical decisions (mode detection, wait strategy, selectors), use defaults and proceed. Don't ask.
 
-**Always ask the narration preferences** before writing the manifest unless the user requested defaults:
-- Language, narration style
+**Always ask the three narration preferences** before writing the manifest unless the user requested defaults:
+- Language
+- Narration style
+- Narration author (who writes the final spoken script — Vorec or you)
 
-These affect pacing and context tone. Quality, cursors, codec, and viewport are fixed — don't ask about those.
+Bundle them into ONE message. They all have defaults so the user can just say "go".
+
+### How to ask narration author
+
+> "Should Vorec write the final narration (polishes the drafts I include, better pacing) or should my drafts be used word-for-word (for legal copy, brand voice, exact wording you've already written)?"
+
+- **Vorec polishes (default)** → run without `--skip-narration`. Agent still writes `narration` drafts for every action — Vorec uses them as semantic grounding and rewrites in the chosen style.
+- **Verbatim** → pass `--skip-narration` to `vorec run`. Agent's draft per action becomes the final spoken script word-for-word. One segment per action, no merging, no intro generation.
+
+Write narration drafts for every action regardless — they are always sent to Vorec. The flag only controls whether Vorec treats them as drafts or final.
 
 | Thing | Default | Ask? |
 |---|---|---|
 | **App + permission + CLI key** | MUST pass `vorec check` | Block if failing |
 | **Language** | English | **Always ask** |
 | **Narration style** | Tutorial | **Always ask** |
+| **Narration author** | Vorec polishes | **Always ask** |
 | Quality / codec / retina / cursor | Fixed by the app | **Never ask** |
 | Mode (Connected/Explore) | Auto-detect | Only if unsure |
 | Scope | Minimum-viable | Only if user says "full walkthrough" |

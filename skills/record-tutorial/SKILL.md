@@ -154,56 +154,83 @@ Create `vorec.json` in the repo. This is the script the CLI runs.
 
 ### How narration actually works
 
-Vorec **always** receives the full JSON — including your `narration` and `pause`. The `--skip-narration` flag on `vorec run` only controls whether Vorec polishes your draft or uses it verbatim:
+Vorec **always** receives the full JSON — including your `narration` and `pause`. The `--skip-narration` flag on `vorec run` only controls whether Vorec polishes your draft or uses it verbatim. **Ask the user upfront which mode they want** (see the third preference in [./rules/agent-behavior.md](./rules/agent-behavior.md)):
 
-| `--skip-narration` | Result |
-|---|---|
-| omitted (default) | Vorec regenerates narration using your draft + context as grounding. Polished for pacing/tone, semantically faithful to what you wrote. |
-| passed | Your `narration` becomes the final spoken script verbatim. Use for legal copy, brand voice, translations. |
+| `--skip-narration` | When to pass it | Result |
+|---|---|---|
+| omitted (default) | User picked "Vorec polishes" | Vorec regenerates narration using your draft + context as grounding. Polished for pacing/tone, semantically faithful to what you wrote. |
+| passed | User picked "verbatim" (legal copy, brand voice, exact wording) | Your `narration` becomes the final spoken script verbatim. One segment per action, no merging, no intro. |
 
-**So write narration drafts for every action.** They're never wasted — they ground Vorec even when being rewritten.
+**Write narration drafts for every action regardless of mode.** They're never wasted — they ground Vorec even when being rewritten. The mode flag only decides how Vorec treats the drafts.
 
 Full action reference: [./rules/actions.md](./rules/actions.md).
 Narration guidance: [./rules/narration-rules.md](./rules/narration-rules.md) and [./rules/narration-styles.md](./rules/narration-styles.md).
 Writing good `context`: [./rules/context-writing.md](./rules/context-writing.md).
 
-## Step 2: Record + analyze
+## Step 2: Record (no upload yet)
 
 ```bash
 npx @vorec/cli run vorec.json
 ```
 
-One command, end-to-end. What happens:
+What happens:
 1. CLI confirms the app is ready (otherwise aborts with a clear error).
 2. Chromium launches at a fixed position so page coords map to screen coords.
 3. CLI tells the app to record the Chromium window (native 2× retina H.264).
-4. For each action: the Playwright action fires; coordinates are tracked live.
-5. On stop: the app uploads the video to Vorec and returns the project ID.
-6. CLI triggers narration analysis and polls until the editor is ready.
-7. Final editor URL prints — `https://vorec.ai/editor?project=<id>`.
+4. For each action: Playwright fires the action, cursor path is tracked between targets.
+5. On stop: the app finalizes the MP4 at `~/Movies/Vorec/recording-<ts>.mp4`.
+6. CLI writes a session sidecar `recording-<ts>.vorec.json` next to the MP4 with the manifest meta + tracked actions + cursor track.
+7. **No upload. No credits spent.** CLI prints the local MP4 path and exits.
 
 **Recording quality is fixed: 2× retina, 30 fps, H.264. Do not ask the user about quality, dpr, codec, or cursor styling — those aren't configurable.**
 
-**Narration cost:** duration-based. Short (≤3min) = 8 credits, 3–8min = 15, 8–15min = 25, 15–30min = 45.
-
 ### Verbatim narration mode
 
-If you want your `narration` drafts used word-for-word (no Gemini rewrite):
+If you want your `narration` drafts used word-for-word (no Gemini rewrite), pass `--skip-narration` during `vorec run`. It's recorded in the sidecar and honored by the later `vorec analyze` call:
 
 ```bash
 npx @vorec/cli run vorec.json --skip-narration
 ```
 
-Same cost. Same pipeline. Only difference: Vorec echoes each action's `narration` field as the final spoken script, one segment per action. Use for legal copy, brand voice, or when you've already written the exact lines you want spoken.
+## Step 3: Show the MP4 to the user and wait for approval
 
-## Step 3: Report
+This is the critical gate. The recording is local-only — nothing has been sent to Vorec yet and no credits are spent. The user must confirm the recording looks right before you proceed.
 
-Print only the final editor URL once the command returns. No essays.
+After `vorec run` exits, the CLI prints a line like:
 
-If the recording is broken and the user wants to discard:
-- Delete the project in the Vorec Recorder app → Library (swipe-delete or Discard)
-- Or programmatically: `DELETE http://127.0.0.1:47123/recordings/<id>` with the bridge token
-- Then fix the manifest and re-run.
+```
+Local MP4: /Users/you/Movies/Vorec/recording-1776774835.mp4
+```
+
+Open it for them:
+
+```bash
+open /Users/you/Movies/Vorec/recording-1776774835.mp4
+```
+
+Then ask plainly, e.g.: *"Recording saved. Does the video look right? Say 'yes' to generate narration (costs ~10 credits), or 'no' and I'll discard and re-run."*
+
+**Do not proceed until the user explicitly approves.** If they reject, discard the recording from the Vorec Recorder app → Library and re-run from Step 2.
+
+## Step 4: On approval, upload + analyze
+
+```bash
+npx @vorec/cli analyze "/Users/you/Movies/Vorec/recording-1776774835.mp4"
+```
+
+What happens:
+1. CLI reads the `.vorec.json` sidecar next to the MP4 (title, language, style, actions, cursor track).
+2. Calls `create-project` with the tracked actions + cursor track.
+3. Uploads the MP4 to Vorec storage.
+4. Calls `confirm-upload` (duration, dimensions, thumbnail).
+5. Triggers narration generation.
+6. Polls until the editor URL is ready and prints it.
+
+**Narration cost:** duration-based. Short (≤3min) = 8 credits, 3–8min = 15, 8–15min = 25, 15–30min = 45.
+
+## Step 5: Report
+
+Print only the final editor URL once analysis is done. No essays.
 
 If the user wants to tweak narration later, point them to `vorec update-narration` (below).
 
