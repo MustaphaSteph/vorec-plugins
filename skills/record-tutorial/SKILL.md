@@ -101,6 +101,57 @@ Run `brew install cliclick`. Without it, the mouse cursor is not visible in the 
 
 The CLI needs a Vorec API key for analysis steps. Save once: `npx @vorec/cli init` (the skill's rule files cover this — see [./rules/auth.md](./rules/auth.md)).
 
+## Step 0.75: ⚠️ MANDATORY dry-run discovery — DO NOT SKIP
+
+**You MUST walk the flow end-to-end with `playwright-cli` BEFORE writing a single line of manifest.** This is not optional. Every failure the user has ever had came from skipping this step.
+
+Writing a manifest without doing discovery first = you're guessing at selectors, guessing at validation rules, guessing at success states, guessing at which buttons exist. Every guess becomes a broken action during recording. Broken actions = wasted credits + frustrated user + re-do.
+
+### What "discovery" means concretely
+
+For **every action** you plan to put in the manifest, you must:
+
+1. **Open the page** with `playwright-cli open --headed <url>` (or navigate there via clicks).
+2. **Take a snapshot** — `playwright-cli --raw snapshot` — and find the real element by its accessibility role/name.
+3. **Click it** via `playwright-cli click <ref>` and observe what actually happens in the next snapshot.
+4. **Document the resolved selector** + what the UI did in response (modal opened, page navigated, form expanded, etc.).
+5. **Verify validation / error states** if the action is a form submit.
+6. **Capture the terminal success state** — what does the last page look like when the flow completes?
+
+Do this for **every single click** in the proposed flow. Not just the risky ones. Every one.
+
+### Why this is non-negotiable
+
+- You **cannot** predict selectors from a URL or a product name. You cannot "guess" that "Add conditions" is a button when it's actually a dropdown. Snapshots tell you.
+- You **cannot** predict which fields are required, what validation rules fire, or what error text appears without actually typing into them and submitting.
+- You **cannot** predict multi-step flows ("click X → then Y appears → then click Z") without clicking X and seeing what renders.
+- The app records 2× retina native H.264 — if your manifest clicks the wrong thing on take one, there is no "fix in post."
+
+### The discovery report you show the user
+
+After the dry-run, before writing the manifest, print:
+
+> **Dry-run complete. Here's what I verified:**
+> 1. `<action 1 description>` → resolved to `<real selector>`; clicking it opened `<what actually rendered>`.
+> 2. `<action 2 description>` → resolved to `<real selector>`; typing caused `<observed behavior>`.
+> 3. … (one line per verified action)
+>
+> Ready to write the manifest? (yes, or adjust)
+
+Only after the user confirms the discovery findings do you proceed to Step 1.
+
+### Exceptions — when you can skip parts of discovery
+
+**NONE for Explore mode** (third-party sites, Shopify Admin apps, any URL where you don't have source code). Full dry-run is mandatory.
+
+**Connected mode only**: if you have the source code AND the components are small AND you can read the full form logic in the source (field names, validation schema, success redirect URL), you can skip clicking through and rely on the code. You still need to document what you found and show the user the report — just sourced from code instead of playwright-cli. If ANY part of the flow isn't fully visible in the code (API response handling, dynamic UI, cross-origin iframes), fall back to live dry-run.
+
+### Load the rule file
+
+Full dry-run protocol: load [./rules/explore.md](./rules/explore.md) for Explore/Shopify-Admin flows, [./rules/connected.md](./rules/connected.md) for codebase-driven flows.
+
+**If you catch yourself writing selectors you haven't verified with a snapshot or source read, STOP and go do the discovery first.**
+
 ## Step 1: Create a project folder + write the manifest
 
 Every recording gets its own folder under `.vorec/` so multiple recordings in the same repo don't overwrite each other. Pick a short slug from the tutorial title.
