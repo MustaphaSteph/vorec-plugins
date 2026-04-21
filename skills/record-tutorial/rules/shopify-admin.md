@@ -58,19 +58,19 @@ This is the official Google-supported path — see Google's [WebView OAuth remed
 
 ## Rule 3 — Use a dedicated Vorec Chrome profile
 
-Do not try to reuse the user's default Chrome cookies. Chrome OS-encrypts them, and copying them is fragile + breaks Shopify's auth assumptions. Use a persistent profile the user logs into **once**:
+Do not try to reuse the user's default Chrome cookies. Chrome OS-encrypts them, and copying them is fragile + breaks Shopify's auth assumptions. Use a persistent profile the user logs into **once**.
 
-```js
-import { chromium } from 'playwright';
+The CLI supports this directly via `--profile`:
 
-const profileDir = `${process.env.HOME}/Library/Application Support/Vorec/Profiles/shopify-dev`;
+```bash
+# First run — user logs into Shopify (and Google if needed) in the opened window
+npx @vorec/cli run vorec.json --profile ~/Library/Application\ Support/Vorec/Profiles/shopify-dev
 
-const context = await chromium.launchPersistentContext(profileDir, {
-  channel: 'chrome',     // real Chrome, not Chromium — Google OAuth is friendlier to it
-  headless: false,
-  viewport: null,        // let the real window size through so SCK captures cleanly
-});
+# Subsequent runs — profile is reused, no login needed
+npx @vorec/cli run vorec.json --profile ~/Library/Application\ Support/Vorec/Profiles/shopify-dev
 ```
+
+When `--profile` is passed, the CLI switches to `launchPersistentContext` with `channel: 'chrome'` (real Chrome, friendlier to Google OAuth than bundled Chromium).
 
 This preserves:
 - Shopify session cookies
