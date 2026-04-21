@@ -148,7 +148,7 @@ Full action reference: [./rules/actions.md](./rules/actions.md).
 Narration guidance: [./rules/narration-rules.md](./rules/narration-rules.md) and [./rules/narration-styles.md](./rules/narration-styles.md).
 Writing good `context`: [./rules/context-writing.md](./rules/context-writing.md).
 
-## Step 2: Run
+## Step 2: Record
 
 ```bash
 npx @vorec/cli run vorec.json
@@ -160,14 +160,57 @@ What happens:
 3. CLI tells the app to record the Chromium window (native 2× retina H.264).
 4. For each action: the real OS cursor glides onto the target, then the Playwright action fires. Cursor moves are captured live.
 5. On stop: the app uploads the video to Vorec and returns the project ID.
-6. CLI triggers analysis; polls until narration segments exist.
-7. Prints the editor URL.
+6. CLI **stops here**. No narration is generated yet (that costs credits — save it for a recording the user has approved).
 
 **Recording quality is fixed: 2× retina, 30 fps, H.264. Do not ask the user about quality, dpr, codec, or cursor styling — those aren't configurable.**
 
-## Step 3: Report
+## Step 3: Show the user the raw recording and wait for approval
 
-Print only the editor URL. No essays. If the user wants to tweak narration, point them to `vorec update-narration` (below).
+This is the hand-off that prevents spending credits on broken recordings. After `vorec run` completes, the CLI prints two things:
+- **Local MP4**: `~/Movies/Vorec/recording-<timestamp>.mp4` — playable in QuickTime, fastest way to review
+- **Preview URL**: `https://vorec.ai/editor?project=<id>` — streams the uploaded video in the Vorec editor (no narration yet)
+
+Show **both** to the user. Example message:
+
+> "Recording done. The raw MP4 is at `~/Movies/Vorec/recording-1776772264.mp4` (open with QuickTime) and also previewable at `https://vorec.ai/editor?project=abc`. Does it look right? Type 'yes' to generate narration (10 credits), or 'no' to discard and retry."
+
+Open the MP4 for the user automatically if your environment allows it (`open ~/Movies/Vorec/recording-<ts>.mp4` on macOS). Don't proceed until the user confirms.
+
+## Step 4: On approval, generate narration
+
+Once the user says yes:
+
+```bash
+npx @vorec/cli analyze <projectId>
+```
+
+This triggers `generate-video`, polls until segments exist, and prints the final editor URL (now with narration + click markers + auto-zoom).
+
+If the user says the recording is broken:
+- Delete the project in the Vorec Recorder app → Library (swipe-delete or Discard)
+- Or programmatically: `DELETE http://127.0.0.1:47123/recordings/<id>` with the bridge token
+- Then fix the manifest and re-run from Step 2
+
+## Step 5: Report
+
+Print only the final editor URL once analysis is done. No essays.
+
+### Skipping review (advanced)
+
+If you **truly** trust the manifest and want a one-shot flow (agent runs, video uploads, narration generates, done), pass `--analyze` to `vorec run`:
+
+```bash
+npx @vorec/cli run vorec.json --analyze
+```
+
+Only use this when:
+- You've already done a dry-run with `playwright-cli` and verified every selector works
+- The recording is short (< 1 minute) so a bad one wastes minimal credits
+- The user explicitly said "just record it, don't ask me"
+
+Default behavior (no `--analyze`) is safer and matches the old workflow that saved countless credits on broken recordings.
+
+If the user wants to tweak narration later, point them to `vorec update-narration` (below).
 
 ## Updating narration on an existing project
 
