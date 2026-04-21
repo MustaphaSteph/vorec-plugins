@@ -56,7 +56,7 @@ Before anything else, load [./rules/agent-behavior.md](./rules/agent-behavior.md
 **Auto-detect — don't ask the user unless you're unsure:**
 
 - Project has `shopify.app.toml` OR URL is `admin.shopify.com/...` → **Shopify Admin mode** (load [./rules/shopify-admin.md](./rules/shopify-admin.md))
-- User mentions an external URL (padelmake.com, stripe.com, etc.) → **Explore mode**
+- User mentions an external URL (any third-party site — SaaS dashboards, landing pages, competitor products) → **Explore mode**
 - User mentions their own project and you can see the codebase → **Connected mode**
 - Not sure → ask ONE question.
 
@@ -107,20 +107,24 @@ Create `vorec.json` in the repo. This is the script the CLI runs.
 
 ```json
 {
-  "title": "Create a tournament on Padelmake",
-  "url": "https://padelmake.com",
+  "title": "<short tutorial title — what the user wants to learn>",
+  "url": "<the URL to start on>",
   "viewport": { "width": 1600, "height": 1000 },
   "language": "en",
   "narrationStyle": "tutorial",
   "storageState": ".vorec/storageState.json",
   "actions": [
-    { "type": "narrate", "delay": 4000, "description": "Dashboard overview", "context": "The dashboard organizes tournaments by status." },
-    { "type": "click", "selector": "text=New tournament", "description": "Open create dialog", "context": "A modal appears with format choices." },
-    { "type": "type", "selector": "input[name=name]", "text": "Friday night Americano", "description": "Enter tournament name" },
-    { "type": "click", "selector": "button:has-text('Create')", "description": "Save and open tournament", "context": "We land on the tournament page with an empty bracket." }
+    { "type": "narrate", "delay": 4000, "description": "<orienting scene label>", "context": "<what the user is looking at right now>" },
+    { "type": "click", "selector": "<selector>", "description": "<what this click does>", "context": "<what changes on screen>" },
+    { "type": "type", "selector": "<input selector>", "text": "<value>", "description": "<what is being entered>" },
+    { "type": "click", "selector": "<submit selector>", "description": "<end-state trigger>", "context": "<what the user now sees>" }
   ]
 }
 ```
+
+**Optional top-level fields that matter for specific surfaces:**
+- `"recordFrame": "<iframe css selector>"` — auto-crops the MP4 to just that iframe's pixels. Works for any embedded app: Shopify Admin (`iframe[src*='myshopify']`), Stripe Checkout, Salesforce Lightning, Intercom, YouTube embeds — anywhere the target UI lives inside a cross-origin `<iframe>` and the host chrome shouldn't end up in the tutorial.
+- `"viewport": "full"` — maximize the browser window instead of a fixed size.
 
 **Action types:** `click` · `type` · `select` · `hover` · `scroll` · `wait` · `navigate` · `narrate`.
 

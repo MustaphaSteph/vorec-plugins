@@ -1,83 +1,72 @@
 {
-  "url": "https://padelmake.com",
+  "url": "https://example.com",
   "recording_type": "task_tutorial",
-  "goal": "Create an Americano tournament",
+  "goal": "<one-line description of what the user wants to demonstrate>",
   "auth": {
     "required": false,
-    "evidence": "The dry-run reached the tournament creation form without a login redirect."
+    "evidence": "The dry-run reached the target form without a login redirect."
   },
   "pages": [
     {
-      "url": "https://padelmake.com",
+      "url": "https://example.com",
       "purpose": "Landing page entry point",
-      "headings": ["PadelMake", "Create Padel Tournaments"],
+      "headings": ["<H1 text>", "<key subheading>"],
       "actions": [
         {
-          "label": "Create tournament",
+          "label": "<primary CTA label>",
           "role": "link",
-          "selector": "page.getByRole('link', { name: /create tournament/i })",
-          "result": "Navigates to the tournament format selection page",
+          "selector": "page.getByRole('link', { name: /<pattern>/i })",
+          "result": "<what happens when clicked>",
           "primary": true
         }
       ],
       "fields": [],
       "buttons": [],
-      "risks": ["Cookie banner can block the first CTA"]
+      "risks": ["<e.g. Cookie banner can block the first CTA>"]
     },
     {
-      "url": "https://padelmake.com/create",
-      "purpose": "Tournament setup",
-      "headings": ["Choose tournament type", "Tournament details"],
+      "url": "https://example.com/<next-page>",
+      "purpose": "<purpose of this page in the flow>",
+      "headings": ["<H1>", "<H2>"],
       "actions": [
         {
-          "label": "Americano",
+          "label": "<action label>",
           "role": "button",
-          "selector": "page.getByRole('button', { name: /americano/i })",
-          "result": "Selects Americano as the tournament format",
+          "selector": "page.getByRole('button', { name: /<pattern>/i })",
+          "result": "<observed result>",
           "primary": true
         }
       ],
       "fields": [
         {
-          "label": "Tournament name",
-          "selector": "page.getByLabel(/tournament name/i)",
+          "label": "<field label from DOM>",
+          "selector": "page.getByLabel(/<pattern>/i)",
           "required": true,
           "type": "text",
-          "placeholder": "Summer Open",
-          "valid_demo_value": "Spring Americano Demo",
-          "validation_errors": ["Tournament name is required"],
-          "evidence": "Empty submit displayed a required-field message during dry-run."
-        },
-        {
-          "label": "Number of players",
-          "selector": "page.getByLabel(/players/i)",
-          "required": true,
-          "type": "number",
-          "min": 4,
-          "max": 32,
-          "valid_demo_value": "8",
-          "validation_errors": ["Minimum 4 players required"],
-          "evidence": "The button stayed disabled until at least four players were configured."
+          "placeholder": "<observed placeholder>",
+          "valid_demo_value": "<value that passes validation>",
+          "validation_errors": ["<exact error text you saw>"],
+          "evidence": "<what you did that surfaced the error>"
         }
       ],
       "buttons": [
         {
-          "label": "Create tournament",
-          "selector": "page.getByRole('button', { name: /create tournament/i })",
+          "label": "<submit button text>",
+          "selector": "page.getByRole('button', { name: /<pattern>/i })",
           "initial_state": "disabled",
-          "enabled_when": ["Tournament type selected", "Tournament name filled", "Players >= 4"],
+          "enabled_when": ["<precondition 1>", "<precondition 2>"],
           "primary": true
         }
       ],
       "success_state": {
-        "selector": "page.getByText(/tournament created|dashboard/i)",
-        "evidence": "A success message appears and the tournament dashboard opens."
+        "selector": "page.getByText(/<success text or URL pattern>/i)",
+        "evidence": "<what appeared after a valid submission>"
       },
-      "risks": ["Create may publish a real event if the user is logged into a production account"]
+      "risks": ["<anything that could publish, charge, email, etc. for real>"]
     }
   ],
-  "blockers": ["Cookie banner can block the first CTA"],
-  "sensitive_actions": ["Creating a tournament may publish or save a real event"],
+  "blockers": ["<e.g. Cookie banner blocks first CTA>"],
+  "sensitive_actions": ["<anything that must not run against production data>"],
   "readiness": {
     "entry_action_known": true,
     "required_fields_known": true,

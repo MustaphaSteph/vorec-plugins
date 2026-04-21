@@ -69,9 +69,12 @@ Required before recording:
 - Friction points
 - Stop conditions for auth, payment, or destructive actions
 
-## PadelMake Example
+## Examples (for each recording type)
 
-"Record how to create a tournament in padelmake.com" is:
-- Mode: Explore
-- Type: `task_tutorial`
-- Priority: discover the tournament creation path, required fields, valid demo values, and final success state before writing `vorec.json`.
+| User says | Mode | Type | Priority |
+|---|---|---|---|
+| "Record how to sign up on acme.com" | Explore | `task_tutorial` | Find signup form, valid inputs, success page |
+| "Record my dashboard so I can show investors" | Connected (codebase) or Explore (hosted) | `website_tour` | 3–5 meaningful sections, purposeful scrolling |
+| "Record the bug where the cart doubles when I refresh" | Connected or Explore | `bug_reproduction` | Exact steps, visible error, preserve the glitch |
+| "Review stripe.com's pricing page vs ours" | Explore | `ux_review` | Friction points, no account-changing actions |
+| "Show how to create a product in our Shopify app" | Explore | `task_tutorial` + `recordFrame` iframe crop | Open through admin.shopify.com, crop recording to the app iframe |

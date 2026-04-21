@@ -84,9 +84,40 @@ This preserves:
 
 If the profile dir doesn't exist yet, create it and let the user log in. Don't skip the login step silently.
 
-## Rule 4 — Interact with the embedded app via the iframe
+## Rule 4 — Crop the recording to the embedded app iframe
 
-The Shopify Admin page is the outer shell. Your app renders inside an iframe. The CLI handles this natively as of **@vorec/cli@2.7.0** — every manifest action accepts an optional `"frame"` field:
+The Shopify Admin shell (sidebar, top nav, tabs, browser chrome) is visible during recording but almost never belongs in the final tutorial video — users want to see the *app*, not Shopify's surrounding UI. As of **@vorec/cli@2.8.0** the manifest has a top-level `recordFrame` field:
+
+```json
+{
+  "title": "<your tutorial title>",
+  "url": "https://admin.shopify.com/store/<store>/apps/<app-handle>",
+  "recordFrame": "iframe[src*='myshopify']",
+  "actions": [ ... ]
+}
+```
+
+When set, the CLI resolves that iframe's bounds right before recording starts and sends a `cropRect` to the Vorec Recorder app. ScreenCaptureKit still captures the full window (so cursor tracking, OS cursor visibility, and zoom anchoring all work naturally), but the MP4 that lands in the user's library contains **only the iframe pixels** — no Shopify chrome, no browser toolbar.
+
+**Typical Shopify manifest skeleton (placeholders in angle brackets):**
+```json
+{
+  "title": "<what the user is recording>",
+  "url": "https://admin.shopify.com/store/<store>/apps/<app-handle>",
+  "recordFrame": "iframe[src*='myshopify']",
+  "viewport": "full",
+  "actions": [
+    { "type": "narrate", "delay": 3000, "description": "<scene label>", "context": "<scene description>" },
+    { "type": "click", "selector": "<selector>", "frame": "iframe[src*='myshopify']", "description": "<what this does>" }
+  ]
+}
+```
+
+Notice: `recordFrame` crops the video, `frame` on an individual action scopes the selector resolution. They can use the same selector string.
+
+## Rule 5 — Interact with the embedded app via the iframe
+
+Every manifest action accepts an optional `"frame"` field:
 
 ```json
 {
