@@ -86,7 +86,25 @@ If the profile dir doesn't exist yet, create it and let the user log in. Don't s
 
 ## Rule 4 — Interact with the embedded app via the iframe
 
-The Shopify Admin page is the outer shell. Your app renders inside an iframe. Playwright needs to target that frame:
+The Shopify Admin page is the outer shell. Your app renders inside an iframe. The CLI handles this natively as of **@vorec/cli@2.7.0** — every manifest action accepts an optional `"frame"` field:
+
+```json
+{
+  "type": "click",
+  "selector": "text=Create product",
+  "frame": "iframe[src*='myshopify']",
+  "description": "Open product creation form"
+}
+```
+
+The `frame` hint is matched against:
+1. Any iframe whose URL contains the string
+2. Any iframe whose `name` attribute equals the string
+3. Any element matching it as a CSS selector on the parent page (e.g. `iframe[name='app-iframe']`)
+
+If you **omit** `frame`, the CLI auto-falls-back: main frame first (2.5s timeout), then every sub-frame. That covers most simple pages, but embedded apps are reliably faster with an explicit hint.
+
+Under the hood the CLI uses Playwright's frame API directly (the template below is for reference if you need Playwright outside the CLI):
 
 ```js
 // Most Shopify embedded apps expose a frame whose URL contains the app's tunnel host
