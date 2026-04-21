@@ -140,9 +140,28 @@ Create `vorec.json` in the repo. This is the script the CLI runs.
 
 **Action types:** `click` · `type` · `select` · `hover` · `scroll` · `wait` · `navigate` · `narrate`.
 
-- `description` = short timeline label (shown in the editor).
-- `context` = rich scene description for AI narration (1–3 sentences).
+**Every action carries these four text-ish fields — always write all four:**
+
+| Field | Purpose | Length |
+|---|---|---|
+| `description` | Timeline label shown in the editor | 5–10 words |
+| `context` | Rich scene description (what's on screen, why it matters) — used by Vorec to ground narration generation | 1–3 sentences |
+| `narration` | Draft of the spoken script for this moment — always included in the JSON Vorec receives; becomes final verbatim if `skipNarration: true`, otherwise Vorec polishes it | 1 spoken line |
+| `pause` | Hold time in ms the narration has to be spoken in. Formula: `wordCount × 350 + 500` | integer |
+
 - `narrate` = no interaction, just a pause with a scene description.
+- `primary: true` on exactly ONE action per page = "this is the key click, zoom on it, gold-star it in the timeline".
+
+### How narration actually works
+
+Vorec **always** receives the full JSON — including your `narration` and `pause`. The `skipNarration` flag on `vorec analyze` (or `vorec run --analyze`) only controls whether Vorec polishes your draft or uses it verbatim:
+
+| `skipNarration` | Result |
+|---|---|
+| `false` (default) | Vorec regenerates narration using your draft + context as grounding. Polished for pacing/tone, semantically faithful to what you wrote. |
+| `true` | Your `narration` becomes the final spoken script verbatim. Use for legal copy, brand voice, translations. |
+
+**So write narration drafts for every action.** They're never wasted — they ground Vorec even when being rewritten.
 
 Full action reference: [./rules/actions.md](./rules/actions.md).
 Narration guidance: [./rules/narration-rules.md](./rules/narration-rules.md) and [./rules/narration-styles.md](./rules/narration-styles.md).
