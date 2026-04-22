@@ -7,36 +7,23 @@ description: The exact narration rules Vorec AI uses — agent must follow these
 
 These are the EXACT rules Vorec's AI follows when generating voice-over. When you write the `narration` field on each tracked action, follow these rules. Then Vorec's AI validates your narration matches the chosen style and uses it as the final script.
 
-## CRITICAL — Never narrate the specific values you typed or picked
+## Write like a friend, not a spec
 
-The demo data you filled into forms is **example data you invented**. The viewer is a different person with different data. If your narration quotes the values, you are telling the viewer to copy your examples — which is wrong.
+The narration explains the CONCEPT — not the exact literal input. Specific values the user types (names, emails, titles, IDs) are just examples for the recording. Never parrot them in the script.
 
-Don't — quotes the demo values as if they were real instructions:
-```
-"Profile popup — change the nickname to Elena. Click Female for her gender, then save."
-```
-Problems:
-- "Elena" is a name the agent made up. The viewer is not Elena.
-- "Female" was one option in a gender selector. The viewer's choice may differ.
-- "to her gender" frames the user — wrong assumption.
+Don't: "Type 'Padel Night Tournament' in the name field and click Next."
+Do:    "Give your session a name, then hit Next."
 
-Do — narrate the PURPOSE of each field, let the viewer supply their own values:
-```
-"The profile dialog opens — pick a nickname and select your gender, then save."
-```
+Don't: "Click Female to set Elena's gender, then save."
+Do:    "Pick your gender, then save."
 
-Apply this to EVERY field and EVERY choice you interact with during recording:
+Don't: "Types sarah@gmail.com into the email field."
+Do:    "Enter your email."
 
-| What you did | Don't narrate | Do narrate |
-|-------------|--------------|-----------|
-| Typed "sarah@gmail.com" into email | "Types sarah@gmail.com" | "Enter your email" |
-| Typed "Q4 Marketing" into project name | "Names it Q4 Marketing" | "Give the project a name" |
-| Clicked "Pro plan" radio | "Pick Pro plan" → (still OK, Pro is a real option the user chooses) | "Pick the plan that fits you — Pro unlocks X" |
-| Clicked "Female" in a gender dropdown | "Pick Female" | "Select your gender" |
-| Picked "USD" currency | "Use USD" | "Choose your currency" |
-| Uploaded a specific photo | "Upload this photo" | "Upload a photo for your profile" |
+Don't: "Names the project Q4 Marketing."
+Do:    "Give the project a name."
 
-Rule: if the value is **something the user would fill in with their own answer**, narrate the PURPOSE. If the value is **a feature/plan/mode the user genuinely picks and the choice drives the tutorial forward**, mention the option but frame it as "pick the X that fits" not "use this one".
+Rule: if the value is **something the viewer would answer with their own data** (name, email, title, gender, photo, currency), narrate the PURPOSE of the field. If the value is **a feature/plan/mode where the choice drives the tutorial** (Pro vs Free, Dark vs Light), mention the option but frame it as "pick the X that fits" not "use this one".
 
 ## Plan segments first, distribute actions under them
 
