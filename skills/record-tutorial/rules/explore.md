@@ -22,13 +22,13 @@ During the dry-run, document for each step:
 - **Gotchas** — disabled buttons, rate limits, rapid-click blocks, timing issues
 - **State carryover** — what gets saved to session/local storage between steps
 
-**Save this as `.vorec/<slug>/flow-notes.md`** — you'll reference it while writing `vorec.json`.
+**Keep these findings in your conversation context** — you'll reference them when writing `vorec.json` in the same session. Do NOT write them to disk: nothing automated reads them and serializing costs tokens without benefit.
 
 **If you hit a validation error during the dry-run, fix it THERE** — find the valid input, find the missing step, find the required field. Don't leave it for the recording.
 
 **Don't skip the dry-run** even if the flow seems obvious. "Obvious" flows still have surprises: hidden tooltips that block clicks, toggle buttons that need a second click, validation on blur, dialogs that appear only on first visit.
 
-For live external websites, also load [./live-site-discovery.md](./live-site-discovery.md) and save `.vorec/<slug>/live-site-map.json`. The `vorec.json` should be based on that map, not memory or guesses.
+For live external websites, also load [./live-site-discovery.md](./live-site-discovery.md) for the safety checklist (blockers, sensitive actions). The `vorec.json` you produce must be based on verified discovery, not guesses.
 
 
 ## When to use Explore mode

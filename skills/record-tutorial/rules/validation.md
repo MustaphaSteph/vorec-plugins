@@ -25,7 +25,7 @@ Read frontend AND backend code to understand:
 
 ## Error recovery during dry-run
 
-When an action produces a visible error during exploration or dry-run, fix it there and update `flow-notes.md`. The final recording should replay the known-good path. Only include an error-and-fix sequence in the final video if the user explicitly asked for a troubleshooting tutorial.
+When an action produces a visible error during exploration or dry-run, fix it there (find the valid input, correct the selector, add the missing step) and remember the fix for when you write `vorec.json`. The final recording should replay the known-good path. Only include an error-and-fix sequence in the final video if the user explicitly asked for a troubleshooting tutorial.
 
 ```javascript
 await actionElement.click();

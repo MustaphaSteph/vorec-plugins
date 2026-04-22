@@ -1,23 +1,19 @@
 ---
 name: live-site-discovery
-description: How to build a live-site map for unknown websites before recording
+description: Safety + thoroughness checklist for discovering an unknown live website before recording
 ---
 
 # Live Site Discovery
 
-Use this for Explore mode on external websites. The agent has no source code, so it must build a map from the live page before recording.
+Use this for Explore mode on external websites. The agent has no source code, so it must discover the page at runtime before recording — but it must do so **safely** (no real-world side effects) and **thoroughly** (no surprises during recording).
+
+**All discovery findings stay in your conversation context.** Do NOT write `live-site-map.json`, `flow-notes.md`, or any other discovery file. The CLI, backend, and app never read them — serializing wastes tokens.
 
 ## Core Rule
 
-Do not write `vorec.json` for a live website task until `.vorec/<slug>/live-site-map.json` proves:
-- The entry action is known
-- Required fields are known or explicitly marked unknown
-- Valid demo values are known for every field the script fills
-- Primary buttons are known
-- Success state is known
-- Blockers and sensitive actions are reviewed
+Do not write `vorec.json` for a live website task until you can truthfully answer YES to every readiness question in the "Pre-Recording Gate" below. You don't write the checklist to a file — you mentally satisfy each item, then include the summary in the discovery report you show the user.
 
-The agent should not "understand" an unknown site from memory. It should inspect the page tree, DOM, validation attributes, screenshots, and dry-run results.
+The agent should not "understand" an unknown site from memory. It must inspect the page tree, DOM, validation attributes, and dry-run results.
 
 ## What the Agent Can Inspect
 
@@ -26,9 +22,11 @@ The agent should not "understand" an unknown site from memory. It should inspect
 Use first. It reveals the semantic page tree: headings, buttons, links, inputs, labels, dialogs, tabs, and disabled states.
 
 ```bash
-playwright-cli --raw snapshot > .vorec/<slug>/snapshot-home.txt
+playwright-cli --raw snapshot
 playwright-cli --raw snapshot | grep -iE "create|tournament|start|next|submit|save|player|court|round"
 ```
+
+Pipe to `grep` when you're looking for specific elements — don't save the whole snapshot to disk.
 
 ### DOM Field Inventory
 
@@ -53,19 +51,16 @@ playwright-cli run-code "async page => {
         ariaLabel: el.getAttribute('aria-label'),
         ariaRequired: el.getAttribute('aria-required'),
         ariaInvalid: el.getAttribute('aria-invalid'),
-        ariaDescribedBy: el.getAttribute('aria-describedby'),
         required: el.hasAttribute('required'),
         disabled: el.disabled || el.getAttribute('aria-disabled') === 'true',
-        min: el.getAttribute('min'),
-        max: el.getAttribute('max'),
-        minLength: el.getAttribute('minlength'),
-        maxLength: el.getAttribute('maxlength'),
         pattern: el.getAttribute('pattern'),
       };
     })
   );
 }"
 ```
+
+Read the output inline. Don't save the JSON.
 
 ### Validation Discovery
 
@@ -74,79 +69,48 @@ During dry-run, learn rules safely:
 - Fill one field at a time and watch disabled buttons become enabled
 - Blur fields to reveal validation messages
 - Try safe invalid values for obvious constraints, such as `1` for a player count
-- Capture visible validation text and associate it with the field
+- Capture visible validation text in your conversation — *"the email field shows 'invalid format' on blur when empty"*
 
-Never spam backend submissions. Stop before payment, booking, publishing, email sends, invitations, deletes, or billing changes unless the user explicitly approves.
+**Never spam backend submissions.** Stop before payment, booking, publishing, email sends, invitations, deletes, or billing changes unless the user explicitly approves.
 
 ### Network and Storage
 
 Use only when needed:
 - Inspect API errors if a safe dry-run submit fails
 - Check local/session storage for language, draft state, onboarding flags, or auth state
-- Do not store secrets in notes or maps
+- Do not record secrets (tokens, cookies) in your notes
 
-## Required Output
+## What to track (mentally, not on disk)
 
-Save `.vorec/<slug>/live-site-map.json`. Follow [../../../schemas/live-site-map.schema.json](../../../schemas/live-site-map.schema.json).
-
-Minimum shape:
-
-```json
-{
-  "url": "https://example.com",
-  "recording_type": "task_tutorial",
-  "goal": "Create a tournament",
-  "auth": {
-    "required": false,
-    "evidence": "Creation page is visible without a login redirect"
-  },
-  "pages": [],
-  "blockers": [],
-  "sensitive_actions": [],
-  "readiness": {
-    "entry_action_known": true,
-    "required_fields_known": true,
-    "valid_demo_values_known": true,
-    "primary_buttons_known": true,
-    "success_state_known": true,
-    "blockers_reviewed": true,
-    "sensitive_actions_reviewed": true
-  }
-}
-```
-
-## Page Map Requirements
-
-For every meaningful page or modal, capture:
+For every meaningful page or modal you walk through, note:
 - URL or route
-- Purpose
-- Headings
-- Candidate actions
-- Fields and validation attributes
+- Purpose of the page
+- The key headings + visible text you'd reference in narration
+- Candidate actions (their selectors + what they did when clicked)
+- Fields, labels, required state, valid demo values you found that passed validation
 - Primary buttons
-- Button enabled/disabled conditions
-- Success state or transition
-- Risks
+- Enabled/disabled conditions
+- Success state or transition (URL pattern, visible element, success banner)
+- Risks (sensitive actions, blockers, state carryover)
 
-Mark unknowns explicitly. Unknown is better than invented.
+Mark unknowns explicitly in your conversation. Unknown is better than invented.
 
-```json
-{
-  "label": "Ranking level",
-  "required": "unknown",
-  "valid_demo_value": "Intermediate",
-  "evidence": "Selected during dry-run; no validation error appeared"
-}
-```
+## Pre-Recording Gate — mental checklist
 
-## Pre-Recording Gate
+Before writing `vorec.json`, verify you can answer YES to all of these. If any answer is NO, continue discovery or ask the user ONE targeted question to resolve it.
 
-Before building `vorec.json`, read the map and ask:
-- Is there a known entry action?
-- Do all scripted fields have valid demo values?
-- Is every primary action followed by an observable assertion?
-- Is the final success state specific enough to wait for?
-- Are blockers like cookies, modals, auth, locale, and sticky headers handled?
-- Are sensitive actions either avoided or explicitly approved?
+- **Entry action known** — you can name the first click / field / URL the recording will start from
+- **Required fields known** — for every field the script will fill, you know whether it's required
+- **Valid demo values known** — you know what to type that passes validation for every scripted field
+- **Primary buttons known** — you've identified the hero action per page and what it looks/feels like
+- **Success state known** — you can describe exactly how the flow ends (URL pattern + visible evidence)
+- **Blockers reviewed** — cookie banners, onboarding popups, rate limits, locale / region gates, sticky headers all noted and handled
+- **Sensitive actions reviewed** — payments, deletes, emails, invitations, publishes all either avoided or explicitly approved by the user
 
-If any answer is no, continue discovery instead of recording.
+## Include in the discovery report to the user
+
+The report you print before writing the manifest MUST include this one-line summary:
+
+> **Blockers reviewed: ✅. Sensitive actions reviewed: ✅. Valid demo values ready for N fields. Success state verified.**
+
+If you cannot truthfully say this, do not write the manifest.

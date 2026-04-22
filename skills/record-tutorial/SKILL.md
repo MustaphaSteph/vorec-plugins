@@ -153,45 +153,26 @@ For **every action** you plan to put in the manifest:
 
 Do this for **every single action**, not just the risky ones. Every one.
 
-### Save discovery findings to disk
+### Keep findings in conversation — DO NOT write discovery files
 
-Create two files in the project folder (you'll create the folder in Step 5, but the discovery docs drive what the folder is named):
+Everything you discover lives in your conversation context. Do **not** write `flow-notes.md`, `live-site-map.json`, or any other discovery-output file. They consume tokens without being consumed by anything — the CLI doesn't read them, the backend doesn't read them, nothing automated uses them. The only consumer of your discovery is *you* writing the manifest in Step 5, which happens in the same conversation.
 
-**`.vorec/<slug>/flow-notes.md`** — human-readable findings:
-- Selectors that work (role+name preferred over CSS)
-- Valid test data (what passes validation)
-- Required fields + error messages
-- Hidden dialogs / modals that appear mid-flow
-- Success states at each step
-- Gotchas (disabled buttons, timing, state carryover)
+What you need to remember across the dry-run (mentally, not on disk):
+- Selectors that resolved for each planned action
+- Valid demo values that pass validation (what you typed into fields)
+- Required fields + the exact error text on empty submit
+- Success state at flow end (URL, visible element, text)
+- Hidden modals / dialogs / intermediate states the text summary misses
+- Sensitive actions you avoided (payments, deletes, emails, invitations)
+- Blockers you encountered (rate limits, regional restrictions, verifications)
 
-**`.vorec/<slug>/live-site-map.json`** — structured readiness file. Load [./rules/live-site-discovery.md](./rules/live-site-discovery.md) for the full schema. Must include:
+### 🚧 PRE-RECORDING GATE — mental readiness check
 
-```json
-{
-  "recording_type": "task_tutorial",
-  "auth": { "required": false, "evidence": "..." },
-  "page_tree": [...],
-  "actions": [
-    {
-      "description": "...",
-      "selector": "...",
-      "observed_response": "...",
-      "validation": "...",
-      "required": true
-    }
-  ],
-  "success_state": { "url": "...", "evidence": "..." },
-  "blockers_reviewed": false,
-  "sensitive_actions_reviewed": false
-}
-```
+**You cannot write the manifest until you can truthfully say, in the discovery report below:**
+1. **Blockers reviewed** — you've identified anything that could stop the recording mid-flow (rate limits, verification requirements, geo-gates).
+2. **Sensitive actions reviewed** — you've identified anything that would have real-world consequences (charges, emails sent, records deleted, invitations issued) and decided how to avoid / neutralize them.
 
-### 🚧 PRE-RECORDING GATE — readiness booleans
-
-**You cannot write the manifest until BOTH `blockers_reviewed` and `sensitive_actions_reviewed` are `true` in `live-site-map.json`.** This gate exists because sensitive actions (payments, emails, deletions, invitations) and blockers (rate limits, regional restrictions, required verifications) will destroy a recording if discovered during recording instead of before.
-
-If a value is unknown, either keep discovering OR ask the user the smallest possible question to resolve it. Never flip a boolean to `true` without evidence.
+This is a self-imposed gate. No file is checked — you are. If either item is unverified, go back to discovery or ask the user ONE targeted question to resolve it. Never claim "reviewed" without evidence.
 
 ### Why this is non-negotiable
 
@@ -221,7 +202,7 @@ Only after the user confirms do you proceed to Step 4.
 
 **Connected mode only**: if you have the full source code AND the components are small AND you can read every piece of the logic (field names, validation schema, success redirect, API response handling), you can skip clicking through and rely on the code. You still document findings and show the user the report — just sourced from code instead of playwright-cli. If ANY part of the flow isn't fully visible in the code (dynamic UI, cross-origin iframes, async network responses), fall back to live dry-run.
 
-Rule files: [./rules/explore.md](./rules/explore.md) for Explore flows, [./rules/connected.md](./rules/connected.md) for Connected flows, [./rules/live-site-discovery.md](./rules/live-site-discovery.md) for the live-site-map.json schema.
+Rule files: [./rules/explore.md](./rules/explore.md) for Explore flows, [./rules/connected.md](./rules/connected.md) for Connected flows, [./rules/live-site-discovery.md](./rules/live-site-discovery.md) for extra guidance on safe discovery on third-party sites.
 
 **If you catch yourself writing selectors you haven't verified, STOP and go do the discovery first.**
 
@@ -254,9 +235,7 @@ Folder contents:
 .vorec/
 ├── storageState.json                  # shared session (one per origin, optional)
 └── <slug>-<timestamp>/
-    ├── flow-notes.md                  # discovery findings from Step 3
-    ├── live-site-map.json             # structured readiness (Explore only)
-    └── vorec.json                     # manifest for this recording
+    └── vorec.json                     # manifest for this recording — the only file you write
 ```
 
 Manifest contents:

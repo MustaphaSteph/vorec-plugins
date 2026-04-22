@@ -79,7 +79,7 @@ After mapping all screenshots to actions, note which ones you have not verified 
 - Any dynamic field that appears conditionally (search inputs, expanded sections)
 - Any picker (country picker, product picker) that requires typing + selecting from a dropdown
 
-Mark these in `flow-notes.md` as **needs live verification**. During the dry-run, confirm these selectors before recording.
+Keep a mental list of "needs live verification" selectors and confirm them during the dry-run before writing the manifest. Do not write this list to a file — keep it in conversation only.
 
 ## Example
 
