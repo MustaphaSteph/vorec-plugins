@@ -211,15 +211,56 @@ Look at the snapshot:
 
 **NEVER assume login.** Most public sites (marketing, docs, tools) need none. Only handle auth when you SEE a login wall or the user tells you.
 
-## Step 3: ⚠️ MANDATORY deep dry-run discovery — DO NOT SKIP, DO NOT CUT CORNERS
+## Step 3: ⚠️ MANDATORY deep discovery — DO NOT SKIP, DO NOT CUT CORNERS
 
-**You MUST walk the flow end-to-end with `playwright-cli` (or source-read in Connected mode) BEFORE writing a single line of manifest.** Not optional. Discovery is where recordings are won or lost — every failure mode traces back to shallow discovery.
+**You MUST discover the full flow BEFORE writing a single line of manifest.** Not optional. Discovery is where recordings are won or lost.
 
-Writing a manifest without deep discovery = guessing at selectors, validation rules, success states, async response times, alternative paths, error states, and button disabled-conditions. Every guess becomes a broken action during recording. Broken actions = wasted credits + frustrated user + re-do.
+Discovery has **two phases** — a high-level exploration pass and a selector-verification pass. Skipping either produces broken recordings.
+
+### Phase 3a — Flow exploration (what exists, where, what's the UX)
+
+This is the "walk the site and map it" phase. You produce a flow map that lists:
+- Every URL in the sequence (including redirects)
+- Every step / page / modal / popup encountered
+- Field inventory per page (textbox names, button labels, constraints)
+- Pre-filled values, defaults, validation errors
+- Minimum player counts / field requirements / enable-disable triggers
+- Success state (end URL, visible text, success banner)
+
+**Use whichever tool gets you there fastest** — multiple options:
+
+| Tool | When to use |
+|---|---|
+| `agent-browser.dev` or similar structured site-mapping tool | Preferred when available — produces clean markdown flow doc with URL patterns, field inventory, screenshots, constraint tables. Fast and thorough. |
+| `playwright-cli` snapshot + click loops | Always available as fallback. Slower but works on any page. |
+| Direct source-code reading (Connected mode with user permission) | When user allowed "read code" in Step 1 and the flow is static enough that code tells the full story. |
+
+Use whatever the environment supports. If you have both `agent-browser.dev` and `playwright-cli`, start with `agent-browser.dev` for the high-level map, then move to Phase 3b below.
+
+### Phase 3b — Playwright selector verification (MANDATORY no matter which tool Phase 3a used)
+
+This is the part that catches the #1 failure mode: **the Playwright selector isn't what the high-level tool showed**.
+
+For EVERY action in your planned manifest, you must use `playwright-cli --raw snapshot` to confirm the element's ARIA **role** and accessible **name**. A site-mapping tool may say "Leaderboard tab" in its doc — that means `role="tab"`, not `role="button"`. If you write `button:has-text('Leaderboard')` in your manifest based on the doc alone, Playwright will fail to find it.
+
+For each action:
+
+1. Navigate to the page where the action happens (`playwright-cli open` + clicks to reach it).
+2. `playwright-cli --raw snapshot` — find the target element.
+3. Record its `role` + accessible `name` as they appear in the snapshot:
+   ```
+   - tab "Leaderboard" [ref=e468]
+     ↑ role     ↑ name
+   ```
+4. The manifest selector becomes `role=tab[name='Leaderboard']`. Use that EXACT Playwright syntax — not CSS, not `:has-text()` guesses.
+5. Verify the selector resolves by actually clicking it via `playwright-cli click <ref>` and snapshotting the result.
+6. Note observed response time for the manifest's `pause` value.
+
+**This phase is non-negotiable.** Whatever Phase 3a told you is the flow, Phase 3b confirms the Playwright selectors that will actually fire during recording.
 
 ### Discovery is iterative, not a single pass
 
-You will **repeatedly** open, snapshot, click, observe, back-track, and try again. Budget for this — a good dry-run on a 10-step flow is 30–60 playwright-cli calls, not 10. If you finish discovery with the same number of snapshots as planned actions, you went too shallow.
+Whatever tool you use in Phase 3a and 3b, you will **repeatedly** open, snapshot, click, observe, back-track, and try again. Budget for this — a good dry-run on a 10-step flow is 30–60 playwright-cli calls (in Phase 3b alone), not 10. If you finish discovery with the same number of snapshots as planned actions, you went too shallow.
 
 ### What "deep discovery" means concretely
 
