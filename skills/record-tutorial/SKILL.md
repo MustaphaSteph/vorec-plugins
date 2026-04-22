@@ -105,20 +105,47 @@ The CLI needs a Vorec API key for analysis steps. Save once: `npx @vorec/cli ini
 
 The user told you *what* flow to record. You still need to know *where* to record it, *whether you can read their code*, *why*, *for whom*, and *what to watch out for*. Without this, your discovery is blind, your narration is generic, and you may record against the wrong URL entirely.
 
-Print ONE message with the request confirmation + the questions below. Tailor the URL choices based on what you see in the workspace:
+### First — detect what URLs are actually available
+
+Before asking, quickly scan the workspace for real URL signals. Do NOT ask about URLs that don't exist. Do NOT invent a "your-live-domain.com" placeholder.
+
+Check, in order:
+
+| Signal | What it tells you |
+|---|---|
+| `package.json` → `scripts.dev` / `dev:*` | local dev port (usually `localhost:3000`) |
+| `package.json` → `homepage` field | deployed URL |
+| `vercel.json`, `.vercel/project.json` | Vercel-hosted deployed URL |
+| `netlify.toml` → `[build].publish` + netlify project | Netlify-hosted deployed URL |
+| `wrangler.toml` → `routes` / `*.workers.dev` | Cloudflare Workers deployed URL |
+| `shopify.app.toml` → `application_url` | Shopify embedded app (uses admin.shopify.com host) |
+| `.env`, `.env.local` → `NEXT_PUBLIC_*URL`, `PUBLIC_SITE_URL`, `VITE_*_URL` | explicit deployed URL |
+| `README.md` → first http(s) link in a "Live demo" / "Production" / "Deployed at" section | deployed URL |
+| `git remote -v` → GitHub Pages URL (`github.io`) | deployed URL if that's where it lives |
+
+Record what you found — 1 localhost option, 0-1 deployed option, or neither.
+
+### Then — ask, with REAL options only
+
+Present URL choices based on what you detected. If the user already pasted a URL in their request, make that the pre-selected option. Never fabricate options.
 
 > Got it — I'll record `<what they asked for>`.
 >
 > Before I start exploring:
 >
 > 1. **Which URL should I record against?**
->    - `<localhost:PORT>` (your local dev — I saw `<signal like package.json / running server>`)
->    - `<your-live-domain.com>` (your deployed site)
->    - something else — paste it here
+>    `<list the real options you found, e.g.:>`
+>    - `http://localhost:3000` (your local dev server — from package.json dev script)
+>    - `https://padelmake.com` (your deployed site — from package.json homepage)
+>    - or paste another URL
+>
+>    *(If you didn't find any URL at all, just ask: "Which URL should I record? Paste a link.")*
 >
 > 2. **Can I read your source code for discovery, or should I stay out of it?**
 >    - **Read code** — faster, more accurate selectors (I stick to the files related to this flow; I don't copy secrets)
 >    - **Live only** — I explore the page through snapshots, never open your files
+>
+>    *(If no code is present in the cwd, skip this question — default to live only.)*
 >
 > 3. **What's the goal of this video?** (e.g. "show new users how fast signup is", "document how admins manage refunds", "explain feature X to the sales team")
 >
@@ -127,6 +154,10 @@ Print ONE message with the request confirmation + the questions below. Tailor th
 > 5. **Anything I should pay attention to or avoid?** (e.g. "don't show pricing because it's changing", "the first-time onboarding popup should be dismissed before recording", "the Save button looks stuck for 2 seconds — that's normal", "use product 'Padelmake Pro' — it's our demo product")
 >
 > Reply with those or say "go" for sensible defaults.
+
+### Always ask, even when there's only one URL option
+
+If the user only has `localhost:3000` detected and no deployed URL, still ask. They might want to paste a totally different URL (a competitor site, a different env, a staging domain). The question costs one line; the wrong URL on camera costs a re-recording.
 
 ### Why each question matters
 
