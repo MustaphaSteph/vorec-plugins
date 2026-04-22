@@ -100,7 +100,7 @@ When adding multiple items, tell a progression story. The agent types realistic 
 **Last item — what happens NEXT:**
 `"Last one. The team is complete — ready to assign roles and set permissions."`
 
-**Never narrate the specific demo values.** The viewer should hear "enter your team members" not "type Carlos, then Maria, then Pedro."
+**Never narrate the specific demo values.** The viewer should hear "enter your team members" not the exact names you typed in as examples.
 
 ### Rule 7 — Every tracked action MUST have context
 

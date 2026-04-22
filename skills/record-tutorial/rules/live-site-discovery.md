@@ -23,7 +23,7 @@ Use first. It reveals the semantic page tree: headings, buttons, links, inputs, 
 
 ```bash
 playwright-cli --raw snapshot
-playwright-cli --raw snapshot | grep -iE "create|tournament|start|next|submit|save|player|court|round"
+playwright-cli --raw snapshot | grep -iE "<keywords relevant to the flow>"
 ```
 
 Pipe to `grep` when you're looking for specific elements — don't save the whole snapshot to disk.
@@ -64,15 +64,15 @@ Read the output inline. Don't save the JSON.
 
 ### Always use the most specific selector available
 
-Never use a partial text selector that could match multiple elements on the page. A `button:has-text("Generate")` that matches both "Generate Tournament" AND "Generate Report" will click the wrong one at random.
+Never use a partial text selector that could match multiple elements on the page. A short prefix like `button:has-text("<word>")` can match several buttons whose labels start with or contain that word — and Playwright picks the first one, not necessarily the right one.
 
 Test every selector for uniqueness before using it in the manifest:
 
 ```js
-const matches = await page.$$('button:has-text("Generate")');
+const matches = await page.$$('<your selector>');
 // If matches.length > 1 → make it more specific:
-//   'button:has-text("Generate Tournament")'
-//   'role=button[name="Generate Tournament"]'   (preferred)
+//   - use the full button label, not a prefix
+//   - prefer role=X[name='Y'] over :has-text()
 ```
 
 **When in doubt, prefer `role=X[name='Y']` over `:has-text()`.** Role+name selectors are unambiguous by ARIA spec; text matches are fuzzy by nature.
@@ -80,11 +80,11 @@ const matches = await page.$$('button:has-text("Generate")');
 If a click doesn't produce the expected result (navigation didn't happen, modal didn't open, form didn't submit) → the WRONG element was matched. Add a URL check or visible-element check after the action to confirm it hit the right target:
 
 ```js
-await page.getByRole('button', { name: 'Generate Tournament' }).click();
-await page.waitForURL('**/tournament/**', { timeout: 10000 });  // confirm navigation
+await page.getByRole('button', { name: '<exact label>' }).click();
+await page.waitForURL('**/<expected-path>/**', { timeout: 10000 });
 ```
 
-Document every ambiguous selector you found during discovery — it's exactly the category of bug the user sees as "agent couldn't get to the leaderboard."
+Document every ambiguous selector you found during discovery — it's the most common cause of "agent clicked something but nothing happened" failures.
 
 ### Validation Discovery
 

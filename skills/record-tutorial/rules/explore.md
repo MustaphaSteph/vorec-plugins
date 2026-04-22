@@ -46,7 +46,7 @@ If the control DID reset:
 - Every row needs its own state-set click before the value input
 - Default state is whatever the site resets to (usually the "male" / first option)
 
-Without this test, you'll get bugs like "every female player is male because the toggle persisted and I clicked it again." Common on padel-style apps, tournament builders, form generators.
+Without this test, you'll get bugs where the toggle persists across rows but your manifest clicks it for every row — flipping it to the wrong state. Common on any UI with a stateful picker used in a repeated "add row" context (form builders, bulk-entry UIs, filtered lists).
 
 For live external websites, also load [./live-site-discovery.md](./live-site-discovery.md) for the safety checklist (blockers, sensitive actions). The `vorec.json` you produce must be based on verified discovery, not guesses.
 

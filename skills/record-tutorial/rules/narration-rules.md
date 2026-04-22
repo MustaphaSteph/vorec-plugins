@@ -130,19 +130,20 @@ Narration should FLOW like a real person talking. Adjacent actions shouldn't fee
 
 Don't (abrupt) (each narration is an isolated sentence):
 ```
-[click Female]  → "Click Female — the ♀ icon shows."
-[click Save]    → "Save. Elena is in."
+[click option]  → "Click the option — it highlights."
+[click confirm] → "Confirm. Row added."
 ```
 
 Do (bridged) (second narration picks up from the first):
 ```
-[click Female]  → "Pick Female — and Save her in."
-[click Save]    → (no narration, the previous one covered it)
+[click option]   → "Pick the option and confirm below."
+[click confirm]  → (no narration — the previous one covered it)
 ```
 
 Do (group into one longer beat when clicks are ≤2s apart):
 ```
-[click Female + click Save as ONE grouped action] → "Pick Female and Save — Elena is locked in as our first player." (12 words, fits within grouped pause)
+[click option + click confirm as ONE grouped action]
+  → "Pick the option and confirm — the row is added in one beat."  (12 words, fits within grouped pause)
 ```
 
 ### Style-specific transition notes

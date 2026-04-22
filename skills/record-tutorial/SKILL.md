@@ -241,7 +241,7 @@ Use whatever the environment supports. If you have both `agent-browser.dev` and 
 
 This is the part that catches the #1 failure mode: **the Playwright selector isn't what the high-level tool showed**.
 
-For EVERY action in your planned manifest, you must use `playwright-cli --raw snapshot` to confirm the element's ARIA **role** and accessible **name**. A site-mapping tool may say "Leaderboard tab" in its doc — that means `role="tab"`, not `role="button"`. If you write `button:has-text('Leaderboard')` in your manifest based on the doc alone, Playwright will fail to find it.
+For EVERY action in your planned manifest, you must use `playwright-cli --raw snapshot` to confirm the element's ARIA **role** and accessible **name**. A site-mapping tool may describe an element only by its visible label — e.g. the doc calls something a "tab" but doesn't specify whether that's a `role="tab"`, a `role="button"`, or a plain link styled like a tab. If you guess wrong and write `button:has-text('Label')` when the element is actually `role="tab"`, Playwright will fail to find it.
 
 For each action:
 
@@ -249,10 +249,10 @@ For each action:
 2. `playwright-cli --raw snapshot` — find the target element.
 3. Record its `role` + accessible `name` as they appear in the snapshot:
    ```
-   - tab "Leaderboard" [ref=e468]
-     ↑ role     ↑ name
+   - <role> "<name>" [ref=eNN]
+     ↑ role    ↑ name
    ```
-4. The manifest selector becomes `role=tab[name='Leaderboard']`. Use that EXACT Playwright syntax — not CSS, not `:has-text()` guesses.
+4. The manifest selector becomes `role=<role>[name='<name>']`. Use that EXACT Playwright syntax — not CSS, not `:has-text()` guesses.
 5. Verify the selector resolves by actually clicking it via `playwright-cli click <ref>` and snapshotting the result.
 6. Note observed response time for the manifest's `pause` value.
 
@@ -447,8 +447,8 @@ Every recording gets its own timestamped folder under `.vorec/` so different ses
 
 ```bash
 # Format: <slug>-<YYYYMMDD-HHMMSS>
-# Example: tournament-20260421-221530
-SLUG="tournament-$(date +%Y%m%d-%H%M%S)"
+# Pick a short slug from the flow title (no spaces, lowercase).
+SLUG="<your-slug>-$(date +%Y%m%d-%H%M%S)"
 mkdir -p ".vorec/$SLUG"
 ```
 
