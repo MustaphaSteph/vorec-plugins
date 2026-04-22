@@ -101,13 +101,44 @@ Run `brew install cliclick`. Without it, the mouse cursor is not visible in the 
 
 The CLI needs a Vorec API key for analysis steps. Save once: `npx @vorec/cli init` (the skill's rule files cover this — see [./rules/auth.md](./rules/auth.md)).
 
-## Step 1: Confirm what to record (plain English)
+## Step 1: Elicit goal + audience + gotchas — one message, three questions
 
-The user already told you what to record. Before running any discovery or writing any code, echo it back to them in one sentence so you're aligned:
+The user told you *what* flow to record. You still need to know *why*, *for whom*, and *what to watch out for*. Without this, your discovery is blind and your narration is generic.
 
-> "Got it — I'll record a step-by-step guide of `<what they asked for>` on `<site / app>`."
+Print ONE message with the request confirmation + three targeted questions:
 
-If anything is genuinely unclear (e.g. they said "record the checkout flow" but there are two checkout paths), ask **one** specific question. Do not ask generic stuff like "what's your goal?" or "who's the audience?" — just confirm and move on.
+> Got it — I'll record `<what they asked for>` on `<site / app>`.
+>
+> Three quick things before I start exploring the page:
+>
+> 1. **What's the goal of this video?** (e.g. "show new users how fast signup is", "document how admins manage refunds", "explain feature X to the sales team")
+>
+> 2. **Who's watching?** (customer, internal team, developer, investor — shapes tone + what details to show)
+>
+> 3. **Anything I should pay attention to or avoid?** (e.g. "don't show pricing because it's changing", "the first-time onboarding popup should be dismissed before recording", "the Save button looks stuck for 2 seconds — that's normal", "use product 'Padelmake Pro' — it's our demo product")
+>
+> Reply with those or say "go" and I'll use defaults + discover as I explore.
+
+### Why each question matters
+
+- **Goal** → Determines which path to show when flow has alternatives (fastest signup vs. feature-rich signup), what to highlight, what to gloss over
+- **Audience** → Shapes narration style, which details to name, what terminology level to use
+- **Gotchas** → Catches things the agent CANNOT discover by exploring: feature flags, flaky UI, specific demo data requirements, first-time-user popups, rate limits, region-specific UI
+
+### What the agent does with the answers
+
+- **Goal answer** → becomes `videoContext` in the manifest (Gemini uses it to ground narration)
+- **Audience answer** → influences which narration style to suggest in Step 6
+- **Gotchas answer** → added to discovery checklist; agent explicitly verifies each one during dry-run
+
+### If the user says "go" / "defaults"
+
+Proceed with reasonable guesses:
+- Goal: what the flow name implies ("record checkout" → "show how to complete a purchase")
+- Audience: generic users
+- Gotchas: none known; agent will ask mid-discovery if anything weird shows up
+
+Do NOT skip the question — the three-in-one format is fast enough that it's always worth asking once.
 
 ### If the user shares an article / guide / docs link
 
@@ -134,24 +165,98 @@ Look at the snapshot:
 
 **NEVER assume login.** Most public sites (marketing, docs, tools) need none. Only handle auth when you SEE a login wall or the user tells you.
 
-## Step 3: ⚠️ MANDATORY dry-run discovery — DO NOT SKIP
+## Step 3: ⚠️ MANDATORY deep dry-run discovery — DO NOT SKIP, DO NOT CUT CORNERS
 
-**You MUST walk the flow end-to-end with `playwright-cli` (or source-read in Connected mode) BEFORE writing a single line of manifest.** This is not optional. Every failure the user has ever had came from skipping this step.
+**You MUST walk the flow end-to-end with `playwright-cli` (or source-read in Connected mode) BEFORE writing a single line of manifest.** Not optional. Discovery is where recordings are won or lost — every failure mode traces back to shallow discovery.
 
-Writing a manifest without doing discovery first = you're guessing at selectors, guessing at validation rules, guessing at success states, guessing at which buttons exist. Every guess becomes a broken action during recording. Broken actions = wasted credits + frustrated user + re-do.
+Writing a manifest without deep discovery = guessing at selectors, validation rules, success states, async response times, alternative paths, error states, and button disabled-conditions. Every guess becomes a broken action during recording. Broken actions = wasted credits + frustrated user + re-do.
 
-### What "discovery" means concretely
+### Discovery is iterative, not a single pass
 
-For **every action** you plan to put in the manifest:
+You will **repeatedly** open, snapshot, click, observe, back-track, and try again. Budget for this — a good dry-run on a 10-step flow is 30–60 playwright-cli calls, not 10. If you finish discovery with the same number of snapshots as planned actions, you went too shallow.
 
-1. **Open the page** with `playwright-cli open --headed <url>` (or navigate there via clicks from the previous step).
-2. **Take a snapshot** — `playwright-cli --raw snapshot` — and find the real element by its accessibility role/name.
-3. **Click / fill it** via `playwright-cli click <ref>` or `fill <ref> <value>` and observe what happens in the next snapshot.
-4. **Record the resolved selector** + the observed UI response (modal opened, form expanded, page navigated, validation error shown).
-5. **Verify validation + error states** for form submits — try submitting with empty required fields and record the error messages.
-6. **Capture the terminal success state** — what does the final page look like when the flow completes (URL, heading, success banner)?
+### What "deep discovery" means concretely
 
-Do this for **every single action**, not just the risky ones. Every one.
+For **every action** in your planned flow:
+
+1. **Open / navigate to the page** — `playwright-cli open --headed <url>` or click to it.
+2. **Snapshot the page** — `playwright-cli --raw snapshot`. Read ALL the content, not just the target.
+3. **Locate the target** — find by accessibility role+name, note the ref.
+4. **Click / fill it** — `playwright-cli click <ref>` or `fill <ref> <value>`.
+5. **Snapshot AGAIN** — what rendered? What changed?
+6. **Note everything observed**:
+   - Resolved selector you'll use in the manifest
+   - Exact observed UI response (modal? toast? navigation? inline expand?)
+   - Timing: how long did the response take?
+   - Anything else that appeared you didn't expect (warning banner, cookie consent, tooltip)
+7. **Check disabled/enabled states** — is the next primary button enabled now? If not, what's still required?
+8. **For form submits: probe validation** — try submitting with empty required fields (non-destructively). Capture the exact error text and which field each error belongs to.
+9. **For success states at flow end**: verify the URL pattern AND a visible element AND any toast/banner text. All three.
+
+Do this for **every action**. Not just the risky ones. Every one. Consider the action "discovered" only when you've snapshotted the state both before AND after.
+
+### What else to verify beyond clicks
+
+Deep discovery covers state the agent tends to miss:
+
+- **Loading states** — how long does each async operation take? (matters for `pause` timing)
+- **Empty states** — what does an empty list / fresh account / blank form look like? (does the tutorial start from empty?)
+- **Filled states** — if fields retain values across sessions, does that affect the recording?
+- **Disabled → enabled transitions** — what specifically unlocks the Save button?
+- **First-time vs. returning user UI** — onboarding tours, tip popups, "new feature" banners
+- **Modals & overlays** — which ones appear mid-flow? Cookie banners, consent dialogs, upgrade nudges
+- **Rate limits / throttles** — if you hit one during dry-run, document the threshold
+- **Cross-origin iframes** — if any action lives inside an iframe, you need the iframe selector for the manifest `frame` field
+- **Conditional branches** — if the flow forks ("if paid user → X, if free user → Y"), you need to record ONE specific path; ask the user which if unclear
+- **Keyboard-only paths** — sometimes the click-only path doesn't work (e.g., combobox needs typing to filter). Try both.
+
+### Honor the user's gotchas from Step 1
+
+If the user mentioned anything in question 3 ("anything to pay attention to"), verify each one explicitly during discovery. Each gotcha = at least one snapshot that confirms it's handled. Examples:
+- User said "skip the first-time tour" → open with a fresh session, confirm the tour appears, find the dismiss button, note its selector
+- User said "use product 'Padelmake Pro'" → confirm that product exists in the target UI, note its exact label
+- User said "Save button takes 2s to respond" → time it during discovery, use that as your `pause`
+
+### ⚠️ When you get stuck — ask, don't guess
+
+You WILL hit things you can't resolve by exploring. That's normal. When you hit any of these, STOP discovery and ask the user ONE specific question:
+
+- Selector won't resolve / two equally plausible selectors exist
+- Form validation blocks you with a rule you don't understand (*"it wants a VAT number — what format?"*)
+- Two visible paths forward, unclear which the user wants recorded
+- An action would be destructive to verify (submitting a real payment, sending a real email, deleting a real record)
+- A login or 2FA popup appears mid-flow that you can't bypass alone
+- The UI looks broken / loading forever — need the user to check
+
+**Do not guess. Do not try random values. Do not proceed with "I think the user probably wanted X."** Ask.
+
+Format:
+
+> I'm stuck at `<specific step>`: `<exactly what happened>`. `<one clear question for the user>`.
+
+Resume discovery as soon as you have the answer.
+
+### The `pause` timing comes from discovery
+
+When an action's response takes 800ms, write `pause: 1800` (response + a beat for comprehension + narration word count). When it takes 3s (form submit, page transition), write `pause: 4000`. Use real observed times, not guesses. If you didn't time it during discovery, you don't know it — go re-time it.
+
+### Depth checklist — cannot leave Step 3 with any NO
+
+Before you print the discovery report to the user, mentally check:
+
+- [ ] Every planned action has a verified selector (role+name preferred over CSS)
+- [ ] Every form field has a valid demo value that passes validation
+- [ ] Every form field's "required" state is known
+- [ ] Every primary button's enabled/disabled trigger is known
+- [ ] Success state has URL + visible element + evidence text
+- [ ] Loading / async timings noted for every slow action (>500ms)
+- [ ] First-time popups / onboarding state handled
+- [ ] Cookie / consent banners handled
+- [ ] Every user-listed gotcha verified
+- [ ] No sensitive action will fire during recording (payments, emails, deletes, invitations)
+- [ ] No blocker remains unresolved (rate limit, verification, region gate)
+
+If any box is UN-ticked, you're not done. Do not write the manifest.
 
 ### Keep findings in conversation — DO NOT write discovery files
 
@@ -183,16 +288,34 @@ This is a self-imposed gate. No file is checked — you are. If either item is u
 
 ### The discovery report you show the user
 
-Before writing the manifest, print:
+Before writing the manifest, print a thorough report that covers the depth checklist:
 
-> **Dry-run complete. Here's what I verified:**
-> 1. `<action 1 description>` → resolved to `<selector>`; clicking it opened `<what rendered>`.
-> 2. `<action 2 description>` → resolved to `<selector>`; typing caused `<observed behavior>`.
+> **Dry-run complete — here's what I verified end-to-end.**
+>
+> **Flow (N actions):**
+> 1. `<action 1 description>` → `<resolved selector>`; clicked → `<observed response>` (~`<ms>`ms)
+> 2. `<action 2 description>` → `<resolved selector>`; typed `'<demo value>'` → `<observed behavior>`
 > 3. …
 >
-> Blockers reviewed: ✅. Sensitive actions reviewed: ✅.
+> **Validation discovered:**
+> - `<field>` — required; empty submit shows `"<exact error text>"`
+> - `<field>` — accepts `<format>`; rejected `<bad example>` with `"<error>"`
 >
-> Ready to map the flow and write the manifest? (yes, or adjust)
+> **Success state:** URL matches `<pattern>`, banner shows `"<text>"`, `<element>` visible.
+>
+> **Gotchas you mentioned — how I'll handle them:**
+> - `<user's gotcha 1>` → `<what the agent verified / how the manifest addresses it>`
+> - `<user's gotcha 2>` → `<resolution>`
+>
+> **Other observations worth flagging:**
+> - `<any surprise found during discovery>` — e.g. "A 'Save draft?' popup appeared between step 5 and 6; I'll add a dismiss click for it"
+> - `<any timing that's unusually slow>`
+>
+> **Sensitive actions / blockers:** ✅ reviewed. `<say what was avoided or how it was neutralized>`.
+>
+> Ready to write the manifest with the flow above? (yes, or tell me what to change)
+
+A single-line "Dry-run complete" is NOT an acceptable report. The report is the user's audit checkpoint — skimp on it and they can't catch your mistakes before the recording wastes credits.
 
 Only after the user confirms do you proceed to Step 4.
 

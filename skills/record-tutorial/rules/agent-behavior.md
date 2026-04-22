@@ -26,7 +26,11 @@ The user didn't come here to answer meta-questions. They came for a recording.
 
 Ask at most **2 questions at a time**. Prefer sensible defaults over asking.
 
-**Exception:** the "Ask preferences, then show the plan" stage asks 3 preferences (language, narration style, narration author) in one message — this is OK because they all have defaults and the user can just say "go".
+**Exceptions (both are OK to batch in one message):**
+1. **Step 1 elicitation** — goal + audience + gotchas (3 questions) in one message. All three have defaults; user can say "go".
+2. **Step 6 preferences** — language + narration style + narration author (3 questions) in one message. All three have defaults; user can say "go".
+
+**When stuck during discovery — ask ONE specific question, not batched.** If you hit a selector you can't resolve, a validation rule you don't understand, or a fork in the path, ask a single targeted question. This is the opposite of "prefer defaults": during discovery, asking is cheaper than guessing wrong. See SKILL.md Step 3 § "When you get stuck — ask, don't guess".
 
 If the user explicitly says "defaults", "record with defaults", or "quick record", apply English + Tutorial style without asking again.
 
