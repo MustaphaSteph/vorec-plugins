@@ -7,6 +7,79 @@ description: The exact narration rules Vorec AI uses — agent must follow these
 
 These are the EXACT rules Vorec's AI follows when generating voice-over. When you write the `narration` field on each tracked action, follow these rules. Then Vorec's AI validates your narration matches the chosen style and uses it as the final script.
 
+## Plan segments first, distribute actions under them
+
+Do NOT write one narration per action. That produces a checklist feel — every click narrated separately, voice playing constantly. Instead, plan the recording as **3-8 semantic beats**, one `narrate` block per beat, with 2-5 silent actions executing underneath each.
+
+### The pattern
+
+```
+[narrate]  carries the voice for this beat          pause = narration speaking time
+[action 1]  silent — no narration field              pause = short, just UI settle
+[action 2]  silent
+[action 3]  silent
+```
+
+Voice plays in full on the `narrate` block, then silent actions fire under their own short pauses. The voice finishes just before or as the silent actions start → perfect lead-up sync. No overlap, no overflow.
+
+### What counts as a new segment
+
+Start a new `narrate` block when:
+- Page / route changes
+- Modal or dialog opens
+- A new cluster of related fields or steps begins
+- The "why" of the next beat differs from the current one
+
+Don't break segments arbitrarily — follow the flow's natural joints.
+
+### Segment pacing budget
+
+For each segment:
+- `narrate.pause` = `words × 350ms + 200ms` (voice finishes 200ms before silent actions start)
+- Silent actions get short pauses (500-1500ms) — just enough for UI to settle
+- Total segment duration = narrate pause + sum(silent action pauses)
+
+### Concrete example — signup flow in Tutorial style
+
+```json
+[
+  { "type": "narrate", "narration": "Alright, let's get you set up — it's just four fields and a button, about ten seconds.", "pause": 6500 },
+  { "type": "click",   "description": "Open signup", "pause": 1200 },
+
+  { "type": "narrate", "narration": "Pop in your email and password, then tick the box to accept the terms.", "pause": 5600 },
+  { "type": "type",    "description": "Email",    "pause": 1500 },
+  { "type": "type",    "description": "Password", "pause": 1500 },
+  { "type": "click",   "description": "Agree",    "pause": 800 },
+
+  { "type": "narrate", "narration": "Hit Create account — your dashboard loads in a couple seconds.", "pause": 4500 },
+  { "type": "click",   "description": "Create account", "pause": 2000, "primary": true },
+
+  { "type": "narrate", "narration": "And there you go — you're in.", "pause": 2500 }
+]
+```
+
+Three `narrate` beats, six silent actions. 16 words of lecture → zero. 4 beats of narration that land in sync with the visuals → perfect.
+
+### The same flow in other styles (structure identical, words change)
+
+**Conversational:** *"Okay so signing up is pretty quick — four fields, hit the button, you're done."* → *"Just your email, a password, and tick the terms box."* → *"Smash Create — should be instant."* → *"Boom. That's the dashboard."*
+
+**Persuasive:** *"Watch this — full account in under ten seconds."* → *"Email. Password. Agree. That's it."* → *"One click."* → *"You're already inside."*
+
+**Professional:** *"In this walkthrough, we'll create an account — a four-field form plus submission."* → *"Provide a valid email and password, then acknowledge the terms."* → *"Submit the form to proceed."* → *"The dashboard loads, confirming the account is active."*
+
+Structure stays constant: 3 `narrate` blocks + silent actions underneath. Style picks the words.
+
+### When inline narration on an action is OK
+
+Skip the `narrate` block when the beat is ≤5 words and purely reactive:
+
+```json
+{ "type": "click", "description": "Undo", "narration": "Undo.", "pause": 1200 }
+```
+
+Use inline for short callouts BETWEEN segments, not as a replacement for segment planning.
+
 ## Time sentences to action timestamps
 
 Narration is spoken over a timeline anchored by `timestamp` values on each action. If your narration is longer than the gap to the next action, it overflows and either freezes the video (freeze-sync) or runs over the next visual event.
