@@ -62,6 +62,30 @@ playwright-cli run-code "async page => {
 
 Read the output inline. Don't save the JSON.
 
+### Always use the most specific selector available
+
+Never use a partial text selector that could match multiple elements on the page. A `button:has-text("Generate")` that matches both "Generate Tournament" AND "Generate Report" will click the wrong one at random.
+
+Test every selector for uniqueness before using it in the manifest:
+
+```js
+const matches = await page.$$('button:has-text("Generate")');
+// If matches.length > 1 → make it more specific:
+//   'button:has-text("Generate Tournament")'
+//   'role=button[name="Generate Tournament"]'   (preferred)
+```
+
+**When in doubt, prefer `role=X[name='Y']` over `:has-text()`.** Role+name selectors are unambiguous by ARIA spec; text matches are fuzzy by nature.
+
+If a click doesn't produce the expected result (navigation didn't happen, modal didn't open, form didn't submit) → the WRONG element was matched. Add a URL check or visible-element check after the action to confirm it hit the right target:
+
+```js
+await page.getByRole('button', { name: 'Generate Tournament' }).click();
+await page.waitForURL('**/tournament/**', { timeout: 10000 });  // confirm navigation
+```
+
+Document every ambiguous selector you found during discovery — it's exactly the category of bug the user sees as "agent couldn't get to the leaderboard."
+
 ### Validation Discovery
 
 During dry-run, learn rules safely:

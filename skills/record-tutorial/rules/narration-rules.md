@@ -7,6 +7,36 @@ description: The exact narration rules Vorec AI uses — agent must follow these
 
 These are the EXACT rules Vorec's AI follows when generating voice-over. When you write the `narration` field on each tracked action, follow these rules. Then Vorec's AI validates your narration matches the chosen style and uses it as the final script.
 
+## Time sentences to action timestamps
+
+Narration is spoken over a timeline anchored by `timestamp` values on each action. If your narration is longer than the gap to the next action, it overflows and either freezes the video (freeze-sync) or runs over the next visual event.
+
+Before writing narration for an action:
+
+1. Estimate the gap until the next action fires (or until the recording ends).
+2. Compute max words that fit: `max_words = floor((gap_ms - 500) / 350)`.
+3. Write narration ≤ that word count for this action.
+
+Speaking rate: **350ms per word** (~2.86 words/sec, Vorec TTS measured). 500ms trailing buffer so narration doesn't collide with the next click.
+
+### Example
+
+Action A fires at `timestamp: 2.4s`, next action B fires at `timestamp: 5.0s`.
+Gap = 2600ms. Subtract 500ms buffer = 2100ms of speech.
+Max words = 2100 / 350 = **6 words**.
+
+Narration options:
+- Do: *"Click Submit — the form processes."* (5 words, fits)
+- Don't: *"Click Submit — the form processes and will show a success banner once done."* (12 words, overflows by 1.5s into the next action)
+
+### When you need more words than the gap allows
+
+- Option A: shorten the narration (preferred)
+- Option B: delay the next action by increasing the current action's `pause`
+- Option C: move the long explanation into a preceding `narrate` action (no click) with its own dedicated pause
+
+A sentence describing an action should BEGIN just before that action's timestamp — not after it (sounds confused), and not 5 seconds before (sounds disconnected). If a segment has 10 seconds of actions and you write 30 seconds of narration, it will run into the next segment.
+
 ## Universal rules (apply to EVERY style)
 
 ### Perception

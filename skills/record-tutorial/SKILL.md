@@ -342,11 +342,14 @@ When an action's response takes 800ms, write `pause: 1800` (response + a beat fo
 Before you print the discovery report to the user, mentally check:
 
 - [ ] Every planned action has a verified selector (role+name preferred over CSS)
+- [ ] Every selector tested for uniqueness — no partial text matches that hit multiple elements
+- [ ] Stateful controls (toggles, pickers, radios) tested for reset behavior — known whether they persist across submits or reset per row
 - [ ] Every form field has a valid demo value that passes validation
 - [ ] Every form field's "required" state is known
 - [ ] Every primary button's enabled/disabled trigger is known
 - [ ] Success state has URL + visible element + evidence text
 - [ ] Loading / async timings noted for every slow action (>500ms)
+- [ ] Cumulative recording time estimated and under any tier limit (<8 min for short, <15 min deep; split if longer)
 - [ ] First-time popups / onboarding state handled
 - [ ] Cookie / consent banners handled
 - [ ] Every user-listed gotcha verified

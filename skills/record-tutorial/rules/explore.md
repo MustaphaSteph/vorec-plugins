@@ -28,6 +28,26 @@ During the dry-run, document for each step:
 
 **Don't skip the dry-run** even if the flow seems obvious. "Obvious" flows still have surprises: hidden tooltips that block clicks, toggle buttons that need a second click, validation on blur, dialogs that appear only on first visit.
 
+### Test stateful controls before writing the manifest
+
+If the site has toggle buttons, checkboxes, pickers, or radio groups, verify whether they RESET after each submit/add action — or whether they persist between rows.
+
+Run this quick test during dry-run:
+1. Set the control to state A (e.g. toggle to Female)
+2. Submit / add / save whatever row the control is part of
+3. Check the control's state AGAIN after submit
+
+If the control did NOT reset:
+- The manifest must ONLY click the toggle when the state actually needs to change
+- Clicking a toggle that's already in the right state flips it to the wrong one
+- Map the full state machine: "starts as ♂, click once for ♀, stays ♀ for next row, click again to switch back to ♂"
+
+If the control DID reset:
+- Every row needs its own state-set click before the value input
+- Default state is whatever the site resets to (usually the "male" / first option)
+
+Without this test, you'll get bugs like "every female player is male because the toggle persisted and I clicked it again." Common on padel-style apps, tournament builders, form generators.
+
 For live external websites, also load [./live-site-discovery.md](./live-site-discovery.md) for the safety checklist (blockers, sensitive actions). The `vorec.json` you produce must be based on verified discovery, not guesses.
 
 
