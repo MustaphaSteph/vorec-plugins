@@ -109,6 +109,15 @@ The user already told you what to record. Before running any discovery or writin
 
 If anything is genuinely unclear (e.g. they said "record the checkout flow" but there are two checkout paths), ask **one** specific question. Do not ask generic stuff like "what's your goal?" or "who's the audience?" — just confirm and move on.
 
+### If the user shares an article / guide / docs link
+
+When the request includes a link to a help article, documentation page, or any step-by-step guide (Crisp help, Intercom, Notion docs, blog tutorial, etc.) — **load [./rules/article-guide-parsing.md](./rules/article-guide-parsing.md) now**. That article is the source of truth for what the video must show: its screenshots define the UI states, its demo values define what to type. Parse them before writing anything.
+
+Signals that trigger this:
+- User pastes a URL before the recording request
+- Phrases like "record this", "follow this guide", "same as this article", "make a video of this"
+- The URL resolves to a help center / docs / blog post
+
 ## Step 2: Check the page first — don't assume login
 
 Before discovery, find out whether the target URL is public, auth-walled, or partially gated. This shapes the entire rest of the flow.
