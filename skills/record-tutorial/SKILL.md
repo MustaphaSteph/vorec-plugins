@@ -101,72 +101,152 @@ Run `brew install cliclick`. Without it, the mouse cursor is not visible in the 
 
 The CLI needs a Vorec API key for analysis steps. Save once: `npx @vorec/cli init` (the skill's rule files cover this — see [./rules/auth.md](./rules/auth.md)).
 
-## Step 0.75: ⚠️ MANDATORY dry-run discovery — DO NOT SKIP
+## Step 1: Confirm what to record (plain English)
 
-**You MUST walk the flow end-to-end with `playwright-cli` BEFORE writing a single line of manifest.** This is not optional. Every failure the user has ever had came from skipping this step.
+The user already told you what to record. Before running any discovery or writing any code, echo it back to them in one sentence so you're aligned:
+
+> "Got it — I'll record a step-by-step guide of `<what they asked for>` on `<site / app>`."
+
+If anything is genuinely unclear (e.g. they said "record the checkout flow" but there are two checkout paths), ask **one** specific question. Do not ask generic stuff like "what's your goal?" or "who's the audience?" — just confirm and move on.
+
+## Step 2: Check the page first — don't assume login
+
+Before discovery, find out whether the target URL is public, auth-walled, or partially gated. This shapes the entire rest of the flow.
+
+```bash
+playwright-cli open <URL>
+playwright-cli --raw snapshot
+```
+
+Look at the snapshot:
+- **Public page, target content visible** → no login needed. Go to Step 3.
+- **Login page / redirect to auth** → login required. Open in headed mode so the user can sign in, capture the session. Load [./rules/auth.md](./rules/auth.md).
+- **Partially visible, some actions need auth** → ask the user one question: *"Do I need to log in to do `<specific action>`?"*
+
+**NEVER assume login.** Most public sites (marketing, docs, tools) need none. Only handle auth when you SEE a login wall or the user tells you.
+
+## Step 3: ⚠️ MANDATORY dry-run discovery — DO NOT SKIP
+
+**You MUST walk the flow end-to-end with `playwright-cli` (or source-read in Connected mode) BEFORE writing a single line of manifest.** This is not optional. Every failure the user has ever had came from skipping this step.
 
 Writing a manifest without doing discovery first = you're guessing at selectors, guessing at validation rules, guessing at success states, guessing at which buttons exist. Every guess becomes a broken action during recording. Broken actions = wasted credits + frustrated user + re-do.
 
 ### What "discovery" means concretely
 
-For **every action** you plan to put in the manifest, you must:
+For **every action** you plan to put in the manifest:
 
-1. **Open the page** with `playwright-cli open --headed <url>` (or navigate there via clicks).
+1. **Open the page** with `playwright-cli open --headed <url>` (or navigate there via clicks from the previous step).
 2. **Take a snapshot** — `playwright-cli --raw snapshot` — and find the real element by its accessibility role/name.
-3. **Click it** via `playwright-cli click <ref>` and observe what actually happens in the next snapshot.
-4. **Document the resolved selector** + what the UI did in response (modal opened, page navigated, form expanded, etc.).
-5. **Verify validation / error states** if the action is a form submit.
-6. **Capture the terminal success state** — what does the last page look like when the flow completes?
+3. **Click / fill it** via `playwright-cli click <ref>` or `fill <ref> <value>` and observe what happens in the next snapshot.
+4. **Record the resolved selector** + the observed UI response (modal opened, form expanded, page navigated, validation error shown).
+5. **Verify validation + error states** for form submits — try submitting with empty required fields and record the error messages.
+6. **Capture the terminal success state** — what does the final page look like when the flow completes (URL, heading, success banner)?
 
-Do this for **every single click** in the proposed flow. Not just the risky ones. Every one.
+Do this for **every single action**, not just the risky ones. Every one.
+
+### Save discovery findings to disk
+
+Create two files in the project folder (you'll create the folder in Step 5, but the discovery docs drive what the folder is named):
+
+**`.vorec/<slug>/flow-notes.md`** — human-readable findings:
+- Selectors that work (role+name preferred over CSS)
+- Valid test data (what passes validation)
+- Required fields + error messages
+- Hidden dialogs / modals that appear mid-flow
+- Success states at each step
+- Gotchas (disabled buttons, timing, state carryover)
+
+**`.vorec/<slug>/live-site-map.json`** — structured readiness file. Load [./rules/live-site-discovery.md](./rules/live-site-discovery.md) for the full schema. Must include:
+
+```json
+{
+  "recording_type": "task_tutorial",
+  "auth": { "required": false, "evidence": "..." },
+  "page_tree": [...],
+  "actions": [
+    {
+      "description": "...",
+      "selector": "...",
+      "observed_response": "...",
+      "validation": "...",
+      "required": true
+    }
+  ],
+  "success_state": { "url": "...", "evidence": "..." },
+  "blockers_reviewed": false,
+  "sensitive_actions_reviewed": false
+}
+```
+
+### 🚧 PRE-RECORDING GATE — readiness booleans
+
+**You cannot write the manifest until BOTH `blockers_reviewed` and `sensitive_actions_reviewed` are `true` in `live-site-map.json`.** This gate exists because sensitive actions (payments, emails, deletions, invitations) and blockers (rate limits, regional restrictions, required verifications) will destroy a recording if discovered during recording instead of before.
+
+If a value is unknown, either keep discovering OR ask the user the smallest possible question to resolve it. Never flip a boolean to `true` without evidence.
 
 ### Why this is non-negotiable
 
-- You **cannot** predict selectors from a URL or a product name. You cannot "guess" that "Add conditions" is a button when it's actually a dropdown. Snapshots tell you.
-- You **cannot** predict which fields are required, what validation rules fire, or what error text appears without actually typing into them and submitting.
-- You **cannot** predict multi-step flows ("click X → then Y appears → then click Z") without clicking X and seeing what renders.
-- The app records 2× retina native H.264 — if your manifest clicks the wrong thing on take one, there is no "fix in post."
+- You **cannot** predict selectors from a URL or product name. "Add conditions" might be a button, dropdown, link, or section header. Snapshots tell you.
+- You **cannot** predict required fields, validation rules, or error text without actually submitting.
+- You **cannot** predict multi-step flows ("click X → Y appears → click Z") without clicking X and seeing what renders.
+- The app records native H.264 — if your manifest clicks the wrong thing on take one, there's no "fix in post."
 
 ### The discovery report you show the user
 
-After the dry-run, before writing the manifest, print:
+Before writing the manifest, print:
 
 > **Dry-run complete. Here's what I verified:**
-> 1. `<action 1 description>` → resolved to `<real selector>`; clicking it opened `<what actually rendered>`.
-> 2. `<action 2 description>` → resolved to `<real selector>`; typing caused `<observed behavior>`.
-> 3. … (one line per verified action)
+> 1. `<action 1 description>` → resolved to `<selector>`; clicking it opened `<what rendered>`.
+> 2. `<action 2 description>` → resolved to `<selector>`; typing caused `<observed behavior>`.
+> 3. …
 >
-> Ready to write the manifest? (yes, or adjust)
+> Blockers reviewed: ✅. Sensitive actions reviewed: ✅.
+>
+> Ready to map the flow and write the manifest? (yes, or adjust)
 
-Only after the user confirms the discovery findings do you proceed to Step 1.
+Only after the user confirms do you proceed to Step 4.
 
-### Exceptions — when you can skip parts of discovery
+### Exceptions
 
-**NONE for Explore mode** (third-party sites, Shopify Admin apps, any URL where you don't have source code). Full dry-run is mandatory.
+**NONE for Explore mode / Shopify Admin** (any URL without source code access). Full dry-run is mandatory.
 
-**Connected mode only**: if you have the source code AND the components are small AND you can read the full form logic in the source (field names, validation schema, success redirect URL), you can skip clicking through and rely on the code. You still need to document what you found and show the user the report — just sourced from code instead of playwright-cli. If ANY part of the flow isn't fully visible in the code (API response handling, dynamic UI, cross-origin iframes), fall back to live dry-run.
+**Connected mode only**: if you have the full source code AND the components are small AND you can read every piece of the logic (field names, validation schema, success redirect, API response handling), you can skip clicking through and rely on the code. You still document findings and show the user the report — just sourced from code instead of playwright-cli. If ANY part of the flow isn't fully visible in the code (dynamic UI, cross-origin iframes, async network responses), fall back to live dry-run.
 
-### Load the rule file
+Rule files: [./rules/explore.md](./rules/explore.md) for Explore flows, [./rules/connected.md](./rules/connected.md) for Connected flows, [./rules/live-site-discovery.md](./rules/live-site-discovery.md) for the live-site-map.json schema.
 
-Full dry-run protocol: load [./rules/explore.md](./rules/explore.md) for Explore/Shopify-Admin flows, [./rules/connected.md](./rules/connected.md) for codebase-driven flows.
+**If you catch yourself writing selectors you haven't verified, STOP and go do the discovery first.**
 
-**If you catch yourself writing selectors you haven't verified with a snapshot or source read, STOP and go do the discovery first.**
+## Step 4: Map the flow
 
-## Step 1: Create a project folder + write the manifest
+With discovery complete, plan the sequence you'll record. For each step, write **structure only** — no narration yet, no code, no timings:
 
-Every recording gets its own folder under `.vorec/` so multiple recordings in the same repo don't overwrite each other. Pick a short slug from the tutorial title.
+- What page / section we're on
+- What interactions happen there (click X, type Y, hover Z)
+- How we get to the next step (navigation, scroll, modal close)
+
+This becomes the skeleton you'll turn into a manifest in Step 5 and the plan you'll show the user in Step 6. Real timing is computed from narration word count later.
+
+Keep it tight: 5–15 actions for a short tutorial, 15–30 for a deep walkthrough. If you're over 30, split into two recordings.
+
+## Step 5: Create the project folder + write the manifest
+
+Every recording gets its own timestamped folder under `.vorec/` so different sessions never collide.
 
 ```bash
-# Example: "How to Create a Tournament" → tournament
-mkdir -p .vorec/<project-slug>
+# Format: <slug>-<YYYYMMDD-HHMMSS>
+# Example: tournament-20260421-221530
+SLUG="tournament-$(date +%Y%m%d-%H%M%S)"
+mkdir -p ".vorec/$SLUG"
 ```
 
-Write `.vorec/<project-slug>/vorec.json`. Structure:
+Folder contents:
 
 ```
 .vorec/
-├── storageState.json                  # shared session (one per origin)
-└── <project-slug>/
+├── storageState.json                  # shared session (one per origin, optional)
+└── <slug>-<timestamp>/
+    ├── flow-notes.md                  # discovery findings from Step 3
+    ├── live-site-map.json             # structured readiness (Explore only)
     └── vorec.json                     # manifest for this recording
 ```
 
@@ -234,7 +314,7 @@ Full action reference: [./rules/actions.md](./rules/actions.md).
 Narration guidance: [./rules/narration-rules.md](./rules/narration-rules.md) and [./rules/narration-styles.md](./rules/narration-styles.md).
 Writing good `context`: [./rules/context-writing.md](./rules/context-writing.md).
 
-## Step 1.5: Show the recording plan to the user
+## Step 6: Show the recording plan to the user
 
 Before you run anything, print a short numbered plan in plain language and wait for the user's OK. This protects the user from surprises and gives them a last chance to edit the scope.
 
@@ -253,10 +333,10 @@ Use this format:
 
 Keep it to one sentence per action. Don't explain selectors, timings, or credits. If the user asks to adjust, rewrite the manifest and show the plan again — never start recording until the user explicitly says yes.
 
-## Step 2: Record (no upload yet)
+## Step 7: Record (no upload yet)
 
 ```bash
-npx @vorec/cli run .vorec/<project-slug>/vorec.json
+npx @vorec/cli run .vorec/<slug>-<timestamp>/vorec.json
 ```
 
 What happens:
@@ -278,7 +358,7 @@ If you want your `narration` drafts used word-for-word (no Gemini rewrite), pass
 npx @vorec/cli run vorec.json --skip-narration
 ```
 
-## Step 3: Show the MP4 to the user and wait for approval
+## Step 8: Show the MP4 to the user and wait for approval
 
 This is the critical gate. The recording is local-only — nothing has been sent to Vorec yet and no credits are spent. The user must confirm the recording looks right before you proceed.
 
@@ -296,9 +376,9 @@ open /Users/you/Movies/Vorec/recording-1776774835.mp4
 
 Then ask plainly, e.g.: *"Recording saved. Does the video look right? Say 'yes' to generate narration (costs ~10 credits), or 'no' and I'll discard and re-run."*
 
-**Do not proceed until the user explicitly approves.** If they reject, discard the recording from the Vorec Recorder app → Library and re-run from Step 2.
+**Do not proceed until the user explicitly approves.** If they reject, discard the recording from the Vorec Recorder app → Library and re-run from Step 7.
 
-## Step 4: On approval, upload + analyze
+## Step 9: On approval, upload + analyze
 
 ```bash
 npx @vorec/cli analyze "/Users/you/Movies/Vorec/recording-1776774835.mp4"
@@ -314,7 +394,7 @@ What happens:
 
 **Narration cost:** duration-based. Short (≤3min) = 8 credits, 3–8min = 15, 8–15min = 25, 15–30min = 45.
 
-## Step 5: Report
+## Step 10: Report
 
 Print only the final editor URL once analysis is done. No essays.
 
