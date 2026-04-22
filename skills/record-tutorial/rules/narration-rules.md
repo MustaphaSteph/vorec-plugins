@@ -58,6 +58,70 @@ If you have nothing meaningful to say over an action, don't write narration for 
 - Orienting on new pages ("This is the settings panel — the key options are on the left")
 - Giving context the viewer needs ("This field accepts any email — use yours here")
 
+### ⛔ Hard cap: 15 words per single action
+
+No single action's narration may exceed **15 words**. This is not a soft guideline — it's a hard cap. At 15 words × 350ms = 5250ms speaking time, the video is already holding still for over 5 seconds on one action. Longer than that, the viewer feels lectured to.
+
+If you need more than 15 words to cover a moment, SPLIT into multiple actions:
+- Move scene-setting / explainer content into a preceding `narrate` action (no click)
+- Keep the narration on the actual interaction short and focused
+
+✅ **OK** (11 words): "Click Submit — the order processes for a moment before confirming."
+❌ **Too long** (22 words): "Click Submit — the order now processes. You'll see a spinner for about two seconds, then a confirmation dialog appears with the order number."
+
+Fix by splitting:
+```
+[click] → "Click Submit — the order processes."                     (5 words)
+[narrate] → "A confirmation dialog appears with the order number." (8 words)
+```
+
+### When to use inline narration vs a separate `narrate` action
+
+Two valid patterns. Pick based on **what the narration is DOING**:
+
+**Inline narration** — attach `narration` to a click / type / scroll action. Use when:
+- The narration is SHORT (≤5 words): *"Click Save."* / *"Add."* / *"Now we're in."*
+- It's a direct confirmation of the interaction itself
+- The viewer's eye is already on the element being clicked
+
+**Separate `narrate` action** — zero-click, just pause + speech. Use when:
+- The narration is >8 words (scene-setting, explaining, teaching)
+- You need to describe something that just APPEARED (dialog, toast, loaded page)
+- You're orienting the viewer on a new page before they interact with it
+- The narration is about MEANING, not about the click
+
+**Rule of thumb**: if the narration is about *"here's what I'm clicking"*, inline. If it's about *"here's what this screen means"* or *"here's what just happened"*, use `narrate`.
+
+Be consistent WITHIN a recording. Don't mix patterns randomly — pick one and use it for similar-type moments throughout.
+
+### Transitions between actions
+
+Narration should FLOW like a real person talking. Adjacent actions shouldn't feel like disconnected sentences.
+
+❌ **Abrupt** (each narration is an isolated sentence):
+```
+[click Female]  → "Click Female — the ♀ icon shows."
+[click Save]    → "Save. Elena is in."
+```
+
+✅ **Bridged** (second narration picks up from the first):
+```
+[click Female]  → "Pick Female — and Save her in."
+[click Save]    → (no narration, the previous one covered it)
+```
+
+✅ **Or group into one longer beat** (when clicks are ≤2s apart):
+```
+[click Female + click Save as ONE grouped action] → "Pick Female and Save — Elena is locked in as our first player." (12 words, fits within grouped pause)
+```
+
+### Style-specific transition notes
+
+- **Tutorial** — use soft bridges ("*Great, now...*", "*Perfect — next...*")
+- **Conversational** — casual transitions ("*Alright, so...*", "*Next up...*")
+- **Concise / Exact** — NO transitions, treat each line as standalone
+- **Storytelling** — causal transitions ("*Because we did X, now...*")
+
 ---
 
 ## Style-specific rules
