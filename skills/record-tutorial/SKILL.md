@@ -136,7 +136,7 @@ Present URL choices based on what you detected. If the user already pasted a URL
 > 1. **Which URL should I record against?**
 >    `<list the real options you found, e.g.:>`
 >    - `http://localhost:3000` (your local dev server — from package.json dev script)
->    - `https://padelmake.com` (your deployed site — from package.json homepage)
+>    - `https://example.com` (your deployed site — from package.json homepage)
 >    - or paste another URL
 >
 >    *(If you didn't find any URL at all, just ask: "Which URL should I record? Paste a link.")*
@@ -151,7 +151,7 @@ Present URL choices based on what you detected. If the user already pasted a URL
 >
 > 4. **Who's watching?** (customer, internal team, developer, investor — shapes tone + what details to show)
 >
-> 5. **Anything I should pay attention to or avoid?** (e.g. "don't show pricing because it's changing", "the first-time onboarding popup should be dismissed before recording", "the Save button looks stuck for 2 seconds — that's normal", "use product 'Padelmake Pro' — it's our demo product")
+> 5. **Anything I should pay attention to or avoid?** (e.g. "don't show pricing because it's changing", "the first-time onboarding popup should be dismissed before recording", "the Save button looks stuck for 2 seconds — that's normal", "use product 'Acme Pro' — it's our demo product")
 >
 > Reply with those or say "go" for sensible defaults.
 
@@ -270,7 +270,7 @@ If the user chose live-only and you catch yourself wanting to grep or read a fil
 
 If the user mentioned anything in question 5 ("anything to pay attention to"), verify each one explicitly during discovery. Each gotcha = at least one snapshot that confirms it's handled. Examples:
 - User said "skip the first-time tour" → open with a fresh session, confirm the tour appears, find the dismiss button, note its selector
-- User said "use product 'Padelmake Pro'" → confirm that product exists in the target UI, note its exact label
+- User said "use product 'Acme Pro'" → confirm that product exists in the target UI, note its exact label
 - User said "Save button takes 2s to respond" → time it during discovery, use that as your `pause`
 
 ### ⚠️ When you get stuck — ask, don't guess
