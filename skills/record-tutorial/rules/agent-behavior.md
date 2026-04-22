@@ -7,22 +7,22 @@ description: How the agent should communicate and act during a recording task
 
 These rules govern HOW the agent interacts with the user during a recording task. Load this file at Step 0 of every recording, **before** anything else.
 
-## 🎯 Rule 1 — Act first, ask later
+## Rule 1 — Act first, ask later
 
 When the user's request requires a blocking action (opening a browser, installing a tool, logging in, capturing a session), **do the action first**. Announce it in one sentence. Then ask any follow-up questions while the action is in progress or after it's done.
 
-❌ **Don't:**
+Don't:
 > "Are you ready for me to open the browser?"
 > "Should I launch Chromium now?"
 > "Let me know when you want me to start."
 
-✅ **Do:**
+Do:
 > "Opening Chromium now so you can log in."
 > "Launching browser at vorec.ai/login — tell me 'done' when you're on the dashboard."
 
 The user didn't come here to answer meta-questions. They came for a recording.
 
-## 🎯 Rule 2 — Never batch 3+ questions
+## Rule 2 — Never batch 3+ questions
 
 Ask at most **2 questions at a time**. Prefer sensible defaults over asking.
 
@@ -34,7 +34,7 @@ Ask at most **2 questions at a time**. Prefer sensible defaults over asking.
 
 If the user explicitly says "defaults", "record with defaults", or "quick record", apply English + Tutorial style without asking again.
 
-❌ **Don't:**
+Don't:
 > "Quick setup for your recording:
 > 1. Is this a local app or a live website?
 > 2. Cinematic / Natural / Fast style?
@@ -42,14 +42,14 @@ If the user explicitly says "defaults", "record with defaults", or "quick record
 > 4. Explain first or go straight to action?
 > 5. Include chapters?"
 
-✅ **Do:**
+Do:
 > "I'll record the vorec.ai signup flow. One thing — is this your project (I can read the code) or should I explore the page?"
 
 Every question is a blocker. Minimize them.
 
 Quality, resolution, codec, and cursor styling are **not** configurable — the Vorec Recorder app records at a fixed 2× retina H.264, with the real macOS cursor captured automatically. Never ask the user about those.
 
-## 🎯 Rule 3 — Keep the chat clean
+## Rule 3 — Keep the chat clean
 
 The user sees only: plan, preferences, status updates, and the final result. Everything else (narration drafts, manifests, tracked actions JSON, file paths, internal logs) is saved to files silently.
 
@@ -68,13 +68,13 @@ The user sees only: plan, preferences, status updates, and the final result. Eve
 
 Keep updates to **1-2 sentences**. The user wants a video, not a lecture.
 
-❌ **Don't:**
+Don't:
 > "I found two blockers I need to resolve with you before recording. The first is that we don't have a valid login session for vorec.ai — there's an old .vorec/storageState.json, but it's for localhost:3000 and has 0 cookies. Useless for production. The second is that I need to capture a fresh session. Playwright will open Chromium → you log in manually once → I save cookies + localStorage → all future recordings skip the login. Let me also grab the dashboard 'new video' flow selectors while we decide."
 
-✅ **Do:**
+Do:
 > "No valid session yet. Opening Chromium for login now."
 
-## 🎯 Rule 4 — Prefer sensible defaults, but ALWAYS ask narration preferences
+## Rule 4 — Prefer sensible defaults, but ALWAYS ask narration preferences
 
 For technical decisions (mode detection, wait strategy, selectors), use defaults and proceed. Don't ask.
 
@@ -106,7 +106,7 @@ Write narration drafts for every action regardless — they are always sent to V
 | Test data | Generated fresh | Only if user provides specific values |
 | Session | Reuse if valid | Never ask |
 
-## 🎯 Rule 5 — Use `--headed` for any interactive playwright-cli step
+## Rule 5 — Use `--headed` for any interactive playwright-cli step
 
 Recording itself is done by the Vorec Recorder app, not playwright-cli. But you'll still use `playwright-cli` for **exploration** (finding selectors) and **session capture** (user login).
 
@@ -119,7 +119,7 @@ Recording itself is done by the Vorec Recorder app, not playwright-cli. But you'
 
 See [./cli-commands.md](./cli-commands.md) for details.
 
-## 🎯 Rule 6 — Re-check state before blocking the user
+## Rule 6 — Re-check state before blocking the user
 
 Before asking the user to re-do something they might have already done:
 - Check if a session file exists AND is valid for the target origin
@@ -147,17 +147,17 @@ print('valid' if valid else 'stale')
 If `valid` → skip login capture, reuse the session.
 If `stale` → capture a fresh one.
 
-## 🎯 Rule 7 — When genuinely stuck, ask the smallest possible question
+## Rule 7 — When genuinely stuck, ask the smallest possible question
 
 If you hit something you can't decide, ask **ONE specific question** — not five.
 
-❌ **Don't:**
+Don't:
 > "What scope? What file? What style? What language? Should I clear the cart?"
 
-✅ **Do:**
+Do:
 > "The cart has 3 items from an earlier session. Clear them or record as-is?"
 
-## 🎯 Rule 8 — Tell the user what you're doing at every step
+## Rule 8 — Tell the user what you're doing at every step
 
 The user should always know what's happening. Give clear status updates in plain language — not technical jargon.
 
@@ -191,7 +191,7 @@ The user should always know what's happening. Give clear status updates in plain
 - "Here's what I'm going to do in detail: first I'll..."
 - Technical details like "Capturing at 2× retina with H.264 high profile..."
 
-## 🎯 Rule 9 — On failure, fix silently when you can
+## Rule 9 — On failure, fix silently when you can
 
 If a command fails because of a known-fixable issue, **fix it and retry** rather than reporting the failure to the user.
 
@@ -208,13 +208,13 @@ If a command fails because of a known-fixable issue, **fix it and retry** rather
 - Ambiguous flow (two plausible next clicks)
 - Test data validation failed in a way you can't predict
 
-## 🎯 Rule 10 — End with a useful link or file path
+## Rule 10 — End with a useful link or file path
 
 When the task is done, the final message should contain exactly ONE actionable result:
 
-✅ "Done. Video: `/Users/you/recordings/signup-123.mp4`"
-✅ "Done. Editor: https://vorec.ai/editor?project=xyz"
-❌ "I have successfully completed the recording. Here's a summary of what was accomplished: [wall of text]"
+Do: "Done. Video: `/Users/you/recordings/signup-123.mp4`"
+Do: "Done. Editor: https://vorec.ai/editor?project=xyz"
+Don't: "I have successfully completed the recording. Here's a summary of what was accomplished: [wall of text]"
 
 The user wants the output. Give them the output.
 

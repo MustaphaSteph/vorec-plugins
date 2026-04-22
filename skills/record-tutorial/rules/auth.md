@@ -7,16 +7,16 @@ description: How to handle login flows and save browser sessions for local, host
 
 Load this file when the target site requires login.
 
-**⚠️ If the login flow uses Google, stop automation and hand off to the user.** Google blocks OAuth in browsers it considers embedded/unsafe/automated, and fighting that is both unreliable and against Google's policy. Open a headed real-Chrome window, ask the user to log in manually, and resume once they're authenticated. Never fill Google email/password with Playwright, never spoof the user agent, never inject Google cookies.
+**If the login flow uses Google, stop automation and hand off to the user.** Google blocks OAuth in browsers it considers embedded/unsafe/automated, and fighting that is both unreliable and against Google's policy. Open a headed real-Chrome window, ask the user to log in manually, and resume once they're authenticated. Never fill Google email/password with Playwright, never spoof the user agent, never inject Google cookies.
 
-**⚠️ If the site is Shopify Admin, read [./shopify-admin.md](./shopify-admin.md) first.** Embedded Shopify apps require a dedicated Chrome profile and must be opened through `admin.shopify.com`, not the raw tunnel URL.
+**If the site is Shopify Admin, read [./shopify-admin.md](./shopify-admin.md) first.** Embedded Shopify apps require a dedicated Chrome profile and must be opened through `admin.shopify.com`, not the raw tunnel URL.
 
 ## Check if auth is needed
 
 - **Connected mode**: read the router/auth guard in the codebase. Look for auth guards wrapping routes, redirect to `/login`, protected route middleware.
 - **Explore mode**: navigate to the target URL — if redirected to a login page or you see "Sign in" as the first visible element, auth is needed.
 
-## 🎯 Canonical login capture subroutine
+## Canonical login capture subroutine
 
 **Use this whenever you need a fresh session.** Do NOT ask permission first — open the browser immediately and tell the user what to do in ONE sentence.
 
@@ -48,7 +48,7 @@ playwright-cli open --headed https://SITE/login
 playwright-cli resize 1600 1000
 ```
 
-**⚠️ CRITICAL: `playwright-cli open` defaults to HEADLESS.** You MUST use `--headed` for user login — otherwise the user can't see the window and won't know what to do.
+**CRITICAL: `playwright-cli open` defaults to HEADLESS.** You MUST use `--headed` for user login — otherwise the user can't see the window and won't know what to do.
 
 ### Step 3 — Tell the user ONE thing to do
 
@@ -73,7 +73,7 @@ After the session is saved, continue with the rest of the workflow. If there are
 
 > "Session saved. Ready to record — English narration in tutorial style, or something different?"
 
-## ❌ Bad behavior (don't do this)
+## Don't — bad behavior to avoid
 
 ```
 Agent: I see we need to log in. Let me walk you through the options:
@@ -85,7 +85,7 @@ Agent: I see we need to log in. Let me walk you through the options:
        What's the test file path? What style of narration?
 ```
 
-## ✅ Good behavior
+## Do: Good behavior
 
 ```
 Agent: Opening browser for login.

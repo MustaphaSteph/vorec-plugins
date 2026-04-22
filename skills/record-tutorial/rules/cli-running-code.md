@@ -62,12 +62,12 @@ playwright-cli run-code "async page => {
 Must be a single async arrow function with `page` argument:
 
 ```js
-// ✅ CORRECT
+// Do: CORRECT
 async page => {
   return await page.title();
 }
 
-// ❌ WRONG — no imports, no top-level code
+// WRONG — no imports, no top-level code
 import { chromium } from 'playwright';
 ```
 

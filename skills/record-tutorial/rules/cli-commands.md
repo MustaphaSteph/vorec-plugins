@@ -9,7 +9,7 @@ description: playwright-cli core commands — open, click, snapshot, resize, etc
 
 > This file is adapted from Microsoft's official [playwright-cli skill](https://github.com/microsoft/playwright-cli/blob/main/skills/playwright-cli/SKILL.md) (Apache 2.0). Bundled for reference inside the Vorec record-tutorial plugin. See [../LICENSE_playwright-cli.txt](../LICENSE_playwright-cli.txt).
 
-## ⚠️ Headed vs headless — read this before opening a browser
+## Headed vs headless — read this before opening a browser
 
 **`playwright-cli open` defaults to HEADLESS.** The browser window is invisible — the user will not see it and cannot interact.
 

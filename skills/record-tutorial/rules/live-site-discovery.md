@@ -111,6 +111,6 @@ Before writing `vorec.json`, verify you can answer YES to all of these. If any a
 
 The report you print before writing the manifest MUST include this one-line summary:
 
-> **Blockers reviewed: ✅. Sensitive actions reviewed: ✅. Valid demo values ready for N fields. Success state verified.**
+> **Blockers reviewed: yes. Sensitive actions reviewed: yes. Valid demo values ready for N fields. Success state verified.**
 
 If you cannot truthfully say this, do not write the manifest.

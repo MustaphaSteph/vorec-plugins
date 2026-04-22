@@ -58,7 +58,7 @@ If you have nothing meaningful to say over an action, don't write narration for 
 - Orienting on new pages ("This is the settings panel — the key options are on the left")
 - Giving context the viewer needs ("This field accepts any email — use yours here")
 
-### ⛔ Hard cap: 15 words per single action
+### Hard cap: 15 words per single action
 
 No single action's narration may exceed **15 words**. This is not a soft guideline — it's a hard cap. At 15 words × 350ms = 5250ms speaking time, the video is already holding still for over 5 seconds on one action. Longer than that, the viewer feels lectured to.
 
@@ -66,8 +66,8 @@ If you need more than 15 words to cover a moment, SPLIT into multiple actions:
 - Move scene-setting / explainer content into a preceding `narrate` action (no click)
 - Keep the narration on the actual interaction short and focused
 
-✅ **OK** (11 words): "Click Submit — the order processes for a moment before confirming."
-❌ **Too long** (22 words): "Click Submit — the order now processes. You'll see a spinner for about two seconds, then a confirmation dialog appears with the order number."
+Do (11 words): "Click Submit — the order processes for a moment before confirming."
+Don't (22 words): "Click Submit — the order now processes. You'll see a spinner for about two seconds, then a confirmation dialog appears with the order number."
 
 Fix by splitting:
 ```
@@ -98,19 +98,19 @@ Be consistent WITHIN a recording. Don't mix patterns randomly — pick one and u
 
 Narration should FLOW like a real person talking. Adjacent actions shouldn't feel like disconnected sentences.
 
-❌ **Abrupt** (each narration is an isolated sentence):
+Don't (abrupt) (each narration is an isolated sentence):
 ```
 [click Female]  → "Click Female — the ♀ icon shows."
 [click Save]    → "Save. Elena is in."
 ```
 
-✅ **Bridged** (second narration picks up from the first):
+Do (bridged) (second narration picks up from the first):
 ```
 [click Female]  → "Pick Female — and Save her in."
 [click Save]    → (no narration, the previous one covered it)
 ```
 
-✅ **Or group into one longer beat** (when clicks are ≤2s apart):
+Do (group into one longer beat when clicks are ≤2s apart):
 ```
 [click Female + click Save as ONE grouped action] → "Pick Female and Save — Elena is locked in as our first player." (12 words, fits within grouped pause)
 ```
@@ -267,7 +267,7 @@ track('type', 'Project name', 'Type the project name', 'name-input', coords, {
 });
 ```
 
-### ⚠️ CRITICAL: Narration must FIT in the pause (no freeze sync)
+### CRITICAL: Narration must FIT in the pause (no freeze sync)
 
 Narration is spoken at ~3 words/second. If the narration is too long for the pause, it overflows into the next action → **FREEZE SYNC** (the video freezes while narration catches up — looks broken).
 
@@ -283,7 +283,7 @@ Narration is spoken at ~3 words/second. If the narration is too long for the pau
 - Option B: shorten the narration
 - Option C: split into multiple tracked actions with separate narrations and pauses
 
-### ⚠️ Group nearby actions when narration spans them
+### Group nearby actions when narration spans them
 
 If several clicks happen within 2-3 seconds (rapid navigation, multi-step clicks on the same screen), **DON'T split into multiple tracked actions with tiny pauses**. Either:
 

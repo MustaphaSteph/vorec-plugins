@@ -7,7 +7,7 @@ description: How to write great context fields for tracked actions — the key t
 
 The `context` field on each tracked action tells Vorec what is on screen and what changed. The `narration` field is the spoken script, but better context still gives the AI and editor the scene reference they need.
 
-## ⚠️ CRITICAL: Narration length determines video length
+## CRITICAL: Narration length determines video length
 
 Every tracked action has an explicit `pause` sized from the `narration` field. Long narration creates long pauses in the video. Context is not timed directly, but bloated context tends to produce bloated narration and weaker scene references.
 
@@ -23,7 +23,7 @@ Keep contexts **tight and action-sized**:
 
 The agent writes the final `narration` field separately. Use `context` to give the AI and editor a compact scene reference: what is visible, what changes, and why the action matters.
 
-## ⚠️ CRITICAL: For repeated actions (loops), drop context to bare minimum
+## CRITICAL: For repeated actions (loops), drop context to bare minimum
 
 When adding 5+ of the same thing (rows, items, entries):
 - **First item**: full context explaining the process (20 words)

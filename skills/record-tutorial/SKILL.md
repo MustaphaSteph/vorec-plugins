@@ -40,7 +40,7 @@ Vorec then:
 - Final video sweet spot: 1–3 minutes
 - More than 30 actions or 4 minutes → consider splitting into multiple recordings
 
-## 🎯 FIRST: Load agent-behavior rules
+## FIRST: Load agent-behavior rules
 
 Before anything else, load [./rules/agent-behavior.md](./rules/agent-behavior.md). It's short and teaches you:
 - Act first, ask later
@@ -211,7 +211,7 @@ Look at the snapshot:
 
 **NEVER assume login.** Most public sites (marketing, docs, tools) need none. Only handle auth when you SEE a login wall or the user tells you.
 
-## Step 3: ⚠️ MANDATORY deep discovery — DO NOT SKIP, DO NOT CUT CORNERS
+## Step 3: MANDATORY deep discovery — DO NOT SKIP, DO NOT CUT CORNERS
 
 **You MUST discover the full flow BEFORE writing a single line of manifest.** Not optional. Discovery is where recordings are won or lost.
 
@@ -314,7 +314,7 @@ If the user mentioned anything in question 5 ("anything to pay attention to"), v
 - User said "use product 'Acme Pro'" → confirm that product exists in the target UI, note its exact label
 - User said "Save button takes 2s to respond" → time it during discovery, use that as your `pause`
 
-### ⚠️ When you get stuck — ask, don't guess
+### When you get stuck — ask, don't guess
 
 You WILL hit things you can't resolve by exploring. That's normal. When you hit any of these, STOP discovery and ask the user ONE specific question:
 
@@ -368,7 +368,7 @@ What you need to remember across the dry-run (mentally, not on disk):
 - Sensitive actions you avoided (payments, deletes, emails, invitations)
 - Blockers you encountered (rate limits, regional restrictions, verifications)
 
-### 🚧 PRE-RECORDING GATE — mental readiness check
+### PRE-RECORDING GATE — mental readiness check
 
 **You cannot write the manifest until you can truthfully say, in the discovery report below:**
 1. **Blockers reviewed** — you've identified anything that could stop the recording mid-flow (rate limits, verification requirements, geo-gates).
@@ -408,7 +408,7 @@ Before writing the manifest, print a thorough report that covers the depth check
 > - `<any surprise found during discovery>` — e.g. "A 'Save draft?' popup appeared between step 5 and 6; I'll add a dismiss click for it"
 > - `<any timing that's unusually slow>`
 >
-> **Sensitive actions / blockers:** ✅ reviewed. `<say what was avoided or how it was neutralized>`.
+> **Sensitive actions / blockers:** Do: reviewed. `<say what was avoided or how it was neutralized>`.
 >
 > Ready to write the manifest with the flow above? (yes, or tell me what to change)
 

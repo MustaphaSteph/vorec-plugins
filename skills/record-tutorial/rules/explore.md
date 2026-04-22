@@ -7,7 +7,7 @@ description: Explore mode — discovering a live page without source code access
 
 Use this mode when you **don't have the source code**. The agent has to discover the page at runtime using `playwright-cli snapshot` and semantic locators. It's slower than Connected mode because exploration costs tokens, but it works on any URL.
 
-## ⚠️ MANDATORY: Full dry-run BEFORE writing any script
+## MANDATORY: Full dry-run BEFORE writing any script
 
 **Walk the entire flow end-to-end using playwright-cli FIRST.** Every page, every form, every click — manually verify each step works before writing `vorec.json`.
 
