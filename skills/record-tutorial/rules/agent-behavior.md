@@ -27,7 +27,7 @@ The user didn't come here to answer meta-questions. They came for a recording.
 Ask at most **2 questions at a time**. Prefer sensible defaults over asking.
 
 **Exceptions (both are OK to batch in one message):**
-1. **Step 1 elicitation** — goal + audience + gotchas (3 questions) in one message. All three have defaults; user can say "go".
+1. **Step 1 elicitation** — URL + discovery mode + goal + audience + gotchas (5 questions) in one message. All five have defaults; user can say "go". This is the ONLY time 5 questions are acceptable, because the user picking the wrong URL or letting the agent snoop their code when they didn't want to is worse than reading one larger message upfront.
 2. **Step 6 preferences** — language + narration style + narration author (3 questions) in one message. All three have defaults; user can say "go".
 
 **When stuck during discovery — ask ONE specific question, not batched.** If you hit a selector you can't resolve, a validation rule you don't understand, or a fork in the path, ask a single targeted question. This is the opposite of "prefer defaults": during discovery, asking is cheaper than guessing wrong. See SKILL.md Step 3 § "When you get stuck — ask, don't guess".

@@ -101,32 +101,45 @@ Run `brew install cliclick`. Without it, the mouse cursor is not visible in the 
 
 The CLI needs a Vorec API key for analysis steps. Save once: `npx @vorec/cli init` (the skill's rule files cover this — see [./rules/auth.md](./rules/auth.md)).
 
-## Step 1: Elicit goal + audience + gotchas — one message, three questions
+## Step 1: Elicit URL + discovery mode + goal + audience + gotchas — one message
 
-The user told you *what* flow to record. You still need to know *why*, *for whom*, and *what to watch out for*. Without this, your discovery is blind and your narration is generic.
+The user told you *what* flow to record. You still need to know *where* to record it, *whether you can read their code*, *why*, *for whom*, and *what to watch out for*. Without this, your discovery is blind, your narration is generic, and you may record against the wrong URL entirely.
 
-Print ONE message with the request confirmation + three targeted questions:
+Print ONE message with the request confirmation + the questions below. Tailor the URL choices based on what you see in the workspace:
 
-> Got it — I'll record `<what they asked for>` on `<site / app>`.
+> Got it — I'll record `<what they asked for>`.
 >
-> Three quick things before I start exploring the page:
+> Before I start exploring:
 >
-> 1. **What's the goal of this video?** (e.g. "show new users how fast signup is", "document how admins manage refunds", "explain feature X to the sales team")
+> 1. **Which URL should I record against?**
+>    - `<localhost:PORT>` (your local dev — I saw `<signal like package.json / running server>`)
+>    - `<your-live-domain.com>` (your deployed site)
+>    - something else — paste it here
 >
-> 2. **Who's watching?** (customer, internal team, developer, investor — shapes tone + what details to show)
+> 2. **Can I read your source code for discovery, or should I stay out of it?**
+>    - **Read code** — faster, more accurate selectors (I stick to the files related to this flow; I don't copy secrets)
+>    - **Live only** — I explore the page through snapshots, never open your files
 >
-> 3. **Anything I should pay attention to or avoid?** (e.g. "don't show pricing because it's changing", "the first-time onboarding popup should be dismissed before recording", "the Save button looks stuck for 2 seconds — that's normal", "use product 'Padelmake Pro' — it's our demo product")
+> 3. **What's the goal of this video?** (e.g. "show new users how fast signup is", "document how admins manage refunds", "explain feature X to the sales team")
 >
-> Reply with those or say "go" and I'll use defaults + discover as I explore.
+> 4. **Who's watching?** (customer, internal team, developer, investor — shapes tone + what details to show)
+>
+> 5. **Anything I should pay attention to or avoid?** (e.g. "don't show pricing because it's changing", "the first-time onboarding popup should be dismissed before recording", "the Save button looks stuck for 2 seconds — that's normal", "use product 'Padelmake Pro' — it's our demo product")
+>
+> Reply with those or say "go" for sensible defaults.
 
 ### Why each question matters
 
+- **URL** → Determines WHERE the recording happens. Local dev shows seed data + dev banners; live prod shows real branding. User's call, not yours.
+- **Discovery mode** → Whether you're allowed to grep the codebase at all. Users may prefer live-only for privacy, to avoid leaking secrets, or because their deployed prod doesn't match current code (stale branch, migrations pending).
 - **Goal** → Determines which path to show when flow has alternatives (fastest signup vs. feature-rich signup), what to highlight, what to gloss over
 - **Audience** → Shapes narration style, which details to name, what terminology level to use
-- **Gotchas** → Catches things the agent CANNOT discover by exploring: feature flags, flaky UI, specific demo data requirements, first-time-user popups, rate limits, region-specific UI
+- **Gotchas** → Catches things you CANNOT discover by exploring: feature flags, flaky UI, specific demo data requirements, first-time-user popups, rate limits, region-specific UI
 
 ### What the agent does with the answers
 
+- **URL answer** → this becomes the manifest `url`. If the user picked a URL different from what they initially mentioned, that's the one that wins.
+- **Discovery mode answer** → controls Step 3. If "live only", you MUST NOT open any local source files even when the cwd has the code. Live dry-run only.
 - **Goal answer** → becomes `videoContext` in the manifest (Gemini uses it to ground narration)
 - **Audience answer** → influences which narration style to suggest in Step 6
 - **Gotchas answer** → added to discovery checklist; agent explicitly verifies each one during dry-run
@@ -134,11 +147,13 @@ Print ONE message with the request confirmation + three targeted questions:
 ### If the user says "go" / "defaults"
 
 Proceed with reasonable guesses:
+- URL: whatever they initially mentioned; if nothing, the deployed domain inferred from the repo
+- Discovery mode: **live-only** — safer default. Don't read code unless the user says you can.
 - Goal: what the flow name implies ("record checkout" → "show how to complete a purchase")
 - Audience: generic users
 - Gotchas: none known; agent will ask mid-discovery if anything weird shows up
 
-Do NOT skip the question — the three-in-one format is fast enough that it's always worth asking once.
+Do NOT skip the question just because it looks obvious. A user who says "record our checkout" might mean localhost, their staging env, or production — you cannot guess which one they want on camera.
 
 ### If the user shares an article / guide / docs link
 
@@ -210,9 +225,19 @@ Deep discovery covers state the agent tends to miss:
 - **Conditional branches** — if the flow forks ("if paid user → X, if free user → Y"), you need to record ONE specific path; ask the user which if unclear
 - **Keyboard-only paths** — sometimes the click-only path doesn't work (e.g., combobox needs typing to filter). Try both.
 
+### Honor the user's discovery-mode choice
+
+The Step 1 question "can I read your source code" sets a hard rule for this phase:
+
+- **"Read code"** — you may grep / read files in the cwd for the flow being recorded. Stick to files relevant to the flow (components, routes, forms, validation schemas). Do NOT read unrelated files, .env, credentials, or parts of the codebase outside the feature. Still verify live when the code doesn't answer a question (dynamic UI, API responses).
+- **"Live only"** — you MUST NOT open any source file, even if the cwd is full of code. All discovery is via `playwright-cli snapshot` + click loops. If a selector is hard to find, keep snapshotting, don't fall back to reading code.
+- **No answer given** — default to **live only**. Safer.
+
+If the user chose live-only and you catch yourself wanting to grep or read a file, STOP. Ask the user: *"I need `<specific info>` to continue. Can I read `<specific file>`, or do you want to tell me directly?"*
+
 ### Honor the user's gotchas from Step 1
 
-If the user mentioned anything in question 3 ("anything to pay attention to"), verify each one explicitly during discovery. Each gotcha = at least one snapshot that confirms it's handled. Examples:
+If the user mentioned anything in question 5 ("anything to pay attention to"), verify each one explicitly during discovery. Each gotcha = at least one snapshot that confirms it's handled. Examples:
 - User said "skip the first-time tour" → open with a fresh session, confirm the tour appears, find the dismiss button, note its selector
 - User said "use product 'Padelmake Pro'" → confirm that product exists in the target UI, note its exact label
 - User said "Save button takes 2s to respond" → time it during discovery, use that as your `pause`
