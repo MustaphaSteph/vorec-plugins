@@ -25,6 +25,31 @@ Do:    "Give the project a name."
 
 Rule: if the value is **something the viewer would answer with their own data** (name, email, title, gender, photo, currency), narrate the PURPOSE of the field. If the value is **a feature/plan/mode where the choice drives the tutorial** (Pro vs Free, Dark vs Light), mention the option but frame it as "pick the X that fits" not "use this one".
 
+## Set the scene on every new page or state
+
+When a new page, modal, wizard step, tab, or dashboard appears, the FIRST `narrate` beat on that surface must do three things:
+
+1. **Name the surface** — "Step three: settings", "The dashboard loads", "A confirmation dialog opens"
+2. **Describe what's visible** — what sections, what defaults, what choices
+3. **Explain the meaningful options** — what the viewer can adjust, what each control does
+
+Don't just narrate the next click — narrate the arrival.
+
+Don't (only describes the click):
+> "Click Generate Tournament."
+
+Do (sets the scene + then leads to the click):
+> "Step three: settings. The tool works out courts and rounds for you. Points per match default to 32, tiebreak on point difference. Pairing strategy is Top vs Top — the Mexicano signature. Hit Generate Tournament."
+
+Apply this on:
+- Settings / config pages → describe defaults and which knobs matter
+- Result / dashboard pages → describe what the user is now looking at
+- Modals → describe what the dialog is asking for
+- Wizard steps → name the step and what this step is for
+- Tab switches → name the tab, summarize what's in it
+
+If you skip the scene-setter, the viewer hears clicks happening on screens they don't understand.
+
 ## Plan segments first, distribute actions under them
 
 Do NOT write one narration per action. That produces a checklist feel — every click narrated separately, voice playing constantly. Instead, plan the recording as **3-8 semantic beats**, one `narrate` block per beat, with 2-5 silent actions executing underneath each.

@@ -498,6 +498,8 @@ Manifest contents:
 
 **Action types:** `click` · `type` · `select` · `hover` · `scroll` · `wait` · `navigate` · `narrate`.
 
+For scroll mechanics (reveal-before-click, SPA reset trap, smooth scroll), load [./rules/scroll.md](./rules/scroll.md).
+
 **Every action carries these four text-ish fields — always write all four:**
 
 | Field | Purpose | Length |

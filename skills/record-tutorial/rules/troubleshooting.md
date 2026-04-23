@@ -61,6 +61,29 @@ If a selector times out:
 | `analyze-video-v2` error | The video reached Vorec but analysis failed. Open the editor URL and retry analysis there |
 | Timed out waiting for analysis | Analysis sometimes takes 2+ minutes. The CLI prints the editor URL anyway — open it and wait |
 
+## Resolution drops mid-session
+
+**Symptom:** previous recording was full retina (e.g. 3456×2158), the next one is sub-retina (1306×810 or smaller).
+
+**Cause:** Chrome process from the previous recording didn't fully exit. The new launch reused a leftover smaller window.
+
+**Fix before every recording in a session that already had one:**
+```bash
+playwright-cli close-all 2>/dev/null
+pkill -9 -f "Google Chrome for Testing"
+sleep 3
+```
+
+Then run `vorec run` again. If the file still comes out at 0 bytes, the Vorec Recorder app is in a stuck state — quit it from the menubar and reopen.
+
+## Click fires but URL doesn't change
+
+**Symptom:** Playwright reports the click succeeded, but the page didn't navigate or the wrong content loaded.
+
+**Cause:** the text-based selector (e.g. `text=Classic Mexicano`) matched MORE THAN ONE element on the page — typically a hidden sidebar/footer link with the same label. Playwright picked the wrong one.
+
+**Fix:** before clicking, run a uniqueness check (see [./live-site-discovery.md](./live-site-discovery.md) → "Selector uniqueness check"). If >1 match, switch to a URL-based selector: `"a[href='/exact/path']"`.
+
 ## Validation issues
 
 If `vorec run` succeeds but the resulting video shows validation errors / disabled buttons / failure states, the manifest used bad test data. Load [./validation.md](./validation.md) for how to read validators and produce good data.

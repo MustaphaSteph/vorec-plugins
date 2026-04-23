@@ -131,6 +131,31 @@ Before writing `vorec.json`, verify you can answer YES to all of these. If any a
 - **Blockers reviewed** — cookie banners, onboarding popups, rate limits, locale / region gates, sticky headers all noted and handled
 - **Sensitive actions reviewed** — payments, deletes, emails, invitations, publishes all either avoided or explicitly approved by the user
 
+## Selector uniqueness check
+
+Before using any text-based selector (`text=X`, `a:has-text("X")`, `role=link[name='X']`), verify the text is UNIQUE on the page. Nav bars, sidebars, and footers often repeat the same label — Playwright will silently pick the first match, which may not be the visible one.
+
+Run this in the Playwright dry-run to count matches:
+
+```js
+const all = await page.$$('a, button');
+let hits = [];
+for (const el of all) {
+  const text = (await el.textContent() || '').trim();
+  if (text === 'TARGET_TEXT') {
+    hits.push({ href: await el.getAttribute('href'), classes: await el.getAttribute('class'), visible: await el.isVisible() });
+  }
+}
+console.log(hits);
+```
+
+**Decision rule:**
+- 1 match → safe to use `text=TARGET_TEXT`
+- 2+ matches → switch to `a[href='/exact/path']` or `role=X[name='Y']` scoped to a container (e.g. `main >> text=TARGET_TEXT`)
+- 0 matches → wrong text or page not loaded — re-snapshot
+
+**Symptom of skipping this check:** click reports success but URL doesn't change, or wrong content loads. Playwright matched a hidden sidebar/footer link with the same label.
+
 ## Include in the discovery report to the user
 
 The report you print before writing the manifest MUST include this one-line summary:
