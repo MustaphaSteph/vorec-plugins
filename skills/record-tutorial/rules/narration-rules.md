@@ -65,6 +65,44 @@ Do NOT write one narration per action. That produces a checklist feel — every 
 
 Voice plays in full on the `narrate` block, then silent actions fire under their own short pauses. The voice finishes just before or as the silent actions start → perfect lead-up sync. No overlap, no overflow.
 
+### CRITICAL — silent actions still need `context`, they just skip `narration`
+
+The segment-first pattern removes voice from individual clicks. It does NOT remove grounding. Every action (narrate, click, type, scroll, hover, select) MUST have a `context` field describing what's on screen and what changes. Gemini uses `context` as its scene reference when rewriting your draft narration — if silent clicks have only a one-line `description`, Gemini ends up writing narration on partial information and fills the gaps by inventing detail or copying your demo values into the script.
+
+What each field carries:
+
+| Field | When to write | Required on |
+|-------|---------------|-------------|
+| `description` | Timeline label (5-10 words) | Every action |
+| `context` | Scene reference (1-3 sentences, what's visible + what changed) | Every action |
+| `narration` | Spoken script | Only `narrate` blocks (and rare ≤5-word inline callouts) |
+| `pause` | Hold time in ms | Every action |
+
+Do (silent type action still has `context`):
+```json
+{
+  "type": "type",
+  "selector": "[placeholder^='Player']",
+  "text": "Carlos",
+  "description": "Type player name",
+  "context": "Adding the fifth player. The gender toggle flipped to male one step ago and stays there — each subsequent add reuses the current toggle state.",
+  "pause": 1500
+}
+```
+
+Don't (silent action with no context, Gemini writes narration blind):
+```json
+{
+  "type": "type",
+  "selector": "[placeholder^='Player']",
+  "text": "Carlos",
+  "description": "First male player",
+  "pause": 1500
+}
+```
+
+The context on silent actions is what keeps Gemini's rewrites anchored to the real UI instead of drifting to the demo values.
+
 ### What counts as a new segment
 
 Start a new `narrate` block when:
@@ -86,18 +124,45 @@ For each segment:
 
 ```json
 [
-  { "type": "narrate", "narration": "Alright, let's get you set up — it's just four fields and a button, about ten seconds.", "pause": 6500 },
-  { "type": "click",   "description": "Open signup", "pause": 1200 },
+  { "type": "narrate",
+    "narration": "Alright, let's get you set up — it's just four fields and a button, about ten seconds.",
+    "context": "We're on the home page. The Sign up button is in the top-right. Clicking it opens the signup form inline.",
+    "pause": 6500 },
+  { "type": "click",
+    "description": "Open signup",
+    "context": "The signup form slides in with four fields: email, password, an agree-to-terms checkbox, and a Create account button.",
+    "pause": 1200 },
 
-  { "type": "narrate", "narration": "Pop in your email and password, then tick the box to accept the terms.", "pause": 5600 },
-  { "type": "type",    "description": "Email",    "pause": 1500 },
-  { "type": "type",    "description": "Password", "pause": 1500 },
-  { "type": "click",   "description": "Agree",    "pause": 800 },
+  { "type": "narrate",
+    "narration": "Pop in your email and password, then tick the box to accept the terms.",
+    "context": "The form is now ready for input. Email field is focused.",
+    "pause": 5600 },
+  { "type": "type",
+    "description": "Email",
+    "context": "Typing a valid email into the first field. The field turns green once a valid format is detected.",
+    "pause": 1500 },
+  { "type": "type",
+    "description": "Password",
+    "context": "Typing a password. A strength meter appears under the field and fills green as the password grows.",
+    "pause": 1500 },
+  { "type": "click",
+    "description": "Agree",
+    "context": "Checks the terms checkbox. The Create account button enables once all required fields and the checkbox are satisfied.",
+    "pause": 800 },
 
-  { "type": "narrate", "narration": "Hit Create account — your dashboard loads in a couple seconds.", "pause": 4500 },
-  { "type": "click",   "description": "Create account", "pause": 2000, "primary": true },
+  { "type": "narrate",
+    "narration": "Hit Create account — your dashboard loads in a couple seconds.",
+    "context": "All fields valid; the Create account button is now the only remaining step.",
+    "pause": 4500 },
+  { "type": "click",
+    "description": "Create account",
+    "context": "Submits the signup. A brief loading state, then the URL changes and the dashboard loads.",
+    "pause": 2000, "primary": true },
 
-  { "type": "narrate", "narration": "And there you go — you're in.", "pause": 2500 }
+  { "type": "narrate",
+    "narration": "And there you go — you're in.",
+    "context": "Dashboard is now visible: left sidebar with navigation, main area with an empty-state prompting to create the first project.",
+    "pause": 2500 }
 ]
 ```
 
