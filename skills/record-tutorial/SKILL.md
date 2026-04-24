@@ -268,8 +268,43 @@ For each action:
 4. The manifest selector becomes `role=<role>[name='<name>']`. Use that EXACT Playwright syntax — not CSS, not `:has-text()` guesses.
 5. Verify the selector resolves by actually clicking it via `playwright-cli click <ref>` and snapshotting the result.
 6. Note observed response time for the manifest's `pause` value.
+7. **Append an entry to `discovery_log.json`** (see below) — this is the CLI-enforced proof that you walked this action.
 
 **This phase is non-negotiable.** Whatever Phase 3a told you is the flow, Phase 3b confirms the Playwright selectors that will actually fire during recording.
+
+### discovery_log.json — CLI-enforced walk-the-flow proof
+
+Starting with `@vorec/cli@2.23.0`, `vorec run` refuses to record unless a `discovery_log.json` file sits next to the manifest and contains a verified entry for every action that has a selector (click, type, select, hover). narrate / scroll / wait / navigate are exempt.
+
+Write the log progressively as you do Phase 3b — one entry per action you snapshot + click. The final file must look like this:
+
+```json
+[
+  {
+    "step": 1,
+    "selector": "role=link[name='Generate Tournament']",
+    "verified": true,
+    "ui_after": "Format chooser page loaded. 6 tournament format cards visible (Classic Americano, Mixed Americano, Team Americano, Classic Mexicano, Mixed Mexicano, Team Mexicano). ~1.8s transition."
+  },
+  {
+    "step": 2,
+    "selector": "role=link[name='Classic Mexicano']",
+    "verified": true,
+    "ui_after": "Intro modal appeared with 'Got it' button. Behind it: wizard step 1 (Choose Format) with format pre-selected."
+  }
+]
+```
+
+Required fields per entry:
+- `selector` — EXACT string you will put in the manifest (must match character-for-character)
+- `verified: true` — you actually clicked it via playwright-cli or agent-browser and saw the response
+- `ui_after` — ≥20 chars describing what changed on screen
+
+If any selector in vorec.json has no matching log entry — or the entry is missing `verified:true` or `ui_after` — the CLI prints the list of failures and exits. No recording happens. No credits are spent.
+
+**You cannot fake the log by copying values.** If you write the log without actually walking the flow, your manifest selectors will fail during recording and the run will abort mid-flight. The log is the artifact; the verified snapshots are the work.
+
+For manual human use (not an AI agent), pass `--skip-discovery-check`.
 
 ### Discovery is iterative, not a single pass
 
