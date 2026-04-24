@@ -97,6 +97,19 @@ Stop and tell the user, verbatim:
 
 Run `brew install cliclick`. Without it, the mouse cursor is not visible in the recording.
 
+### Install the discovery browser (agent-browser)
+
+For live-site discovery (Explore mode), the skill uses `agent-browser` — a CLI that returns a compact accessibility tree with ref tags (`@e1`, `@e2`) instead of full DOM dumps. It keeps discovery tokens small and selectors deterministic.
+
+Check + install in one line:
+
+```bash
+command -v agent-browser >/dev/null 2>&1 || npm install -g agent-browser
+agent-browser install  # first-time: downloads Chrome. Safe to re-run (no-op after first)
+```
+
+If `npm install -g` fails due to permissions, fall back to `npx agent-browser` for every call — slightly slower but no install needed.
+
 ### API key
 
 The CLI needs a Vorec API key for analysis steps. Save once: `npx @vorec/cli init` (the skill's rule files cover this — see [./rules/auth.md](./rules/auth.md)).
@@ -227,15 +240,15 @@ This is the "walk the site and map it" phase. You produce a flow map that lists:
 - Minimum player counts / field requirements / enable-disable triggers
 - Success state (end URL, visible text, success banner)
 
-**Use whichever tool gets you there fastest** — multiple options:
+**Default discovery tool: `agent-browser`** (installed in prereqs). It returns a compact accessibility tree with ref tags like `@e1` instead of full DOM dumps — keeps the agent's context small and selectors deterministic.
 
 | Tool | When to use |
 |---|---|
-| `agent-browser.dev` or similar structured site-mapping tool | Preferred when available — produces clean markdown flow doc with URL patterns, field inventory, screenshots, constraint tables. Fast and thorough. |
-| `playwright-cli` snapshot + click loops | Always available as fallback. Slower but works on any page. |
+| `agent-browser` | **Default** for all live-site discovery. Produces a compact a11y tree with refs, URL transitions, and element-at-ref lookups. Low token cost. |
+| `playwright-cli` snapshot + click loops | Used in Phase 3b (selector verification) where you need the full ARIA snapshot with role + name for every target element. |
 | Direct source-code reading (Connected mode with user permission) | When user allowed "read code" in Step 1 and the flow is static enough that code tells the full story. |
 
-Use whatever the environment supports. If you have both `agent-browser.dev` and `playwright-cli`, start with `agent-browser.dev` for the high-level map, then move to Phase 3b below.
+Standard pattern: `agent-browser` for the high-level site map (Phase 3a), then `playwright-cli` snapshot per element (Phase 3b).
 
 ### Phase 3b — Playwright selector verification (MANDATORY no matter which tool Phase 3a used)
 
