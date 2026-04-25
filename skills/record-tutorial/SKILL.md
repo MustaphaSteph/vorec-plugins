@@ -542,7 +542,7 @@ Manifest contents:
 | Recording an embedded app inside another host (Shopify Admin, Salesforce, etc.) | `"recordFrame": "<iframe selector>"` |
 | Recording a tutorial about the browser itself (extensions, DevTools, etc.) | neither — leave the full window visible |
 
-**Default recommendation:** always set `"chromeless": true` unless you have a reason not to. Nobody wants Chrome's tab bar and address bar in their tutorial video.
+**Default behavior (CLI 2.24+):** `chromeless: true` is the default — you do NOT need to set it. Browser chrome is hidden automatically. Only set `"chromeless": false` if you specifically want the URL bar / tabs visible (e.g. recording a tutorial about Chrome itself or browser extensions).
 
 **Action types:** `click` · `type` · `select` · `hover` · `scroll` · `wait` · `navigate` · `narrate`.
 
