@@ -20,17 +20,48 @@ This skill is split into two halves:
 
 ## Safety rules — read these once, follow always
 
-### Never `pkill` Chrome broadly
+### Never `pkill` Chrome broadly — track what you open and kill only that
 
-Discovery and recording use Chrome/Chromium profiles. If a stale process is holding a profile lock, you may be tempted to clean up. **Do not** kill all Chrome processes — that wipes the user's actual browsing session, open tabs, and any in-flight work. Always scope kills to the specific profile path.
+Discovery and recording use Chrome/Chromium profiles. If a stale process is holding a profile lock, you may be tempted to clean up. **Do not** kill all Chrome processes — that wipes the user's actual browsing session, open tabs, and any in-flight work.
 
-| Wrong (kills everything) | Right (scoped to profile) |
+#### The pattern: scoped per-session profile
+
+Every time you launch a browser for discovery (`playwright-cli`, `agent-browser`, manual Chromium), **use a unique per-session profile path** so any later cleanup is automatically scoped to ONLY the windows you opened:
+
+```bash
+# At session start — declare a unique profile path
+SESSION_PROFILE="/tmp/vorec-discovery-$(date +%s)"
+
+# Use it consistently throughout discovery
+playwright-cli open https://example.com --profile "$SESSION_PROFILE"
+playwright-cli snapshot
+playwright-cli click "role=button[name='X']"
+
+# Cleanup at session end — kills ONLY processes pointing at this profile
+pkill -f "$SESSION_PROFILE" 2>/dev/null || true
+rm -rf "$SESSION_PROFILE"
+```
+
+#### Wrong vs. right
+
+| Wrong (kills user's browser) | Right (scoped to your session) |
 |---|---|
-| `pkill -9 -f "Google Chrome"` | `pkill -f "Vorec/Profiles/<slug>"` |
-| `pkill chrome` | `pkill -f "$(realpath ~/.vorec/<slug>)"` |
-| `killall "Google Chrome"` | use the profile path as the discriminator |
+| `pkill -9 -f "Google Chrome"` | `pkill -f "$SESSION_PROFILE"` |
+| `pkill chrome` | `pkill -f "/tmp/vorec-discovery-..."` |
+| `killall "Google Chrome"` | `pkill -f "Vorec/Profiles/<slug>"` (recording-time profile) |
+| "I'll close all Chrome to be safe" | Close ONLY the windows your session spawned |
 
-The CLI handles its own profile cleanup automatically (`cleanProfileForLaunch` in `run.ts`). If a recording-time profile is locked, **do not intervene manually** — `vorec run` already kills only the processes pointing at its own profile dir. Re-run the command if it fails; never broaden the kill.
+#### When you didn't use a scoped profile
+
+If you forgot to launch with `--profile $SESSION_PROFILE` and now have a hanging Chrome process you'd like to clean up: **do nothing automatically**. Tell the user verbatim:
+
+> I have a stale Chrome process I'd normally clean up, but I didn't open it with an isolated profile so I can't tell it apart from your real browser. Please quit any leftover windows manually.
+
+Asking the user to close windows is annoying once. Killing their entire browser session is unforgivable.
+
+#### Recording-time cleanup is the CLI's job, not yours
+
+`vorec run` already kills only the processes pointing at its own recording profile dir (see `cleanProfileForLaunch` in `run.ts`). You should not pre-emptively `pkill` anything before running it. If `vorec run` errors due to a profile lock, just re-run the command — the CLI handles its own cleanup.
 
 ### Never delete `.vorec/` directories without asking
 
