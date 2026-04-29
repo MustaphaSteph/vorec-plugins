@@ -9,7 +9,7 @@
     {
       "name": "record-tutorial",
       "description": "Record screen and generate narrated tutorial videos with AI voice-over.",
-      "version": "14.30.0",
+      "version": "14.30.1",
       "source": "./",
       "author": {
         "name": "Vorec",
