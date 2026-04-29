@@ -647,38 +647,16 @@ Keep it to one sentence per action. Don't explain selectors, timings, or credits
 npx @vorec/cli run .vorec/<slug>-<timestamp>/vorec.json
 ```
 
-### ❌ Do NOT substitute MCP Playwright for the recording
-
-You have MCP Playwright tools available (`mcp__playwright__browser_click`, `browser_type`, `browser_navigate`, etc.) — those are for **Phase 3a/3b discovery only**. Never try to run the actual tutorial flow through them. Concretely:
-
-| Behavior | `@vorec/cli` (Phase 7) | MCP Playwright |
-|---|---|---|
-| Typing | 50ms per character → looks like a real human typing | 0ms default → text appears instantly (looks like paste) |
-| Scroll | Split into 25px chunks at ~50fps → smooth glide | Single wheel event → snap |
-| Cursor between targets | `glideCursor` ease-in-out animation, samples written to cursor_track sidecar | Cursor teleports, no track recorded |
-| Click feedback in final video | Coordinate emitted → editor overlays synthetic cursor + ripple at export | No track, editor has nothing to overlay |
-
-If you drove the recording with MCP Playwright instead of `@vorec/cli run`, the final tutorial would: (a) text-paste instead of type, (b) snap-scroll instead of glide, (c) have no visible cursor or click ripples on the exported video. Discovery tools are not playback tools.
-
-**Rule:** MCP Playwright + agent-browser + playwright-cli for discovery (Phase 3a/3b). `@vorec/cli` for the recording (Phase 7). Never swap them.
-
-### What happens during `vorec run`
-
+What happens:
 1. CLI confirms the app is ready (otherwise aborts with a clear error).
 2. Chromium launches at a fixed position so page coords map to screen coords.
 3. CLI tells the app to record the Chromium window (native 2× retina H.264).
-4. For each action: Playwright fires the action with humanlike pacing (50ms-per-char typing, 25px-step smooth scroll), cursor path is tracked between targets via `glideCursor`.
+4. For each action: Playwright fires the action, cursor path is tracked between targets.
 5. On stop: the app finalizes the MP4 at `~/Movies/Vorec/recording-<ts>.mp4`.
 6. CLI writes a session sidecar `recording-<ts>.vorec.json` next to the MP4 with the manifest meta + tracked actions + cursor track.
 7. **No upload. No credits spent.** CLI prints the local MP4 path and exits.
 
 **Recording quality is fixed: 2× retina, 30 fps, H.264. Do not ask the user about quality, dpr, codec, or cursor styling — those aren't configurable.**
-
-### Where the visible click effect comes from
-
-The raw recorded MP4 has **no cursor by default** — Playwright clicks happen inside the page DOM, not via the OS cursor. **You don't need to fix this.** Vorec's editor overlays a synthetic cursor + click ripples + shape switching (arrow / pointing hand / I-beam / open / closed hand) on the final exported video, driven by the click coordinates and cursor_track in your manifest's sidecar. Both come from `@vorec/cli`'s output — which is the second reason MCP Playwright can't substitute for it.
-
-Optional: set `"moveCursor": true` in the manifest if you want the OS cursor visible in the raw recording too. Requires `brew install cliclick`. Skip unless the user specifically asks — the synthetic cursor on export looks better and doesn't hijack their real mouse.
 
 ### Verbatim narration mode
 
