@@ -272,6 +272,52 @@ For each action:
 
 **This phase is non-negotiable.** Whatever Phase 3a told you is the flow, Phase 3b confirms the Playwright selectors that will actually fire during recording.
 
+### Click interception: when a "correct" selector still won't click
+
+This is the Phase 3b failure mode that snapshots can't catch on their own. An ARIA snapshot shows `role=checkbox[name='Foo']` is present — but the click doesn't toggle anything. Recording then hangs ~10s per intercepted click and the run aborts with a Playwright actionability error.
+
+It happens when a design system **hides the real input behind a styled wrapper**. Polaris (Shopify Admin), Material UI, Radix, Mantine, Headless UI — all do some variant of:
+
+```html
+<label class="Polaris-Checkbox">
+  <input type="checkbox" class="visually-hidden">  ← real input, opacity:0, 1px×1px
+  <span class="Polaris-Checkbox__Backdrop">         ← visible "checkbox", catches clicks
+</label>
+```
+
+Playwright's actionability check sees the input as `display:none`-equivalent and refuses. Two ways to fix it — **prefer the first**:
+
+**1. Wrapper-selector first (preferred — purer, no CLI flag).**
+Find the visible parent and target it instead. For Polaris:
+```
+role=checkbox[name='Select: Example 1 & 2']        ← intercepted
+[aria-label='Select: Example 1 & 2']               ← works (the visible label)
+```
+For Polaris listbox options:
+```
+role=option[name='India']                          ← may intercept
+.Polaris-Listbox-TextOption:has-text('India')      ← works
+```
+Phase 3b discovers these by **clicking the role= variant first, watching it fail to change UI, then re-snapshotting around the element to find the wrapping `[aria-label=…]` or class-based target**.
+
+**2. `"force": true` on the action (fallback — when wrappers aren't clean).**
+Add `"force": true` to the action in `vorec.json`. The CLI passes it to Playwright's click and skips actionability checks — the click dispatches at the element's coordinates regardless of overlay. The framework's JS handler still picks it up.
+```json
+{
+  "type": "click",
+  "selector": "role=checkbox[name='Apply this rate for certain countries only']",
+  "force": true,
+  "description": "Toggle countries-only checkbox"
+}
+```
+Use `force` ONLY when (a) Phase 3b verified the selector is correct AND (b) the click still intercepts. Never as a workaround for a wrong selector — force-clicking the wrong element produces wrong UI state silently. Available in `@vorec/cli@2.27.0+`.
+
+**How to tell during Phase 3b which path you need:**
+- Click the role= selector via playwright-cli/agent-browser
+- Snapshot the page
+- If UI changed → role= selector works, no force needed → proceed.
+- If UI did NOT change → check for a wrapper attribute (`[aria-label=…]`, `[data-…]`) or a stable class on the parent (`.Polaris-Listbox-TextOption`). Use that. Try again. If still no change, fall back to `"force": true` on the role= selector.
+
 ### discovery_log.json — CLI-enforced walk-the-flow proof
 
 Starting with `@vorec/cli@2.23.0`, `vorec run` refuses to record unless a `discovery_log.json` file sits next to the manifest and contains a verified entry for every action that has a selector (click, type, select, hover). narrate / scroll / wait / navigate are exempt.
@@ -559,6 +605,7 @@ For scroll mechanics (reveal-before-click, SPA reset trap, smooth scroll), load 
 
 - `narrate` = no interaction, just a pause with a scene description.
 - `primary: true` on exactly ONE action per page = "this is the key click, zoom on it, gold-star it in the timeline".
+- `force: true` on `click` / `type` / `hover` = skip Playwright actionability checks (`@vorec/cli@2.27.0+`). Use **only** when Phase 3b proved the selector is correct AND the click still intercepts (Polaris hidden inputs, MUI checkboxes, Radix Listbox options). Never as a workaround for a wrong selector — see "Click interception" in Step 3b for the wrapper-first vs force decision.
 
 ### How narration actually works
 
