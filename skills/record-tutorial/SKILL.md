@@ -54,7 +54,7 @@ Recording is done by the **Vorec Recorder desktop app** (macOS only). The app ca
 
 1. Verify the app is ready (installed, signed in, permission granted).
 2. Write a `vorec.json` manifest describing the flow (url, viewport, actions).
-3. Run `npx @vorec/cli run vorec.json`. The CLI launches Chromium, tells the app to record that window, drives the actions, stops, uploads, and starts analysis.
+3. Run `npx @vorec/cli@latest run vorec.json`. The CLI launches Chromium, tells the app to record that window, drives the actions, stops, uploads, and starts analysis.
 4. Return the editor URL to the user.
 
 Vorec then:
@@ -106,15 +106,35 @@ For external URLs in Explore mode, also read the **live-site-discovery** section
 Run this single command and read the output:
 
 ```bash
-npx @vorec/cli check
+npx @vorec/cli@latest check
 ```
 
-It verifies:
+The `@latest` tag is critical — without it, `npx` reuses whatever version is in your local cache, which can be months stale and silently produce broken recordings (e.g. cropped-coords bug fixed in 2.25, hidden-input clicks fixed in 2.27, parallel iframe resolution in 2.26). Always pin `@latest` on the CLI, both for `check` and for the actual `run`/`analyze` commands.
+
+The check verifies:
 - **Vorec Recorder app** is running (macOS only)
 - **User is signed in** to the app
 - **Screen Recording permission** is granted
 - **cliclick** is installed (so the cursor is visible in recordings)
 - **Vorec account** has credits and project slots available
+
+### Confirm the CLI version is current
+
+After `vorec ... check` completes, also run:
+
+```bash
+npx @vorec/cli@latest --version
+```
+
+Compare the output to the latest published version (the CLI itself prints a warning when stale; in `@vorec/cli@2.28.0+` it auto-checks the npm registry and aborts on a major-version gap). If the version is more than one minor behind, force a clean reinstall before proceeding:
+
+```bash
+npm uninstall -g @vorec/cli   # removes any global pin
+npm cache clean --force       # clears npx cache
+npx @vorec/cli@latest --version  # verifies fresh fetch
+```
+
+A stale CLI is the #1 source of "I thought we fixed that bug" failures. Always confirm the version before recording.
 
 ### If the app is NOT installed or not running
 
@@ -143,7 +163,7 @@ If `npm install -g` fails due to permissions, fall back to `npx agent-browser` f
 
 ### API key
 
-The CLI needs a Vorec API key for analysis steps. Save once: `npx @vorec/cli init` (the skill's rule files cover this — see the **auth** section below).
+The CLI needs a Vorec API key for analysis steps. Save once: `npx @vorec/cli@latest init` (the skill's rule files cover this — see the **auth** section below).
 
 ## Step 1: Elicit URL + discovery mode + goal + audience + gotchas — one message
 
@@ -717,7 +737,7 @@ Keep it to one sentence per action. Don't explain selectors, timings, or credits
 ## Step 7: Record (no upload yet)
 
 ```bash
-npx @vorec/cli run .vorec/<slug>-<timestamp>/vorec.json
+npx @vorec/cli@latest run .vorec/<slug>-<timestamp>/vorec.json
 ```
 
 What happens:
@@ -736,7 +756,7 @@ What happens:
 If you want your `narration` drafts used word-for-word (no Gemini rewrite), pass `--skip-narration` during `vorec run`. It's recorded in the sidecar and honored by the later `vorec analyze` call:
 
 ```bash
-npx @vorec/cli run vorec.json --skip-narration
+npx @vorec/cli@latest run vorec.json --skip-narration
 ```
 
 ## Step 8: Show the MP4 to the user and wait for approval
@@ -762,7 +782,7 @@ Then ask plainly, e.g.: *"Recording saved. Does the video look right? Say 'yes' 
 ## Step 9: On approval, upload + analyze
 
 ```bash
-npx @vorec/cli analyze "/Users/you/Movies/Vorec/recording-1776774835.mp4"
+npx @vorec/cli@latest analyze "/Users/you/Movies/Vorec/recording-1776774835.mp4"
 ```
 
 What happens:
@@ -785,10 +805,10 @@ If the user wants to tweak narration later, point them to `vorec update-narratio
 
 ```bash
 # Read current narration
-npx @vorec/cli segments --project <id> --json > segments.json
+npx @vorec/cli@latest segments --project <id> --json > segments.json
 
 # Edit segments.json — update the "script" field on any row
-npx @vorec/cli update-narration segments.json --project <id>
+npx @vorec/cli@latest update-narration segments.json --project <id>
 ```
 
 Details: the **agent-behavior** section below covers when to do this automatically.
@@ -797,10 +817,10 @@ Details: the **agent-behavior** section below covers when to do this automatical
 
 ```bash
 # List what exists
-npx @vorec/cli languages --project <id>
+npx @vorec/cli@latest languages --project <id>
 
 # Pull English segments as the source of truth
-npx @vorec/cli segments --project <id> --json > en.json
+npx @vorec/cli@latest segments --project <id> --json > en.json
 
 # Write a translations file
 cat > es.json <<'EOF'
@@ -810,7 +830,7 @@ cat > es.json <<'EOF'
 EOF
 
 # Push
-npx @vorec/cli update-translations es.json --language es --project <id>
+npx @vorec/cli@latest update-translations es.json --language es --project <id>
 ```
 
 Translations cost 0 credits — you (the agent) write them directly. Don't mention Vorec's internal AI models.
@@ -2547,7 +2567,7 @@ You're ready to write the vorec script. See the manifest section in [../SKILL.md
 
 ## Both modes converge
 
-Explore mode ends at the same place as Connected mode: write `vorec.json`, run `npx @vorec/cli run vorec.json`, the Vorec Recorder app captures + uploads. Return to the main `SKILL.md` when you're done exploring.
+Explore mode ends at the same place as Connected mode: write `vorec.json`, run `npx @vorec/cli@latest run vorec.json`, the Vorec Recorder app captures + uploads. Return to the main `SKILL.md` when you're done exploring.
 
 
 ## Rules — live-site-discovery
@@ -2812,7 +2832,7 @@ If any of these are true, switch to [./explore.md](./explore.md):
 ## Both modes converge
 
 After your manifest is written, Connected and Explore follow the same steps:
-1. Run `npx @vorec/cli run vorec.json`
+1. Run `npx @vorec/cli@latest run vorec.json`
 2. The Vorec Recorder app captures + uploads automatically
 3. CLI triggers analysis and prints the editor URL
 
@@ -2885,10 +2905,10 @@ The CLI supports this directly via `--profile`:
 
 ```bash
 # First run — user logs into Shopify (and Google if needed) in the opened window
-npx @vorec/cli run vorec.json --profile ~/Library/Application\ Support/Vorec/Profiles/shopify-dev
+npx @vorec/cli@latest run vorec.json --profile ~/Library/Application\ Support/Vorec/Profiles/shopify-dev
 
 # Subsequent runs — profile is reused, no login needed
-npx @vorec/cli run vorec.json --profile ~/Library/Application\ Support/Vorec/Profiles/shopify-dev
+npx @vorec/cli@latest run vorec.json --profile ~/Library/Application\ Support/Vorec/Profiles/shopify-dev
 ```
 
 When `--profile` is passed, the CLI switches to `launchPersistentContext` with `channel: 'chrome'` (real Chrome, friendlier to Google OAuth than bundled Chromium).
@@ -3010,7 +3030,7 @@ playwright-cli close-all
 ### Step 2 — Record (uses the authenticated profile)
 
 ```bash
-npx @vorec/cli run vorec.json \
+npx @vorec/cli@latest run vorec.json \
   --profile ~/Library/Application\ Support/Vorec/Profiles/shopify-dev
 ```
 
@@ -3561,7 +3581,7 @@ playwright-cli delete-data
 
 - [./cli-running-code.md](./cli-running-code.md) — Running inline scripts for page exploration
 
-> `playwright-cli` is only used for **exploration** (discovering selectors on a page before writing the manifest). Actual recording is always done by the Vorec Recorder app via `npx @vorec/cli run vorec.json`.
+> `playwright-cli` is only used for **exploration** (discovering selectors on a page before writing the manifest). Actual recording is always done by the Vorec Recorder app via `npx @vorec/cli@latest run vorec.json`.
 
 
 ## Rules — cli-running-code
@@ -3575,7 +3595,7 @@ description: Running inline scripts via playwright-cli run-code for page explora
 
 `playwright-cli run-code` executes JavaScript inside the current browser session. Use it in **Explore mode** to inspect pages, test selectors, and discover elements before writing `vorec.json`.
 
-**Note:** Recording is done by the Vorec Recorder app via `npx @vorec/cli run vorec.json`. You do not write a recording script — you write a `vorec.json` manifest. See [../SKILL.md](../SKILL.md).
+**Note:** Recording is done by the Vorec Recorder app via `npx @vorec/cli@latest run vorec.json`. You do not write a recording script — you write a `vorec.json` manifest. See [../SKILL.md](../SKILL.md).
 
 ## Basic usage
 
@@ -3660,7 +3680,7 @@ description: Playwright techniques for reliable browser automation and recording
 
 # Playwright Best Practices
 
-> **Vorec does not record with Playwright.** Recording is always done by the Vorec Recorder macOS app, driven by `npx @vorec/cli run vorec.json`. Playwright is used only for:
+> **Vorec does not record with Playwright.** Recording is always done by the Vorec Recorder macOS app, driven by `npx @vorec/cli@latest run vorec.json`. Playwright is used only for:
 > 1. **Exploration** — finding selectors on a page before writing the manifest (`playwright-cli`, see [./cli-commands.md](./cli-commands.md)).
 > 2. **Automation during `vorec run`** — the CLI internally launches Chromium with Playwright and drives the manifest actions. You don't write Playwright scripts yourself.
 >
@@ -3833,7 +3853,7 @@ description: Common errors and fixes for recording tutorials
 
 # Troubleshooting
 
-Run `npx @vorec/cli check` first — it surfaces most issues in one command.
+Run `npx @vorec/cli@latest check` first — it surfaces most issues in one command.
 
 ## App / CLI prerequisites
 
@@ -3843,7 +3863,7 @@ Run `npx @vorec/cli check` first — it surfaces most issues in one command.
 | `Vorec Recorder is not signed in` | Click the Vorec icon in the macOS menubar → sign in with magic link or password |
 | `Screen Recording permission not granted` | Open the app → Settings → Permissions → Grant Screen Recording |
 | `cliclick not found` | `brew install cliclick` — without it the mouse cursor won't be visible in recordings |
-| `Vorec API key missing` | `npx @vorec/cli login` (or `npx @vorec/cli init`) |
+| `Vorec API key missing` | `npx @vorec/cli@latest login` (or `npx @vorec/cli@latest init`) |
 | Insufficient credits | Check balance in the app or at vorec.ai/settings, upgrade or buy a pack |
 | Project limit reached | Delete old projects at vorec.ai/dashboard, or upgrade plan |
 
