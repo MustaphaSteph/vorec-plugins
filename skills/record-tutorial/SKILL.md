@@ -660,7 +660,20 @@ Manifest contents:
 
 - `"chromeless": true` — **use this by default for single-URL tutorials on regular websites** (acme.com, google.com, any SaaS dashboard, any landing page). Launches Chromium in `--app=<url>` mode: no tab bar, no address bar, no bookmarks bar — the entire window is the webpage. Clean, tutorial-ready video with no browser UI bleed-through.
 - `"recordFrame": "<iframe css selector>"` — auto-crops the MP4 to just that iframe's pixels. For **embedded apps** where the target UI lives inside a cross-origin `<iframe>` and the host chrome shouldn't end up in the tutorial: Shopify Admin (`iframe[src*='myshopify']`), Stripe Checkout, Salesforce Lightning, Intercom, YouTube embeds. Do **not** set `chromeless` together with `recordFrame` — the iframe crop already removes host chrome.
-- `"viewport": "full"` — maximize the browser window instead of a fixed size.
+
+#### `viewport` is ignored — don't set it
+
+The CLI **always** opens Chromium at the full Mac screen size, ignoring whatever `viewport` you put in the manifest (`run.ts:272-286` makes this explicit). Setting `"viewport": "full"` accomplishes nothing because that's already the only behavior. Setting `"viewport": { "width": 800, "height": 600 }` is silently overridden, not honored.
+
+If your recording dimensions are too small, the manifest is **not** the cause. The actual causes:
+
+| Cause | Fix |
+|---|---|
+| Chromium cached window-placement from a previous run | Quit recorder app + scoped pkill (see "Verify recording dimensions" in Step 7) |
+| CDP resize race during launch | CLI 2.30.0+ auto-retries the resize; if you're below that version, upgrade with `npm install -g @vorec/cli@latest` |
+| `recordFrame` matched a too-small iframe | Tighten the selector — it matched a sentinel/preload iframe instead of the main content |
+
+Don't waste a re-record cycle changing `viewport`. It does nothing.
 
 ### Decision tree for "do I want browser chrome in my recording?"
 
@@ -781,6 +794,64 @@ What happens:
 7. **No upload. No credits spent.** CLI prints the local MP4 path and exits.
 
 **Recording quality is fixed: 2× retina, 30 fps, H.264. Do not ask the user about quality, dpr, codec, or cursor styling — those aren't configurable.**
+
+### Verify recording dimensions before letting the run continue
+
+When `vorec run` starts (CLI 2.30.0+), it prints a line like:
+
+```
+  Will record 1728×1079 CSS px (3456×2158 retina pixels)
+```
+
+The CLI itself aborts when dimensions fall below 1024×600. But **you should still read this line** — even when above the floor, sub-retina recordings make blurry tutorials.
+
+Expected dimensions by mode:
+
+| Mode | Expected min CSS px | Expected min retina px |
+|---|---|---|
+| Chromeless full-window on a Retina MacBook | ≥ 1440×900 | ≥ 2880×1800 |
+| `recordFrame` on Shopify Admin / Stripe / similar | ≥ 1280×720 | ≥ 2560×1440 |
+| Any recording on a non-Retina display | ≥ 1024×600 | n/a |
+
+#### If the printed size is too small (or the CLI aborts on dimensions)
+
+Do this exact sequence — tested, narrow-pattern, never touches the user's real Chrome:
+
+```bash
+# 1. Quit the Vorec Recorder app (right-click menubar icon → Quit, NOT just close window)
+
+# 2. Kill ONLY Chrome for Testing + Playwright's bundled Chromium.
+#    NEVER use "Chromium" alone, "Google Chrome" alone, or "Google Chrome Helper" —
+#    those would kill the user's real browser.
+pkill -9 -f "Google Chrome for Testing" 2>/dev/null || true
+pkill -9 -f "playwright-core.*chromium" 2>/dev/null || true
+
+# 3. Sleep 5 seconds — pkill is async; processes need a beat to fully exit
+sleep 5
+
+# 4. Verify zero stale processes (using the same narrow patterns)
+LEFTOVER=$(ps aux | grep -E "(Google Chrome for Testing|playwright-core.*chromium)" | grep -v grep | wc -l | tr -d ' ')
+if [ "$LEFTOVER" != "0" ]; then
+  echo "$LEFTOVER stale processes still running — kill manually before retry"
+  exit 1
+fi
+
+# 5. If you used --profile, also clear Chromium's cached window placement:
+#    rm -f "<profile-dir>/Default/Preferences"
+#    (CLI 2.30.0+ does this automatically inside cleanProfileForLaunch)
+
+# 6. Reopen the recorder app, sign in, retry vorec run
+```
+
+#### Common causes (in priority order)
+
+1. **Cumulative state leak across multiple runs** — Chromium accumulates window-placement memory; macOS ScreenCaptureKit may cache window bounds. The hard-purge above resets both. CLI 2.30.0 also auto-purges and waits for window stability before recording.
+2. **`recordFrame` matched a sentinel iframe** — page lazy-loaded; iframe selector resolved before the real iframe appeared. Add a `wait` action in the manifest before the click that triggers recordFrame, or tighten the selector.
+3. **Wrong manifest viewport (red herring)** — DON'T change the manifest's `viewport` field thinking it'll help. The CLI ignores it. See the "viewport is ignored" callout in Step 5.
+
+#### Never proceed past a small recording
+
+If the CLI prints a sub-retina dimension and you hit Ctrl+C, the recording was free. If you watch a 3-minute recording and only then realize it's small, you've burned 3 minutes per attempt. Read the dimension line. Abort early.
 
 ### Verbatim narration mode
 
