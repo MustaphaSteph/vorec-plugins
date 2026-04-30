@@ -552,8 +552,9 @@ What you need to remember across the dry-run (mentally, not on disk):
 **You cannot write the manifest until you can truthfully say, in the discovery report below:**
 1. **Blockers reviewed** — you've identified anything that could stop the recording mid-flow (rate limits, verification requirements, geo-gates).
 2. **Sensitive actions reviewed** — you've identified anything that would have real-world consequences (charges, emails sent, records deleted, invitations issued) and decided how to avoid / neutralize them.
+3. **Viewport-walked the planned actions** — you've mentally tracked scroll position from the first action to the last and confirmed every click / type / hover / select target is in the visible viewport when it fires. If any target lives off-screen, you've planned an explicit `scroll` action to bring it in view first. See the **Keep every action's target visible on screen** rule below for the full audit.
 
-This is a self-imposed gate. No file is checked — you are. If either item is unverified, go back to discovery or ask the user ONE targeted question to resolve it. Never claim "reviewed" without evidence.
+This is a self-imposed gate. No file is checked — you are. If any item is unverified, go back to discovery or ask the user ONE targeted question to resolve it. Never claim "reviewed" without evidence.
 
 ### Why this is non-negotiable
 
@@ -723,6 +724,46 @@ The synthetic cursor on the final video shows users **how** to do something, not
 3. **Did anything appear or change on screen as a result of the previous action?** If yes → does the user need a moment to see it before the next action fires?
 
 If you can't answer "yes" to all three for every action, the recording will look like a teleporting robot and the synthetic cursor on export won't save it.
+
+### Keep every action's target visible on screen
+
+**The rule:** every `click`, `type`, `hover`, and `select` MUST have its target inside the visible viewport at the moment the action fires. Never rely on Playwright's auto-scroll — it scrolls instantly with no animation, the real OS cursor teleports, and the synthetic cursor in the rendered video lands on a control the viewer never saw arrive.
+
+**The viewer's eyes follow the cursor.** If the cursor jumps to off-screen content, the tutorial fails. This is non-negotiable.
+
+#### How to apply
+
+Walk the manifest mentally action-by-action. After each action fires, ask three questions:
+
+1. **Where is the viewport now?** Track scroll position in your head as you read the manifest top to bottom.
+2. **Where is the next action's target?** Above viewport, inside viewport, or below viewport.
+3. **If outside viewport** → insert an explicit `scroll` action before the next action so the target lands in view, ideally roughly mid-screen (not pinned to top or bottom edge — those positions look like a hidden control just popped in).
+
+#### When scrolls are mandatory
+
+| Situation | Action to add |
+|---|---|
+| Newly added field appears at the bottom of a long form | `scroll` down before clicking the new field |
+| Click expands a config panel that pushes content below the fold | `scroll` down before interacting with the panel's controls |
+| Form has long sections (deposit type → deposit value → labels → save) | `scroll` between each as needed so each control is centered |
+| User clicks an accordion that expands content out of view | `scroll` to the newly revealed content before next click |
+| Tab switch reveals content longer than the viewport | `scroll` after the tab click to bring the target into view |
+| Newly inserted row or item lands at the bottom of a list | `scroll` to it before the next interaction with it |
+
+#### Sticky elements are exempt
+
+Save buttons in floating ContextualSaveBars (Shopify, Salesforce), top app bars, sticky footers, and floating action buttons stay in view regardless of scroll. **No scroll needed for them** — adding one would scroll the page underneath the sticky element for no visible payoff.
+
+#### Audit checklist before recording
+
+Before you finalize the manifest, walk it once more and confirm every line:
+
+- After every click that opens or expands UI: is the next click target visible?
+- After typing into a field: where will the next field be relative to it?
+- After a scroll: does the target now sit roughly mid-screen (not pinned to the edge)?
+- Does each scroll action carry a 600–1200 ms `pause` so the camera settles before the next interaction?
+
+A good tutorial has the cursor moving naturally, never teleporting. **If you ever see the cursor "appear" on a control without the camera following it there, you missed a scroll.** Add it before recording.
 
 ### How narration actually works
 
