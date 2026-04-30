@@ -656,34 +656,14 @@ Manifest contents:
 }
 ```
 
-**Optional top-level fields that matter for specific surfaces:**
+**The CLI records the full Chromium window — every time, no exceptions.** Chromium launches with the standard tab bar + URL bar visible; the recording captures everything. There is no flag to hide chrome at record time and no flag to crop to an iframe. The Vorec editor has a crop tool — if the tutorial would look cleaner without browser chrome, the user crops in post. **Do not add `chromeless`, `recordFrame`, `viewport`, or any other layout/crop field to the manifest** — the CLI ignores them. If you've used these in older skills, drop them.
 
-- `"chromeless": true` — **use this by default for single-URL tutorials on regular websites** (acme.com, google.com, any SaaS dashboard, any landing page). Launches Chromium in `--app=<url>` mode: no tab bar, no address bar, no bookmarks bar — the entire window is the webpage. Clean, tutorial-ready video with no browser UI bleed-through.
-- `"recordFrame": "<iframe css selector>"` — auto-crops the MP4 to just that iframe's pixels. For **embedded apps** where the target UI lives inside a cross-origin `<iframe>` and the host chrome shouldn't end up in the tutorial: Shopify Admin (`iframe[src*='myshopify']`), Stripe Checkout, Salesforce Lightning, Intercom, YouTube embeds. Do **not** set `chromeless` together with `recordFrame` — the iframe crop already removes host chrome.
-
-#### `viewport` is ignored — don't set it
-
-The CLI **always** opens Chromium at the full Mac screen size, ignoring whatever `viewport` you put in the manifest (`run.ts:272-286` makes this explicit). Setting `"viewport": "full"` accomplishes nothing because that's already the only behavior. Setting `"viewport": { "width": 800, "height": 600 }` is silently overridden, not honored.
-
-If your recording dimensions are too small, the manifest is **not** the cause. The actual causes:
+If your recording dimensions are too small (sub-retina output), the manifest is **not** the cause. The actual causes:
 
 | Cause | Fix |
 |---|---|
 | Chromium cached window-placement from a previous run | Quit recorder app + scoped pkill (see "Verify recording dimensions" in Step 7) |
-| CDP resize race during launch | CLI 2.30.0+ auto-retries the resize; if you're below that version, upgrade with `npm install -g @vorec/cli@latest` |
-| `recordFrame` matched a too-small iframe | Tighten the selector — it matched a sentinel/preload iframe instead of the main content |
-
-Don't waste a re-record cycle changing `viewport`. It does nothing.
-
-### Decision tree for "do I want browser chrome in my recording?"
-
-| Situation | Field to set |
-|---|---|
-| Recording a regular website (google.com, stripe.com, your SaaS dashboard) | `"chromeless": true` |
-| Recording an embedded app inside another host (Shopify Admin, Salesforce, etc.) | `"recordFrame": "<iframe selector>"` |
-| Recording a tutorial about the browser itself (extensions, DevTools, etc.) | neither — leave the full window visible |
-
-**Default behavior (CLI 2.24+):** `chromeless: true` is the default — you do NOT need to set it. Browser chrome is hidden automatically. Only set `"chromeless": false` if you specifically want the URL bar / tabs visible (e.g. recording a tutorial about Chrome itself or browser extensions).
+| CDP resize race during launch | CLI 2.31.0+ auto-retries the resize; upgrade with `npm install -g @vorec/cli@latest` |
 
 **Action types:** `click` · `type` · `select` · `hover` · `scroll` · `wait` · `navigate` · `narrate`.
 
@@ -805,13 +785,12 @@ When `vorec run` starts (CLI 2.30.0+), it prints a line like:
 
 The CLI itself aborts when dimensions fall below 1024×600. But **you should still read this line** — even when above the floor, sub-retina recordings make blurry tutorials.
 
-Expected dimensions by mode:
+Expected dimensions:
 
-| Mode | Expected min CSS px | Expected min retina px |
+| Display | Expected min CSS px | Expected min retina px |
 |---|---|---|
-| Chromeless full-window on a Retina MacBook | ≥ 1440×900 | ≥ 2880×1800 |
-| `recordFrame` on Shopify Admin / Stripe / similar | ≥ 1280×720 | ≥ 2560×1440 |
-| Any recording on a non-Retina display | ≥ 1024×600 | n/a |
+| Retina MacBook | ≥ 1440×900 | ≥ 2880×1800 |
+| Non-Retina display | ≥ 1024×600 | n/a |
 
 #### If the printed size is too small (or the CLI aborts on dimensions)
 
@@ -845,9 +824,8 @@ fi
 
 #### Common causes (in priority order)
 
-1. **Cumulative state leak across multiple runs** — Chromium accumulates window-placement memory; macOS ScreenCaptureKit may cache window bounds. The hard-purge above resets both. CLI 2.30.0 also auto-purges and waits for window stability before recording.
-2. **`recordFrame` matched a sentinel iframe** — page lazy-loaded; iframe selector resolved before the real iframe appeared. Add a `wait` action in the manifest before the click that triggers recordFrame, or tighten the selector.
-3. **Wrong manifest viewport (red herring)** — DON'T change the manifest's `viewport` field thinking it'll help. The CLI ignores it. See the "viewport is ignored" callout in Step 5.
+1. **Cumulative state leak across multiple runs** — Chromium accumulates window-placement memory; macOS ScreenCaptureKit may cache window bounds. The hard-purge above resets both. CLI 2.31.0 also auto-purges and waits for window stability before recording.
+2. **Wrong manifest viewport (red herring)** — DON'T change the manifest's `viewport` field thinking it'll help. The CLI ignores it.
 
 #### Never proceed past a small recording
 
@@ -1274,7 +1252,7 @@ Required before recording:
 | "Record my dashboard so I can show investors" | Connected (codebase) or Explore (hosted) | `website_tour` | 3–5 meaningful sections, purposeful scrolling |
 | "Record the bug where the cart doubles when I refresh" | Connected or Explore | `bug_reproduction` | Exact steps, visible error, preserve the glitch |
 | "Review stripe.com's pricing page vs ours" | Explore | `ux_review` | Friction points, no account-changing actions |
-| "Show how to create a product in our Shopify app" | Explore | `task_tutorial` + `recordFrame` iframe crop | Open through admin.shopify.com, crop recording to the app iframe |
+| "Show how to create a product in our Shopify app" | Explore | `task_tutorial` | Open through admin.shopify.com; full-window recording, user crops the Admin shell in the editor |
 
 
 ## Rules — scroll
@@ -3027,28 +3005,15 @@ This preserves:
 
 If the profile dir doesn't exist yet, create it and let the user log in. Don't skip the login step silently.
 
-## Rule 4 — Crop the recording to the embedded app iframe
+## Rule 4 — Recording captures the full window; user crops in the editor
 
-The Shopify Admin shell (sidebar, top nav, tabs, browser chrome) is visible during recording but almost never belongs in the final tutorial video — users want to see the *app*, not Shopify's surrounding UI. As of **@vorec/cli@2.8.0** the manifest has a top-level `recordFrame` field:
-
-```json
-{
-  "title": "<your tutorial title>",
-  "url": "https://admin.shopify.com/store/<store>/apps/<app-handle>",
-  "recordFrame": "iframe[src*='myshopify']",
-  "actions": [ ... ]
-}
-```
-
-When set, the CLI resolves that iframe's bounds right before recording starts and sends a `cropRect` to the Vorec Recorder app. ScreenCaptureKit still captures the full window (so cursor tracking, OS cursor visibility, and zoom anchoring all work naturally), but the MP4 that lands in the user's library contains **only the iframe pixels** — no Shopify chrome, no browser toolbar.
+The Shopify Admin shell (sidebar, top nav, tabs, browser chrome) is visible during recording and **stays in the recorded MP4** — there is no record-time crop flag. The Vorec editor has a crop tool; if the user wants a clean app-only frame in the final video, they crop there. Do not put `recordFrame`, `chromeless`, or any other layout/crop field in the manifest — the CLI ignores them.
 
 **Typical Shopify manifest skeleton (placeholders in angle brackets):**
 ```json
 {
   "title": "<what the user is recording>",
   "url": "https://admin.shopify.com/store/<store>/apps/<app-handle>",
-  "recordFrame": "iframe[src*='myshopify']",
-  "viewport": "full",
   "actions": [
     { "type": "narrate", "delay": 3000, "description": "<scene label>", "context": "<scene description>" },
     { "type": "click", "selector": "<selector>", "frame": "iframe[src*='myshopify']", "description": "<what this does>" }
@@ -3056,7 +3021,7 @@ When set, the CLI resolves that iframe's bounds right before recording starts an
 }
 ```
 
-Notice: `recordFrame` crops the video, `frame` on an individual action scopes the selector resolution. They can use the same selector string.
+The `frame` field on an individual action still works — it scopes selector resolution into the iframe so clicks land on the embedded app's elements. That's separate from cropping the video.
 
 ## Rule 5 — Interact with the embedded app via the iframe
 
