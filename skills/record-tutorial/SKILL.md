@@ -758,6 +758,32 @@ Use this format:
 
 Keep it to one sentence per action. Don't explain selectors, timings, or credits. If the user asks to adjust, rewrite the manifest and show the plan again — never start recording until the user explicitly says yes.
 
+## Step 6.5: Reset state from discovery — start every recording from a first-time-user view
+
+During Phase 3 deep discovery you almost certainly mutated the live application: created a "Test 1" project, filled a form draft, toggled a setting, opened a modal, picked a date, expanded a sidebar section, hovered something into a "recently viewed" rail. The recording must start from the same state a real first-time user would see, not from the residue of your exploration. Otherwise the tutorial opens with stale entities visible in lists, pre-checked checkboxes, expanded panels, or "you have unread …" banners that confuse the viewer and make the script wrong.
+
+**Track what you mutated as you go.** While discovering, keep a running list in conversation of every state change: rows you created, settings you toggled, forms you typed into, anything that persists across reloads. You don't need to write it to a file, but you do need to remember it.
+
+**Before launching `vorec run`, undo every change.** Concretely:
+
+| Mutation made during discovery | Reset action |
+|---|---|
+| Created a row (project, item, post, draft) | Delete it via the same UI a user would, or via the data layer if the user OK'd that |
+| Filled a form but didn't submit | Reload the page or navigate away — the autosave/draft might persist, in which case clear the field explicitly |
+| Toggled a setting (theme, language, layout density, locale) | Set it back to the user's original value (you noted the original at the start of Phase 3, right?) |
+| Logged in as a non-default user / role-switched | Sign out, sign back in as the canonical demo account the recording assumes |
+| Marked something read / clicked a notification | Mark it unread again, or accept the recording will look slightly different — and tell the user |
+| Expanded an accordion / sidebar / disclosure | Collapse it (page reload usually does this) |
+| Time-sensitive items piled up at the top of "recent" lists | Delete or hide the test items you created — even a deleted item often shows in "recently deleted" lists, watch for that |
+
+**A hard reload alone is not enough** for any state stored server-side, in localStorage, in IndexedDB, or in cookies. Use the app's own UI to delete server-side things. For client-side leftovers, navigate to a clean URL or clear scoped storage explicitly.
+
+**Verify the reset.** After cleanup, navigate to the recording's start URL and confirm with your eyes (Playwright snapshot or screenshot) that the page looks like a first-time user's view. Lists empty (or showing only seed data), forms blank, settings at default. **If it doesn't look right, fix it before recording. Do not record over a polluted state and "hope it's fine".**
+
+**When you can't undo something safely** — destructive deletes you don't have permission for, side effects on real users, billing actions you triggered for testing — stop and tell the user before recording. Let them decide whether to roll back manually, accept the polluted state, or skip the section entirely.
+
+This reset is the difference between a tutorial that looks professionally produced and one that obviously came from someone's dev session. Treat it as part of Phase 3, not optional polish.
+
 ## Step 7: Record (no upload yet)
 
 ```bash
