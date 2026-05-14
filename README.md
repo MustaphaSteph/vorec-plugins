@@ -1,31 +1,88 @@
 # Vorec — Claude Code Plugin for Screen Recording & AI Narration
 
-> **Turn any web app into a narrated tutorial video with one command.** Your own project or any site on the web — Vorec handles the recording, narration, and editing.
+> **Tell Claude what to record. The Vorec Recorder for macOS captures it. AI writes the narration.** From terminal to polished tutorial video in one command.
 
 [![npm](https://img.shields.io/npm/v/@vorec/cli)](https://www.npmjs.com/package/@vorec/cli)
 [![Claude Code Plugin](https://img.shields.io/badge/Claude_Code-Plugin-blueviolet)](https://vorec.ai)
-[![Plugin Version](https://img.shields.io/badge/plugin-v13.6.0-success)](https://github.com/MustaphaSteph/vorec-plugins)
+[![Plugin Version](https://img.shields.io/badge/plugin-v14.35.0-success)](https://github.com/MustaphaSteph/vorec-plugins)
+[![macOS Recorder](https://img.shields.io/badge/macOS-Recorder_App-blue)](https://vorec.ai/download)
 
-## ✨ What's new in v13.6.0
+## How it works
 
-- **Sharp 1080p recording** — Playwright `recordVideo` at 1080p with DPR 2 for retina-sharp text rendering
-- **Smart action tracking** — every click, type, and scroll is tracked with real coordinates, context, and timestamps. Vorec skips video analysis entirely
-- **8 narration styles** — Tutorial, Professional, Conversational, Storytelling, Persuasive, Academic, Concise, Exact
-- **Primary actions** — mark key steps that get gold stars on the Vorec timeline
-- **Scroll to element** — auto-scrolls just enough to bring the target into view, never past it
-- **API key first** — agent verifies your Vorec API key before doing anything else
+```
+You: "record a tutorial showing how to sign up on vorec.ai"
+  ↓
+Claude writes a vorec.json manifest
+  ↓
+The Vorec Recorder for macOS captures the screen + clicks + cursor
+  ↓
+You review the MP4 locally
+  ↓
+Vorec uploads + generates AI narration + voice-over
+  ↓
+You polish in the Vorec editor (zoom, callouts, subtitles, music)
+  ↓
+Export HD video
+```
+
+No screen recording software to learn. No microphone. No video editor. Just one command in Claude Code.
+
+## Quick Start
+
+### 1. Install the Vorec Recorder for macOS
+
+Download the desktop app from **[vorec.ai/download](https://vorec.ai/download)**.
+
+After installing:
+1. Open Vorec Recorder, sign in with your Vorec account
+2. Grant **Screen Recording** and **Accessibility** permissions when prompted
+3. Keep the app running (it lives in the menu bar)
+
+> macOS only. The recorder uses native ScreenCaptureKit for high-fidelity capture and synthesizes a cursor overlay during export.
+
+### 2. Install the Claude Code Plugin
+
+```
+1. In Claude Code, run /plugin
+2. Go to Marketplaces → Add Marketplace
+3. Enter: MustaphaSteph/vorec-plugins
+4. Select record-tutorial and install it
+5. Enable auto-update for the marketplace
+```
+
+### 3. Configure your API key
+
+Get your API key from **[vorec.ai](https://vorec.ai)** → Settings → API Keys, then:
+
+```bash
+npx @vorec/cli@latest init
+```
+
+### 4. Record a Tutorial
+
+Just tell Claude Code what to record:
+
+```
+"record a tutorial showing how to create a project"
+"make a demo video of the settings page"
+"create a screencast of the signup flow on vorec.ai"
+"show how the onboarding experience works"
+"demo the checkout flow for the team"
+```
+
+Claude writes a `vorec.json` manifest, the Vorec Recorder captures the screen, you review the MP4, and Vorec generates the narration. End-to-end in minutes.
 
 ## Why Vorec?
 
 Building an app is hard enough. Making tutorial videos for it shouldn't be.
 
-Vorec records any web app and generates professional narrated videos — right from your terminal. No screen recording software, no microphone, no video editing skills needed.
+Vorec records your screen and generates professional narrated videos — right from your terminal. No screen recording software to learn, no microphone, no video editing skills needed.
 
-- **Just say what to record** — "show how to sign up", "demo the billing page", "record how to buy X on some-site.com"
-- **Works on your code or any live site** — the plugin picks the right approach automatically
-- **Smart automation** — forms filled correctly, buttons clicked at the right time, natural timing
-- **AI narration** — professional voice-over generated automatically
-- **Full video editor** — zoom, callouts, subtitles, background music, HD export
+- **Just say what to record** — "show how to sign up", "demo the billing page", "walk through the dashboard"
+- **Native macOS capture** — high-fidelity ScreenCaptureKit recording with click + cursor tracking
+- **AI narration** — professional voice-over generated automatically from the action timeline
+- **Local-first review** — see the raw MP4 before anything uploads, approve only what's worth narrating
+- **Full video editor** — synthetic cursor with ripples, zoom + chain pan, callouts, subtitles, background music, HD export
 
 ## Who It's For
 
@@ -54,96 +111,39 @@ Your project needs a "Getting Started" video but you hate being on camera. Vorec
 Delivering a project? Include a narrated walkthrough video for your client. Takes 5 minutes. Looks like you spent hours. Clients love it.
 
 ### ✍️ Content Creators & Tech Bloggers
-Write tutorials about ANY tool — your own or someone else's. Vorec records the flow, generates narration, and turns it into a polished video you can embed in blog posts, YouTube, or social.
-
-## Quick Start
-
-### Install the Plugin
-
-```
-1. In Claude Code, run /plugin
-2. Go to Marketplaces → Add Marketplace
-3. Enter: MustaphaSteph/vorec-plugins
-4. Select record-tutorial and install it
-5. Enable auto-update for the marketplace
-```
-
-### Record a Tutorial
-
-Just tell Claude Code what to record:
-
-```
-"record a tutorial showing how to create a project"
-"make a demo video of the settings page"
-"create a screencast of the signup flow on vorec.ai"
-"record how to buy a product on stripe checkout"
-"show how the onboarding experience works"
-"demo the checkout flow for the team"
-```
-
-The plugin automatically picks the right approach:
-- **Your own project?** — reads your components for exact selectors and validation rules
-- **A live site on the web?** — discovers the page at runtime using semantic locators
-
-Either way, you get the same polished result.
-
-## How It Works
-
-```
-You: "record a tutorial showing how to sign up on vorec.ai"
-  ↓
-Vorec opens the site, walks through the flow naturally
-  ↓
-You review the video
-  ↓
-Vorec generates AI narration + voice-over
-  ↓
-You add zoom, callouts, subtitles → export
-```
-
-No screen recording software. No microphone. No video editor. Just one command.
-
-## Compatibility
-
-This repository is packaged as a Claude Code plugin marketplace entry. The `record-tutorial` skill itself is written as agent-readable instructions, so the workflow can be adapted by other coding agents that support local skills, Playwright automation, FFmpeg, and the Vorec CLI.
+Write tutorials about tools you use. Vorec records the flow, generates narration, and turns it into a polished video you can embed in blog posts, YouTube, or social.
 
 ## What You Get
 
 ### The Recording
-- **1080p with DPR 2** — sharp browser recording with retina rendering and FFmpeg MP4 output
-- **Every action tracked** — clicks, keystrokes, navigation, timing
-- **MP4 file** — ready to use anywhere, even without Vorec
-- **Optional visible cursor** — big animated arrow/hand/text cursor with click feedback, baked into the recording
+- **Native macOS capture** via ScreenCaptureKit (high-fidelity, no browser sandbox)
+- **Every action tracked** — clicks, keystrokes, scrolls, cursor path, timing
+- **Local MP4** — review before anything uploads, keep or discard
+- **Cursor track sidecar** — feeds the synthetic-cursor renderer for perfect frame parity in editor + export
 
 ### The Vorec Editor
 - **AI voice-over** — natural narration that explains each step
-- **Zoom & spotlight** — highlight important elements, blur backgrounds
-- **Cursor effects** — click ripples, tap rings, pointer arrows
+- **Synthetic cursor + click ripples** — animated cursor with shape-aware sprites (arrow, pointing, text, resize, etc.) and click ripples on every interaction
+- **Zoom & spotlight** — auto-zoom from cursor dwell + clicks, chain-pan between zoom regions, manual zoom clips
 - **Callouts & shapes** — arrows, circles, boxes, number badges
 - **Backgrounds** — gradients, wallpapers, rounded corners, shadows
 - **Intro slides** — title cards with professional themes
-- **Background music** — with volume and fade controls
-- **Subtitles** — auto-generated, customizable
+- **Background music** — built-in library + your own uploads, volume + fade controls
+- **Subtitles** — auto-generated, customizable, per-language
 - **Multi-language** — translate narration to any language
-- **Timeline editor** — adjust timing, re-record segments, trim
-- **Export** — HD video
+- **Timeline editor** — adjust timing, re-record segments, trim, ripple-edit
+- **Export** — HD MP4 via the Cloud Run export worker
 
 ## Features
 
 ### One Command, Done
-No scripts to write, no buttons to click, no recordings to manage. Describe what you want and get a video.
+Describe what you want and get a video. No scripts to write, no buttons to click, no clips to manage.
 
-### Works Anywhere
-Record your own project AND any live website. Same command, same quality, same Vorec editor.
+### Local-First, Privacy-First
+The Vorec Recorder writes the MP4 to your disk. You review it before anything uploads. Approve only the recordings you want narrated.
 
-### Smart Automation
-Forms are filled with valid data, navigation follows real user paths, and interactions look natural. Not a clumsy bot — a smooth demo.
-
-### Error Recovery
-If something goes wrong during recording, Vorec shows the error and the fix. Viewers learn from real mistakes — making tutorials more valuable.
-
-### Works with Login-Protected Apps
-Log in once, Vorec reuses your session. No passwords stored.
+### Smart Action Tracking
+Every click, keystroke, scroll, and cursor pause is timestamped and tracked. The narration AI gets a full action timeline — no guessing from frames.
 
 ### Multiple Narration Styles
 
@@ -159,10 +159,7 @@ Log in once, Vorec reuses your session. No passwords stored.
 | Exact | Technical documentation, API docs |
 
 ### Multi-Language
-Record once, narrate in any language. Perfect for global products.
-
-### Works with Any Web App
-**React**, **Next.js**, **Vue**, **Nuxt**, **Svelte**, **SvelteKit**, **Angular**, **Remix**, **Astro**, **plain HTML** — if it runs in a browser, Vorec can record it.
+Record once, narrate in any language. Translations are stored per-segment and overlaid by the export worker at render time.
 
 ## Use Cases
 
@@ -178,33 +175,38 @@ Record once, narrate in any language. Perfect for global products.
 | Support documentation | "record how to reset a password and update billing" |
 | Training video | "demo the CRM workflow from lead to close" |
 | Marketing content | "record a 60-second product tour for the landing page" |
-| Tool comparison video | "record signup on competitor.com to compare UX" |
-| Blog post screencast | "record how to use tool-X from landing to first result" |
 
 ## Prerequisites
 
-```bash
-# Playwright CLI (drives the recording)
-npm install -g @playwright/cli@latest
-npx playwright install chromium
+- **macOS** (Apple Silicon or Intel)
+- **Vorec Recorder** — [download from vorec.ai/download](https://vorec.ai/download), sign in, grant Screen Recording + Accessibility
+- **Node.js 18+** for the CLI
+- **cliclick** (for action injection during automated recording):
+  ```bash
+  brew install cliclick
+  ```
+- **Vorec API key** — get from [vorec.ai](https://vorec.ai) → Settings → API Keys
 
-# FFmpeg (video conversion)
-brew install ffmpeg          # macOS
-# apt install ffmpeg         # Ubuntu/Debian
-
-# Vorec CLI
-npx @vorec/cli@latest --version
-```
-
-When recording, the skill checks `~/.vorec/config.json`. If no API key is configured, Claude asks for a Vorec API key and writes the config directly so the non-interactive agent workflow can continue safely.
+The plugin runs `npx @vorec/cli check` before recording to verify all four are in place.
 
 ## CLI Commands
 
 ```bash
-npx @vorec/cli@latest check          # Verify API key, credits, and project limits
-npx @vorec/cli@latest run <manifest> # Upload/record and generate narration
-npx @vorec/cli@latest status         # Check processing status
+npx @vorec/cli@latest init                    # Save API key to ~/.vorec/config.json
+npx @vorec/cli@latest check                   # Verify app + sign-in + permissions + cliclick
+npx @vorec/cli@latest run <vorec.json>        # Record locally — writes MP4 + sidecar, no upload
+npx @vorec/cli@latest analyze <video.mp4>     # Upload + generate narration
+npx @vorec/cli@latest status                  # Check processing status
+npx @vorec/cli@latest segments --project <id> # Read narration segments (JSON)
 ```
+
+The `run` and `analyze` split lets you review the raw MP4 before paying credits to analyze it. The agent always shows you the recording first.
+
+## Compatibility
+
+This plugin records on **macOS only** via the Vorec Recorder desktop app. The recorder uses Apple's ScreenCaptureKit framework, which has no equivalent on Windows or Linux.
+
+The narration and editing side (vorec.ai web app) works in any modern browser.
 
 ## Maintainer Checks
 
@@ -216,11 +218,10 @@ This verifies plugin JSON, tracked-action sample data, internal markdown links, 
 
 See [docs/release-checklist.md](docs/release-checklist.md) for the full release checklist and [examples/common-flows.md](examples/common-flows.md) for common recording patterns.
 
-For unknown live websites, the skill builds a structured `.vorec/<slug>/live-site-map.json` before recording. See [examples/live-site-map.sample.json](examples/live-site-map.sample.json) for the expected discovery output.
-
 ## Links
 
 - **[vorec.ai](https://vorec.ai)** — AI-narrated tutorial videos
+- **[vorec.ai/download](https://vorec.ai/download)** — Vorec Recorder for macOS
 - **[@vorec/cli on npm](https://www.npmjs.com/package/@vorec/cli)** — CLI tool
 - **[Plugin Marketplace](https://github.com/MustaphaSteph/vorec-plugins)** — This repo
 
@@ -231,4 +232,4 @@ For unknown live websites, the skill builds a structured `.vorec/<slug>/live-sit
 
 ---
 
-**Keywords:** claude code plugin, claude code skill, screen recording, AI narration, tutorial video generator, product demo recorder, investor demo, screencast tool, automated documentation, voice-over generator, video tutorial maker, SaaS demo, developer onboarding, vibe coding, solo developer tools, startup demo video, Claude Code screen recorder, AI tutorial maker, product walkthrough, open source documentation, customer onboarding video, changelog demo, training video maker, website recorder, live website tutorial, competitor demo recorder, content creator tools
+**Keywords:** claude code plugin, claude code skill, screen recording, AI narration, tutorial video generator, product demo recorder, investor demo, screencast tool, automated documentation, voice-over generator, video tutorial maker, SaaS demo, developer onboarding, vibe coding, solo developer tools, startup demo video, Claude Code screen recorder, AI tutorial maker, product walkthrough, open source documentation, customer onboarding video, changelog demo, training video maker, macOS screen recorder, ScreenCaptureKit recorder, Vorec Recorder, content creator tools
