@@ -17,8 +17,8 @@ node scripts/validate-live-site-map.mjs examples/live-site-map.sample.json
 ## Manual Review
 
 - Confirm `.claude-plugin/plugin.json` and `.claude-plugin/marketplace.json` versions match.
-- Confirm README feature claims match `templates/vorec-script.template.mjs`.
-- Confirm `skills/record-tutorial/rules/vorec-script.md` helper signatures match the template.
+- Confirm README feature claims match the app-based `run` → review → `analyze` flow.
+- Confirm `templates/vorec-manifest.template.json` matches the manifest schema agents should write.
 - Confirm tracked-action examples include `context`, `narration`, and `pause`.
 - Confirm live-site discovery examples include readiness gates and sensitive-action review.
 - Confirm no `.DS_Store` files are tracked.
@@ -26,10 +26,8 @@ node scripts/validate-live-site-map.mjs examples/live-site-map.sample.json
 
 ## Optional Smoke Test
 
-If Playwright and FFmpeg are available:
-
 ```bash
 node scripts/smoke-test-template.mjs
 ```
 
-The smoke test records a tiny local HTML flow and validates the generated `tracked-actions.json`.
+The smoke test validates that the compatibility template produces a parseable `vorec.json` manifest and does not contain Playwright `recordVideo` or FFmpeg recording flow.

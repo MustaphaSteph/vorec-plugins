@@ -1,0 +1,14 @@
+{
+  "title": "PROJECT_TITLE",
+  "url": "TARGET_URL",
+  "language": "en",
+  "narrationStyle": "tutorial",
+  "actions": [
+    {
+      "type": "narrate",
+      "description": "Introduce what the viewer will learn.",
+      "narration": "In this tutorial, I will show you the workflow from start to finish.",
+      "pause": 2500
+    }
+  ]
+}

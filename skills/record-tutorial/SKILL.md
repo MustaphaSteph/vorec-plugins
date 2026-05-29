@@ -77,7 +77,7 @@ Vorec (vorec.ai) turns screen recordings into narrated tutorial videos. You reco
 
 ## How recording works
 
-Recording is done by the **Vorec Recorder desktop app** (macOS only). The app captures the browser window natively (ScreenCaptureKit, 2× retina, H.264), uploads to Vorec, and returns an editor URL. The CLI (`@vorec/cli`) is a driver: it automates the browser and tells the app what to capture.
+Recording is done by the **Vorec Recorder desktop app** (macOS only). The app captures the browser window natively (ScreenCaptureKit, 2× retina, H.264) and saves an MP4 locally. The CLI (`@vorec/cli`) is a driver: it automates the browser and tells the app what to capture. Upload and narration happen later, only after the user approves the local MP4 and you run `vorec analyze`.
 
 **You do not record with Playwright, FFmpeg, or any other tool. Only the app records. If the app is not installed, stop and tell the user to install it — do not suggest alternatives.**
 
@@ -85,8 +85,9 @@ Recording is done by the **Vorec Recorder desktop app** (macOS only). The app ca
 
 1. Verify the app is ready (installed, signed in, permission granted).
 2. Write a `vorec.json` manifest describing the flow (url, viewport, actions).
-3. Run `npx @vorec/cli@latest run vorec.json`. The CLI launches Chromium, tells the app to record that window, drives the actions, stops, uploads, and starts analysis.
-4. Return the editor URL to the user.
+3. Run `npx @vorec/cli@latest run vorec.json`. The CLI launches Chromium, tells the app to record that window, drives the actions, stops, and writes a local MP4 plus `.vorec.json` sidecar. No upload and no credits yet.
+4. Show the MP4 to the user and wait for explicit approval.
+5. Run `npx @vorec/cli@latest analyze <mp4>` only after approval, then return the editor URL to the user.
 
 Vorec then:
 - Reads your tracked actions (descriptions, context, coordinates)
@@ -942,7 +943,29 @@ What happens:
 
 **Narration cost:** duration-based. Short (≤3min) = 8 credits, 3–8min = 15, 8–15min = 25, 15–30min = 45.
 
-## Step 10: Report
+## Step 10: Optional editor media/timeline controls
+
+Use these only when the user explicitly asks to add an intro, outro, B-roll, or another local video asset to an analyzed Vorec project. Do not add extra video clips unprompted.
+
+```bash
+# Upload a local video into the project's media library and wait until probe is ready.
+npx @vorec/cli@latest media upload "/path/to/intro.mp4" --project <id> --wait
+
+# Inspect media and current video timeline state.
+npx @vorec/cli@latest media list --project <id>
+npx @vorec/cli@latest timeline list --project <id>
+
+# Add a local video directly to the timeline. This uploads, waits, then inserts.
+npx @vorec/cli@latest timeline add-video "/path/to/intro.mp4" --project <id> --position intro --muted
+npx @vorec/cli@latest timeline add-video "/path/to/outro.mp4" --project <id> --position outro --muted
+
+# Or place an existing media asset at an exact timestamp.
+npx @vorec/cli@latest timeline add-video <asset-id> --project <id> --at 42.5 --source 0:4 --muted
+```
+
+Timeline insertion matches the editor's user-video behavior: if `--at` lands inside an existing video segment, Vorec snaps to the nearest segment edge, inserts the uploaded clip, and ripples later video, narration, source-following overlays, and action dots so preview/export stay aligned. Use `--dry-run` first when the placement is not obvious.
+
+## Step 11: Report
 
 Print only the final editor URL once analysis is done. No essays.
 
@@ -2714,7 +2737,7 @@ You're ready to write the vorec script. See the manifest section in [../SKILL.md
 
 ## Both modes converge
 
-Explore mode ends at the same place as Connected mode: write `vorec.json`, run `npx @vorec/cli@latest run vorec.json`, the Vorec Recorder app captures + uploads. Return to the main `SKILL.md` when you're done exploring.
+Explore mode ends at the same place as Connected mode: write `vorec.json`, run `npx @vorec/cli@latest run vorec.json`, the Vorec Recorder app captures locally, then return to the main `SKILL.md` for MP4 review and the approval-gated `vorec analyze` step.
 
 
 ## Rules — live-site-discovery
@@ -2980,8 +3003,9 @@ If any of these are true, switch to [./explore.md](./explore.md):
 
 After your manifest is written, Connected and Explore follow the same steps:
 1. Run `npx @vorec/cli@latest run vorec.json`
-2. The Vorec Recorder app captures + uploads automatically
-3. CLI triggers analysis and prints the editor URL
+2. The Vorec Recorder app captures locally and the CLI writes MP4 + sidecar
+3. Show the MP4 to the user and wait for explicit approval
+4. Run `npx @vorec/cli@latest analyze <mp4>` to upload, generate narration, and print the editor URL
 
 
 ## Rules — shopify-admin
@@ -3179,7 +3203,7 @@ Default channel when `--profile` is set is `chrome` (real Chrome, friendlier to 
 3. **Login step** — Step 1 above, manual by the user
 4. **Recording step** — `vorec run --profile ...`
 5. **Wait for the embedded app to render** — `frameLocator` based (see Rule 4 / manifest `frame` field)
-6. **Stop + upload** — the app handles capture and upload like any other recording
+6. **Stop + save locally** — the app writes the MP4; upload waits for explicit user approval and `vorec analyze`
 
 ## What the skill rules boil down to
 

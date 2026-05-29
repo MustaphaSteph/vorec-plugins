@@ -50,7 +50,7 @@ Use:
 - `task_tutorial` recording type.
 - `live-site-map.json` with required fields, valid demo values, and success state.
 - `rules/auth.md` for session capture.
-- The storage-state snippet in `templates/vorec-script.template.mjs`.
+- The storage-state field in the generated `vorec.json` manifest.
 
 ## E-Commerce Add-To-Cart
 
