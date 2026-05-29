@@ -196,17 +196,20 @@ npx @vorec/cli@latest init                    # Save API key to ~/.vorec/config.
 npx @vorec/cli@latest check                   # Verify app + sign-in + permissions + cliclick
 npx @vorec/cli@latest run <vorec.json>        # Record locally — writes MP4 + sidecar, no upload
 npx @vorec/cli@latest analyze <video.mp4>     # Upload + generate narration
+npx @vorec/cli@latest projects list --json    # List accessible projects
 npx @vorec/cli@latest status                  # Check processing status
+npx @vorec/cli@latest editor inspect --project <id> --json
 npx @vorec/cli@latest segments --project <id> # Read narration segments (JSON)
 npx @vorec/cli@latest media upload intro.mp4 --project <id> --wait
 npx @vorec/cli@latest media list --project <id>
 npx @vorec/cli@latest timeline list --project <id>
+npx @vorec/cli@latest timeline split --project <id> --at 42.5
 npx @vorec/cli@latest timeline add-video intro.mp4 --project <id> --position intro --muted
 ```
 
 The `run` and `analyze` split lets you review the raw MP4 before paying credits to analyze it. The agent always shows you the recording first.
 
-Media/timeline commands are optional post-analysis editor controls. Use them only when the user asks to add an intro, outro, B-roll, or another local video asset to an existing Vorec project.
+Editor media/timeline commands are optional post-analysis controls. Use them only when the user asks to inspect or edit an existing Vorec project. For exact mid-segment insertion, split first, then add the media at the split timestamp.
 
 ## Compatibility
 

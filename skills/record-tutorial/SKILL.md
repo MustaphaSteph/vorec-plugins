@@ -948,6 +948,12 @@ What happens:
 Use these only when the user explicitly asks to add an intro, outro, B-roll, or another local video asset to an analyzed Vorec project. Do not add extra video clips unprompted.
 
 ```bash
+# Discover accessible projects if the user did not provide a project id.
+npx @vorec/cli@latest projects list --json
+
+# Read the full sanitized editor/timeline state before deciding where to edit.
+npx @vorec/cli@latest editor inspect --project <id> --json
+
 # Upload a local video into the project's media library and wait until probe is ready.
 npx @vorec/cli@latest media upload "/path/to/intro.mp4" --project <id> --wait
 
@@ -961,9 +967,17 @@ npx @vorec/cli@latest timeline add-video "/path/to/outro.mp4" --project <id> --p
 
 # Or place an existing media asset at an exact timestamp.
 npx @vorec/cli@latest timeline add-video <asset-id> --project <id> --at 42.5 --source 0:4 --muted
+
+# To insert inside an existing source segment, split first, then insert at that boundary.
+npx @vorec/cli@latest timeline split --project <id> --at 42.5
+npx @vorec/cli@latest timeline add-video <asset-id> --project <id> --at 42.5 --muted
 ```
 
 Timeline insertion matches the editor's user-video behavior: if `--at` lands inside an existing video segment, Vorec snaps to the nearest segment edge, inserts the uploaded clip, and ripples later video, narration, source-following overlays, and action dots so preview/export stay aligned. Use `--dry-run` first when the placement is not obvious.
+
+For exact mid-segment placement, always use `timeline split` first. Splitting preserves narration, overlays, clicks, cursor timing, media asset linkage, audio mix, and speed; it only turns one video segment into two. Then `timeline add-video --at <same timestamp>` inserts between those two segments and ripples later content.
+
+`editor inspect --json` is the agent's source of truth before editing. It returns project metadata, video segments, media assets, narration/action segments, clicks, tracks, overlays, cursor summary, subtitles, freeze-sync timing, and warnings. It is sanitized: storage keys, signed URLs, hashes, selectors, and raw typed text are redacted.
 
 ## Step 11: Report
 
