@@ -954,6 +954,10 @@ npx @vorec/cli@latest projects list --json
 # Read the full sanitized editor/timeline state before deciding where to edit.
 npx @vorec/cli@latest editor inspect --project <id> --json
 
+# Render visual readback frames when you need to see what the editor outputs.
+npx @vorec/cli@latest editor snapshot --project <id> --at 42.5 --output frame.png
+npx @vorec/cli@latest editor filmstrip --project <id> --every 2 --output-dir frames
+
 # Upload a local video into the project's media library and wait until probe is ready.
 npx @vorec/cli@latest media upload "/path/to/intro.mp4" --project <id> --wait
 
@@ -978,6 +982,8 @@ Timeline insertion matches the editor's user-video behavior: if `--at` lands ins
 For exact mid-segment placement, always use `timeline split` first. Splitting preserves narration, overlays, clicks, cursor timing, media asset linkage, audio mix, and speed; it only turns one video segment into two. Then `timeline add-video --at <same timestamp>` inserts between those two segments and ripples later content.
 
 `editor inspect --json` is the agent's source of truth before editing. It returns project metadata, video segments, media assets, narration/action segments, clicks, tracks, overlays, cursor summary, subtitles, freeze-sync timing, and warnings. It is sanitized: storage keys, signed URLs, hashes, selectors, and raw typed text are redacted.
+
+Use `editor snapshot` or `editor filmstrip` after meaningful edits to visually verify the rendered frame(s). This is the Vorec equivalent of Remotion's `remotion still`: inspect structured state, render a frame, edit, then render again.
 
 ## Step 11: Report
 

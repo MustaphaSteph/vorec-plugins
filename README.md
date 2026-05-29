@@ -199,6 +199,8 @@ npx @vorec/cli@latest analyze <video.mp4>     # Upload + generate narration
 npx @vorec/cli@latest projects list --json    # List accessible projects
 npx @vorec/cli@latest status                  # Check processing status
 npx @vorec/cli@latest editor inspect --project <id> --json
+npx @vorec/cli@latest editor snapshot --project <id> --at 42.5 --output frame.png
+npx @vorec/cli@latest editor filmstrip --project <id> --every 2 --output-dir frames
 npx @vorec/cli@latest segments --project <id> # Read narration segments (JSON)
 npx @vorec/cli@latest media upload intro.mp4 --project <id> --wait
 npx @vorec/cli@latest media list --project <id>
@@ -209,7 +211,7 @@ npx @vorec/cli@latest timeline add-video intro.mp4 --project <id> --position int
 
 The `run` and `analyze` split lets you review the raw MP4 before paying credits to analyze it. The agent always shows you the recording first.
 
-Editor media/timeline commands are optional post-analysis controls. Use them only when the user asks to inspect or edit an existing Vorec project. For exact mid-segment insertion, split first, then add the media at the split timestamp.
+Editor media/timeline commands are optional post-analysis controls. Use them only when the user asks to inspect or edit an existing Vorec project. Use `editor snapshot` / `editor filmstrip` for visual readback. For exact mid-segment insertion, split first, then add the media at the split timestamp.
 
 ## Compatibility
 
