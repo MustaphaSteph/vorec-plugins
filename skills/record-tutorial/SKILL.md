@@ -947,6 +947,17 @@ What happens:
 
 Use these only when the user explicitly asks to add an intro, outro, B-roll, or another local video asset to an analyzed Vorec project. Do not add extra video clips unprompted.
 
+Treat the CLI as the editor control surface. Do not guess from memory, screenshots, or the editor URL alone. The correct loop is:
+
+1. **Inspect state** with `editor inspect --json`. Use this as the structured source of truth for duration, tracks, narration/action timing, video segments, media assets, overlays, subtitles, cursor settings, crop, and freeze-sync timing.
+2. **Render what matters** with `editor snapshot` for exact timestamps or `editor filmstrip` for broad timeline review. Use these PNGs to verify what the user and exporter will actually see.
+3. **Choose the edit point** from the inspected timeline and rendered frames. For intro/outro use `--position intro|outro`; for precise middle insertion use an exact `--at` timestamp.
+4. **Dry-run when placement is not obvious**. Confirm the affected segments, ripple amount, and resulting duration before changing the project.
+5. **Apply one edit at a time**. Upload media first if needed, then run the timeline command.
+6. **Inspect again**. Verify the new video segments, narration/action times, overlays, cursor timing, and warnings.
+7. **Render again**. Capture a snapshot at the insertion point, and if the edit affects a range, capture a short filmstrip around it.
+8. **Report evidence**. Tell the user exactly what changed, the timestamps touched, output PNG paths if rendered, and any limitation or warning.
+
 ```bash
 # Discover accessible projects if the user did not provide a project id.
 npx @vorec/cli@latest projects list --json
@@ -972,6 +983,9 @@ npx @vorec/cli@latest timeline add-video "/path/to/outro.mp4" --project <id> --p
 # Or place an existing media asset at an exact timestamp.
 npx @vorec/cli@latest timeline add-video <asset-id> --project <id> --at 42.5 --source 0:4 --muted
 
+# Preview a non-obvious placement before applying it.
+npx @vorec/cli@latest timeline add-video <asset-id> --project <id> --at 42.5 --muted --dry-run
+
 # To insert inside an existing source segment, split first, then insert at that boundary.
 npx @vorec/cli@latest timeline split --project <id> --at 42.5
 npx @vorec/cli@latest timeline add-video <asset-id> --project <id> --at 42.5 --muted
@@ -983,7 +997,9 @@ For exact mid-segment placement, always use `timeline split` first. Splitting pr
 
 `editor inspect --json` is the agent's source of truth before editing. It returns project metadata, video segments, media assets, narration/action segments, clicks, tracks, overlays, cursor summary, subtitles, freeze-sync timing, and warnings. It is sanitized: storage keys, signed URLs, hashes, selectors, and raw typed text are redacted.
 
-Use `editor snapshot` or `editor filmstrip` after meaningful edits to visually verify the rendered frame(s). This is the Vorec equivalent of Remotion's `remotion still`: inspect structured state, render a frame, edit, then render again.
+Use `editor snapshot` or `editor filmstrip` after meaningful edits to visually verify the rendered frame(s): inspect structured state, render a frame, edit, then render again.
+
+When visual readback disagrees with the structured state, trust the rendered frame for user-visible output and inspect the state again before making another edit. Do not chain multiple timeline edits without a fresh inspect/readback cycle unless the user explicitly asked for a batch operation.
 
 ## Step 11: Report
 
