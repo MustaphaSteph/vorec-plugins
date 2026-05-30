@@ -965,6 +965,9 @@ npx @vorec/cli@latest projects list --json
 # Read the full sanitized editor/timeline state before deciding where to edit.
 npx @vorec/cli@latest editor inspect --project <id> --json
 
+# List action clicks and how narration references them.
+npx @vorec/cli@latest actions list --project <id> --json
+
 # Render visual readback frames when you need to see what the editor outputs.
 npx @vorec/cli@latest editor snapshot --project <id> --at 42.5 --output frame.png
 npx @vorec/cli@latest editor filmstrip --project <id> --every 2 --output-dir frames
@@ -989,6 +992,11 @@ npx @vorec/cli@latest timeline add-video <asset-id> --project <id> --at 42.5 --m
 # To insert inside an existing source segment, split first, then insert at that boundary.
 npx @vorec/cli@latest timeline split --project <id> --at 42.5
 npx @vorec/cli@latest timeline add-video <asset-id> --project <id> --at 42.5 --muted
+
+# Move or correct an action marker without moving narration timing.
+npx @vorec/cli@latest actions move --project <id> --click-index 7 --at 46.4
+npx @vorec/cli@latest actions update --project <id> --click-index 7 --x 386 --y 381
+npx @vorec/cli@latest actions set-primary --project <id> --segment <segment-id> --click-index 7
 ```
 
 Timeline insertion matches the editor's user-video behavior: if `--at` lands inside an existing video segment, Vorec snaps to the nearest segment edge, inserts the uploaded clip, and ripples later video, narration, source-following overlays, and action dots so preview/export stay aligned. Use `--dry-run` first when the placement is not obvious.
@@ -996,6 +1004,12 @@ Timeline insertion matches the editor's user-video behavior: if `--at` lands ins
 For exact mid-segment placement, always use `timeline split` first. Splitting preserves narration, overlays, clicks, cursor timing, media asset linkage, audio mix, and speed; it only turns one video segment into two. Then `timeline add-video --at <same timestamp>` inserts between those two segments and ripples later content.
 
 `editor inspect --json` is the agent's source of truth before editing. It returns project metadata, video segments, media assets, narration/action segments, clicks, tracks, overlays, cursor summary, subtitles, freeze-sync timing, and warnings. It is sanitized: storage keys, signed URLs, hashes, selectors, and raw typed text are redacted.
+
+**Resolving actions to coordinates.** In `editor inspect --json`, narration/action segments and on-screen actions are separate arrays. Each segment carries `primaryClickIndex` and `clickRefs[]`; these are indexes, not coordinates and not database row IDs. To get the actual click position and timing, match them against `clicks[].clickIndex`. The `clicks[]` array (`project_clicks`) is the source of truth for action coordinates (`x`, `y`), `timestampSeconds`, and `interactionType`. Never read coordinates from a segment when a matching click exists.
+
+Example: to place a callout on the action a segment describes, read `segment.primaryClickIndex`, find the `clicks[]` entry whose `clickIndex` equals it, and use that entry's `x`, `y`, and `timestampSeconds`.
+
+Use `actions move` when the visible action marker should move in time but narration should stay where it is. Use `actions update` to correct action coordinates or labels. Use `actions set-primary` when the narration segment should point to a different main action. These mutations create timeline revisions, so the printed `vorec timeline undo` command can restore the previous state.
 
 Use `editor snapshot` or `editor filmstrip` after meaningful edits to visually verify the rendered frame(s): inspect structured state, render a frame, edit, then render again.
 
@@ -1579,7 +1593,7 @@ Not just clicks. If the user types text → `type` action with `typed_text`. Dro
 3. **Auto-zoom** — click `coordinates` become zoom targets (centered on the element)
 4. **Cursor effects** — click ripples render at `coordinates` position
 5. **Click markers** — `description` shown as tooltip, `target` as element label
-6. **Primary clicks** — segments reference actions via `click_refs[]` indexes; `primary_click` gets a gold star on timeline
+6. **Primary clicks** — segments reference actions via `clickRefs[]` / `primaryClickIndex` indexes into `project_clicks.click_index`; the matching click is the source of truth for action timing and coordinates
 
 
 ## Rules — end-state-verify
