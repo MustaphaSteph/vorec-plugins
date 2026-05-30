@@ -4,7 +4,7 @@
 
 [![npm](https://img.shields.io/npm/v/@vorec/cli)](https://www.npmjs.com/package/@vorec/cli)
 [![Claude Code Plugin](https://img.shields.io/badge/Claude_Code-Plugin-blueviolet)](https://vorec.ai)
-[![Plugin Version](https://img.shields.io/badge/plugin-v14.38.2-success)](https://github.com/MustaphaSteph/vorec-plugins)
+[![Plugin Version](https://img.shields.io/badge/plugin-v14.39.0-success)](https://github.com/MustaphaSteph/vorec-plugins)
 [![macOS Recorder](https://img.shields.io/badge/macOS-Recorder_App-blue)](https://vorec.ai/download)
 
 ## How it works
@@ -205,6 +205,10 @@ npx @vorec/cli@latest actions list --project <id> --json
 npx @vorec/cli@latest actions move --project <id> --click-index 7 --at 46.4
 npx @vorec/cli@latest actions update --project <id> --click-index 7 --x 386 --y 381
 npx @vorec/cli@latest actions set-primary --project <id> --segment <segment-id> --click-index 7
+npx @vorec/cli@latest actions verify --project <id> --click-index 7 --output action-7.png
+npx @vorec/cli@latest narration move --project <id> --segment <segment-id> --at 46.4
+npx @vorec/cli@latest narration update --project <id> --segment <segment-id> --text "Now save the settings."
+npx @vorec/cli@latest narration attach-action --project <id> --segment <segment-id> --click-index 7 --primary
 npx @vorec/cli@latest segments --project <id> # Read narration segments (JSON)
 npx @vorec/cli@latest media upload intro.mp4 --project <id> --wait
 npx @vorec/cli@latest media list --project <id>
@@ -217,7 +221,7 @@ The `run` and `analyze` split lets you review the raw MP4 before paying credits 
 
 Editor media/timeline/action commands are optional post-analysis controls. Use them only when the user asks to inspect or edit an existing Vorec project. Use `editor snapshot` / `editor filmstrip` for visual readback. For exact mid-segment insertion, split first, then add the media at the split timestamp.
 
-Narration segments reference actions by index. In `editor inspect --json`, `narrationSegments[].primaryClickIndex` and `clickRefs[]` match `clicks[].clickIndex`. The `clicks[]` entries are the source of truth for action `timestampSeconds`, `x`, `y`, and `interactionType`; segment coordinates are not the source of truth.
+Narration segments reference actions by index. In `editor inspect --json`, `narrationSegments[].primaryClickIndex` and `clickRefs[]` match `clicks[].clickIndex`. The `clicks[]` entries are the source of truth for action `timestampSeconds`, `x`, `y`, and `interactionType`; segment coordinates are not the source of truth. Use `narration move/update/attach-action` for voice segment edits, and `actions verify` to render the frame at an action timestamp.
 
 ## Compatibility
 

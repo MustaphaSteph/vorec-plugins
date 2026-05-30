@@ -997,6 +997,13 @@ npx @vorec/cli@latest timeline add-video <asset-id> --project <id> --at 42.5 --m
 npx @vorec/cli@latest actions move --project <id> --click-index 7 --at 46.4
 npx @vorec/cli@latest actions update --project <id> --click-index 7 --x 386 --y 381
 npx @vorec/cli@latest actions set-primary --project <id> --segment <segment-id> --click-index 7
+npx @vorec/cli@latest actions verify --project <id> --click-index 7 --output action-7.png
+
+# Edit narration segment timing/text/action references.
+npx @vorec/cli@latest narration move --project <id> --segment <segment-id> --at 46.4
+npx @vorec/cli@latest narration move --project <id> --segment <segment-id> --at 46.4 --with-action
+npx @vorec/cli@latest narration update --project <id> --segment <segment-id> --text "Now save the settings."
+npx @vorec/cli@latest narration attach-action --project <id> --segment <segment-id> --click-index 7 --primary
 ```
 
 Timeline insertion matches the editor's user-video behavior: if `--at` lands inside an existing video segment, Vorec snaps to the nearest segment edge, inserts the uploaded clip, and ripples later video, narration, source-following overlays, and action dots so preview/export stay aligned. Use `--dry-run` first when the placement is not obvious.
@@ -1009,7 +1016,9 @@ For exact mid-segment placement, always use `timeline split` first. Splitting pr
 
 Example: to place a callout on the action a segment describes, read `segment.primaryClickIndex`, find the `clicks[]` entry whose `clickIndex` equals it, and use that entry's `x`, `y`, and `timestampSeconds`.
 
-Use `actions move` when the visible action marker should move in time but narration should stay where it is. Use `actions update` to correct action coordinates or labels. Use `actions set-primary` when the narration segment should point to a different main action. These mutations create timeline revisions, so the printed `vorec timeline undo` command can restore the previous state.
+Use `actions move` when the visible action marker should move in time but narration should stay where it is. Use `actions update` to correct action coordinates or labels. Use `actions set-primary` when the narration segment should point to a different main action. Use `actions verify` to render the frame at an action's current timestamp.
+
+Use `narration move` when the voice segment should move; add `--with-action` only when the primary action should move to the same timestamp. Use `narration update` to change one segment's script or name; changing script clears old audio so it can be regenerated. Use `narration attach-action` to add a click reference to the segment, with `--primary` when it should become the main action. These mutations create timeline revisions, so the printed `vorec timeline undo` command can restore the previous state.
 
 Use `editor snapshot` or `editor filmstrip` after meaningful edits to visually verify the rendered frame(s): inspect structured state, render a frame, edit, then render again.
 
