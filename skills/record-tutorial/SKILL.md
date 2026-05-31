@@ -945,7 +945,7 @@ What happens:
 
 ## Step 10: Optional editor media/timeline controls
 
-Use these only when the user explicitly asks to add an intro, outro, B-roll, overlay, cursor visibility change, or another local/editor asset to an analyzed Vorec project. Do not add extra video clips or overlays unprompted.
+Use these only when the user explicitly asks to add an intro, outro, B-roll, overlay, background, cursor visibility change, or another local/editor asset to an analyzed Vorec project. Do not add extra video clips, overlays, or background styling unprompted.
 
 Treat the CLI as the editor control surface. Do not guess from memory, screenshots, or the editor URL alone. The correct loop is:
 
@@ -953,7 +953,7 @@ Treat the CLI as the editor control surface. Do not guess from memory, screensho
 2. **Render what matters** with `editor snapshot` for exact timestamps or `editor filmstrip` for broad timeline review. Use these PNGs to verify what the user and exporter will actually see.
 3. **Choose the edit point** from the inspected timeline and rendered frames. For intro/outro use `--position intro|outro`; for precise middle insertion use an exact `--at` timestamp.
 4. **Dry-run when placement is not obvious**. Confirm the affected segments, ripple amount, and resulting duration before changing the project.
-5. **Apply one edit at a time**. Upload media first if needed, then run the timeline/overlay/cursor command.
+5. **Apply one edit at a time**. Upload media first if needed, then run the timeline/overlay/background/cursor command.
 6. **Inspect again**. Verify the new video segments, narration/action times, overlays, cursor timing, and warnings.
 7. **Render again**. Capture a snapshot at the insertion point, and if the edit affects a range, capture a short filmstrip around it.
 8. **Report evidence**. Tell the user exactly what changed, the timestamps touched, output PNG paths if rendered, and any limitation or warning.
@@ -1025,6 +1025,14 @@ npx @vorec/cli@latest overlays delete --project <id> --clip <clip-id>
 npx @vorec/cli@latest cursor settings --project <id> --json
 npx @vorec/cli@latest cursor hide --project <id>
 npx @vorec/cli@latest cursor show --project <id>
+
+# Inspect or change the project video background used by preview/export.
+npx @vorec/cli@latest background get --project <id> --json
+npx @vorec/cli@latest background set --project <id> --type gradient --gradient-start "#0f172a" --gradient-end "#4f46e5" --angle 135 --padding 8 --border-radius 18 --shadow large
+npx @vorec/cli@latest background set --project <id> --type color --color "#111827" --padding 6
+npx @vorec/cli@latest background set --project <id> --type wallpaper --wallpaper ocean --padding 8 --shadow medium
+npx @vorec/cli@latest background set --project <id> --border-enabled --border-color1 "#6366f1" --border-color2 "#ec4899" --border-width 3
+npx @vorec/cli@latest background disable --project <id>
 ```
 
 Timeline insertion matches the editor's user-video behavior: if `--at` lands inside an existing video segment, Vorec snaps to the nearest segment edge, inserts the uploaded clip, and ripples later video, narration, source-following overlays, and action dots so preview/export stay aligned. Use `--dry-run` first when the placement is not obvious.
@@ -1042,6 +1050,8 @@ Use `actions move` when the visible action marker should move in time but narrat
 Use `narration move` when the voice segment should move; add `--with-action` only when the primary action should move to the same timestamp. Use `narration update` to change one segment's script or name; changing script clears old audio so it can be regenerated. Use `narration attach-action` to add a click reference to the segment, with `--primary` when it should become the main action. These mutations create timeline revisions, so the printed `vorec timeline undo` command can restore the previous state.
 
 Use `overlays add/update/move/resize/delete` when the user asks for visual editor effects or objects. Supported types are `zoom`, `follow-zoom`, `blur`, `spotlight`, `callout`, `text`, `shape`, `image`, `slide`, and `cursor`. Use normalized `0..1000` video coordinates and derive them from inspected clicks or rendered frames. Overlay clip mutations create timeline revisions and print an undo command. Cursor visibility is a project setting controlled by `cursor show|hide`; verify it with `cursor settings` or `editor inspect`.
+
+Use `background get/set/disable` when the user asks whether the video has a background, wants a wallpaper/gradient/color background, or wants the background turned off. Background is `projects.video_background`, not an overlay clip. It affects preview/export around the recorded video and supports type, color, gradient colors/angle, wallpaper preset, padding, border radius, shadow, and optional border. Verify with `background get` and a fresh `editor snapshot`.
 
 Use `editor snapshot` or `editor filmstrip` after meaningful edits to visually verify the rendered frame(s): inspect structured state, render a frame, edit, then render again.
 

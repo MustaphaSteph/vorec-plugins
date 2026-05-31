@@ -4,7 +4,7 @@
 
 [![npm](https://img.shields.io/npm/v/@vorec/cli)](https://www.npmjs.com/package/@vorec/cli)
 [![Claude Code Plugin](https://img.shields.io/badge/Claude_Code-Plugin-blueviolet)](https://vorec.ai)
-[![Plugin Version](https://img.shields.io/badge/plugin-v14.40.0-success)](https://github.com/MustaphaSteph/vorec-plugins)
+[![Plugin Version](https://img.shields.io/badge/plugin-v14.41.0-success)](https://github.com/MustaphaSteph/vorec-plugins)
 [![macOS Recorder](https://img.shields.io/badge/macOS-Recorder_App-blue)](https://vorec.ai/download)
 
 ## How it works
@@ -218,6 +218,10 @@ npx @vorec/cli@latest overlays resize --project <id> --clip <clip-id> --duration
 npx @vorec/cli@latest overlays delete --project <id> --clip <clip-id>
 npx @vorec/cli@latest cursor hide --project <id>
 npx @vorec/cli@latest cursor show --project <id>
+npx @vorec/cli@latest background get --project <id> --json
+npx @vorec/cli@latest background set --project <id> --type gradient --gradient-start "#0f172a" --gradient-end "#4f46e5" --angle 135 --padding 8 --shadow large
+npx @vorec/cli@latest background set --project <id> --type wallpaper --wallpaper ocean
+npx @vorec/cli@latest background disable --project <id>
 npx @vorec/cli@latest segments --project <id> # Read narration segments (JSON)
 npx @vorec/cli@latest media upload intro.mp4 --project <id> --wait
 npx @vorec/cli@latest media list --project <id>
@@ -232,7 +236,7 @@ Editor media/timeline/action/overlay commands are optional post-analysis control
 
 Narration segments reference actions by index. In `editor inspect --json`, `narrationSegments[].primaryClickIndex` and `clickRefs[]` match `clicks[].clickIndex`. The `clicks[]` entries are the source of truth for action `timestampSeconds`, `x`, `y`, and `interactionType`; segment coordinates are not the source of truth. Use `narration move/update/attach-action` for voice segment edits, and `actions verify` to render the frame at an action timestamp.
 
-Overlay clips are normal editor timeline clips. Agents can add/update/delete zoom, follow-zoom, blur, spotlight, callout, text, shape, image, slide, and cursor clips, then move/resize them with normalized `0..1000` video coordinates. Cursor visibility is controlled separately with `cursor show|hide`.
+Overlay clips are normal editor timeline clips. Agents can add/update/delete zoom, follow-zoom, blur, spotlight, callout, text, shape, image, slide, and cursor clips, then move/resize them with normalized `0..1000` video coordinates. Cursor visibility is controlled separately with `cursor show|hide`. Video background is a project setting controlled with `background get/set/disable`; inspect it structurally before changing it.
 
 ## Compatibility
 
