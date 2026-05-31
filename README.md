@@ -4,7 +4,7 @@
 
 [![npm](https://img.shields.io/npm/v/@vorec/cli)](https://www.npmjs.com/package/@vorec/cli)
 [![Claude Code Plugin](https://img.shields.io/badge/Claude_Code-Plugin-blueviolet)](https://vorec.ai)
-[![Plugin Version](https://img.shields.io/badge/plugin-v14.41.0-success)](https://github.com/MustaphaSteph/vorec-plugins)
+[![Plugin Version](https://img.shields.io/badge/plugin-v14.42.0-success)](https://github.com/MustaphaSteph/vorec-plugins)
 [![macOS Recorder](https://img.shields.io/badge/macOS-Recorder_App-blue)](https://vorec.ai/download)
 
 ## How it works
@@ -228,6 +228,7 @@ npx @vorec/cli@latest media list --project <id>
 npx @vorec/cli@latest timeline list --project <id>
 npx @vorec/cli@latest timeline split --project <id> --at 42.5
 npx @vorec/cli@latest timeline add-video intro.mp4 --project <id> --position intro --muted
+npx @vorec/cli@latest timeline add-video broll.mp4 --project <id> --after-segment <video-segment-id> --muted
 ```
 
 The `run` and `analyze` split lets you review the raw MP4 before paying credits to analyze it. The agent always shows you the recording first.
@@ -237,6 +238,8 @@ Editor media/timeline/action/overlay commands are optional post-analysis control
 Narration segments reference actions by index. In `editor inspect --json`, `narrationSegments[].primaryClickIndex` and `clickRefs[]` match `clicks[].clickIndex`. The `clicks[]` entries are the source of truth for action `timestampSeconds`, `x`, `y`, and `interactionType`; segment coordinates are not the source of truth. Use `narration move/update/attach-action` for voice segment edits, and `actions verify` to render the frame at an action timestamp.
 
 Overlay clips are normal editor timeline clips. Agents can add/update/delete zoom, follow-zoom, blur, spotlight, callout, text, shape, image, slide, and cursor clips, then move/resize them with normalized `0..1000` video coordinates. Cursor visibility is controlled separately with `cursor show|hide`. Video background is a project setting controlled with `background get/set/disable`; inspect it structurally before changing it.
+
+Video track segments are visible through `timeline list --json` and `editor inspect --json`. Agents should use `videoSegments[].id` as insertion anchors when possible: after splitting a source segment, insert with `timeline add-video --after-segment <firstSegment.id>` or `--before-segment <secondSegment.id>` instead of retyping the split timestamp.
 
 ## Compatibility
 

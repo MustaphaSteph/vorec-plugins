@@ -989,9 +989,10 @@ npx @vorec/cli@latest timeline add-video <asset-id> --project <id> --at 42.5 --s
 # Preview a non-obvious placement before applying it.
 npx @vorec/cli@latest timeline add-video <asset-id> --project <id> --at 42.5 --muted --dry-run
 
-# To insert inside an existing source segment, split first, then insert at that boundary.
-npx @vorec/cli@latest timeline split --project <id> --at 42.5
-npx @vorec/cli@latest timeline add-video <asset-id> --project <id> --at 42.5 --muted
+# To insert inside an existing source segment, split first, then insert by segment anchor.
+npx @vorec/cli@latest timeline split --project <id> --at 42.5 --json
+npx @vorec/cli@latest timeline add-video <asset-id> --project <id> --after-segment <first-segment-id-from-split> --muted
+npx @vorec/cli@latest timeline add-video <asset-id> --project <id> --before-segment <second-segment-id-from-split> --muted
 
 # Move or correct an action marker without moving narration timing.
 npx @vorec/cli@latest actions move --project <id> --click-index 7 --at 46.4
@@ -1037,7 +1038,7 @@ npx @vorec/cli@latest background disable --project <id>
 
 Timeline insertion matches the editor's user-video behavior: if `--at` lands inside an existing video segment, Vorec snaps to the nearest segment edge, inserts the uploaded clip, and ripples later video, narration, source-following overlays, and action dots so preview/export stay aligned. Use `--dry-run` first when the placement is not obvious.
 
-For exact mid-segment placement, always use `timeline split` first. Splitting preserves narration, overlays, clicks, cursor timing, media asset linkage, audio mix, and speed; it only turns one video segment into two. Then `timeline add-video --at <same timestamp>` inserts between those two segments and ripples later content.
+For exact mid-segment placement, always use `timeline split --json` first. Splitting preserves narration, overlays, clicks, cursor timing, media asset linkage, audio mix, and speed; it only turns one video segment into two. Then insert with `timeline add-video --after-segment <firstSegment.id>` or `--before-segment <secondSegment.id>` so the boundary is explicit and the agent does not need to retype or recalculate seconds.
 
 `editor inspect --json` is the agent's source of truth before editing. It returns project metadata, video segments, media assets, narration/action segments, clicks, tracks, overlays, cursor summary, subtitles, freeze-sync timing, and warnings. It is sanitized: storage keys, signed URLs, hashes, selectors, and raw typed text are redacted.
 
