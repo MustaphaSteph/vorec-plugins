@@ -4,7 +4,7 @@
 
 [![npm](https://img.shields.io/npm/v/@vorec/cli)](https://www.npmjs.com/package/@vorec/cli)
 [![Claude Code Plugin](https://img.shields.io/badge/Claude_Code-Plugin-blueviolet)](https://vorec.ai)
-[![Plugin Version](https://img.shields.io/badge/plugin-v14.42.0-success)](https://github.com/MustaphaSteph/vorec-plugins)
+[![Plugin Version](https://img.shields.io/badge/plugin-v14.43.0-success)](https://github.com/MustaphaSteph/vorec-plugins)
 [![macOS Recorder](https://img.shields.io/badge/macOS-Recorder_App-blue)](https://vorec.ai/download)
 
 ## How it works
@@ -201,6 +201,7 @@ npx @vorec/cli@latest status                  # Check processing status
 npx @vorec/cli@latest editor inspect --project <id> --json
 npx @vorec/cli@latest editor snapshot --project <id> --at 42.5 --output frame.png
 npx @vorec/cli@latest editor filmstrip --project <id> --every 2 --output-dir frames
+npx @vorec/cli@latest editor describe --project <id>
 npx @vorec/cli@latest actions list --project <id> --json
 npx @vorec/cli@latest actions move --project <id> --click-index 7 --at 46.4
 npx @vorec/cli@latest actions update --project <id> --click-index 7 --x 386 --y 381
@@ -213,6 +214,7 @@ npx @vorec/cli@latest overlays list --project <id> --json
 npx @vorec/cli@latest overlays add --project <id> --type zoom --at 12 --duration 3 --x 430 --y 360
 npx @vorec/cli@latest overlays add --project <id> --type follow-zoom --at 18 --duration 4
 npx @vorec/cli@latest overlays add --project <id> --type blur --at 22 --duration 2 --x 700 --y 180 --width 220 --height 90
+npx @vorec/cli@latest overlays add-image logo.png --project <id> --at 0 --duration 4
 npx @vorec/cli@latest overlays move --project <id> --clip <clip-id> --at 14.2 --x 480 --y 340
 npx @vorec/cli@latest overlays resize --project <id> --clip <clip-id> --duration 4 --width 280 --height 160
 npx @vorec/cli@latest overlays delete --project <id> --clip <clip-id>
@@ -229,15 +231,18 @@ npx @vorec/cli@latest timeline list --project <id>
 npx @vorec/cli@latest timeline split --project <id> --at 42.5
 npx @vorec/cli@latest timeline add-video intro.mp4 --project <id> --position intro --muted
 npx @vorec/cli@latest timeline add-video broll.mp4 --project <id> --after-segment <video-segment-id> --muted
+npx @vorec/cli@latest export start --project <id> --wait --download-url
+npx @vorec/cli@latest export status <export-id> --download-url
+npx @vorec/cli@latest export cancel <export-id>
 ```
 
 The `run` and `analyze` split lets you review the raw MP4 before paying credits to analyze it. The agent always shows you the recording first.
 
-Editor media/timeline/action/overlay commands are optional post-analysis controls. Use them only when the user asks to inspect or edit an existing Vorec project. Use `editor snapshot` / `editor filmstrip` for visual readback. For exact mid-segment insertion, split first, then add the media at the split timestamp.
+Editor media/timeline/action/overlay/export commands are optional post-analysis controls. Use them only when the user asks to inspect, edit, or export an existing Vorec project. Use `editor snapshot` / `editor filmstrip` for visual readback. Use `editor describe` only when Vorec AI should analyze the source video; it spends analysis credits. For exact mid-segment insertion, split first, then add the media at the split timestamp.
 
 Narration segments reference actions by index. In `editor inspect --json`, `narrationSegments[].primaryClickIndex` and `clickRefs[]` match `clicks[].clickIndex`. The `clicks[]` entries are the source of truth for action `timestampSeconds`, `x`, `y`, and `interactionType`; segment coordinates are not the source of truth. Use `narration move/update/attach-action` for voice segment edits, and `actions verify` to render the frame at an action timestamp.
 
-Overlay clips are normal editor timeline clips. Agents can add/update/delete zoom, follow-zoom, blur, spotlight, callout, text, shape, image, slide, and cursor clips, then move/resize them with normalized `0..1000` video coordinates. Cursor visibility is controlled separately with `cursor show|hide`. Video background is a project setting controlled with `background get/set/disable`; inspect it structurally before changing it.
+Overlay clips are normal editor timeline clips. Agents can add/update/delete zoom, follow-zoom, blur, spotlight, callout, text, shape, image, slide, and cursor clips, upload local image overlays with `overlays add-image`, then move/resize them with normalized `0..1000` video coordinates. Cursor visibility is controlled separately with `cursor show|hide`. Video background is a project setting controlled with `background get/set/disable`; inspect it structurally before changing it. Cursor visibility and background changes now create undoable timeline revisions.
 
 Video track segments are visible through `timeline list --json` and `editor inspect --json`. Agents should use `videoSegments[].id` as insertion anchors when possible: after splitting a source segment, insert with `timeline add-video --after-segment <firstSegment.id>` or `--before-segment <secondSegment.id>` instead of retyping the split timestamp.
 

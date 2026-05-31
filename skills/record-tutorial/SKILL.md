@@ -945,7 +945,7 @@ What happens:
 
 ## Step 10: Optional editor media/timeline controls
 
-Use these only when the user explicitly asks to add an intro, outro, B-roll, overlay, background, cursor visibility change, or another local/editor asset to an analyzed Vorec project. Do not add extra video clips, overlays, or background styling unprompted.
+Use these only when the user explicitly asks to add an intro, outro, B-roll, overlay, background, cursor visibility change, export, or another local/editor asset to an analyzed Vorec project. Do not add extra video clips, overlays, background styling, or exports unprompted.
 
 Treat the CLI as the editor control surface. Do not guess from memory, screenshots, or the editor URL alone. The correct loop is:
 
@@ -971,6 +971,7 @@ npx @vorec/cli@latest actions list --project <id> --json
 # Render visual readback frames when you need to see what the editor outputs.
 npx @vorec/cli@latest editor snapshot --project <id> --at 42.5 --output frame.png
 npx @vorec/cli@latest editor filmstrip --project <id> --every 2 --output-dir frames
+npx @vorec/cli@latest editor describe --project <id>
 
 # Upload a local video into the project's media library and wait until probe is ready.
 npx @vorec/cli@latest media upload "/path/to/intro.mp4" --project <id> --wait
@@ -1016,6 +1017,7 @@ npx @vorec/cli@latest overlays add --project <id> --type callout --at 36 --durat
 npx @vorec/cli@latest overlays add --project <id> --type text --at 8 --duration 3 --text "New setting" --x 500 --y 160
 npx @vorec/cli@latest overlays add --project <id> --type shape --at 9 --duration 3 --shape-type arrow --x 640 --y 420
 npx @vorec/cli@latest overlays add --project <id> --type image --at 0 --duration 4 --image-url "https://example.com/logo.png" --file-name logo.png
+npx @vorec/cli@latest overlays add-image "/path/to/logo.png" --project <id> --at 0 --duration 4 --x 500 --y 160
 npx @vorec/cli@latest overlays add --project <id> --type slide --at 0 --duration 3 --title "Setup" --subtitle "Connect your workspace"
 npx @vorec/cli@latest overlays move --project <id> --clip <clip-id> --at 14.2 --x 480 --y 340
 npx @vorec/cli@latest overlays resize --project <id> --clip <clip-id> --duration 4 --width 280 --height 160
@@ -1034,6 +1036,12 @@ npx @vorec/cli@latest background set --project <id> --type color --color "#11182
 npx @vorec/cli@latest background set --project <id> --type wallpaper --wallpaper ocean --padding 8 --shadow medium
 npx @vorec/cli@latest background set --project <id> --border-enabled --border-color1 "#6366f1" --border-color2 "#ec4899" --border-width 3
 npx @vorec/cli@latest background disable --project <id>
+
+# Queue/check/cancel production exports through the same worker as the web editor.
+npx @vorec/cli@latest export start --project <id> --resolution 1080p --fps 24
+npx @vorec/cli@latest export start --project <id> --wait --download-url
+npx @vorec/cli@latest export status <export-id> --download-url
+npx @vorec/cli@latest export cancel <export-id>
 ```
 
 Timeline insertion matches the editor's user-video behavior: if `--at` lands inside an existing video segment, Vorec snaps to the nearest segment edge, inserts the uploaded clip, and ripples later video, narration, source-following overlays, and action dots so preview/export stay aligned. Use `--dry-run` first when the placement is not obvious.
@@ -1041,6 +1049,8 @@ Timeline insertion matches the editor's user-video behavior: if `--at` lands ins
 For exact mid-segment placement, always use `timeline split --json` first. Splitting preserves narration, overlays, clicks, cursor timing, media asset linkage, audio mix, and speed; it only turns one video segment into two. Then insert with `timeline add-video --after-segment <firstSegment.id>` or `--before-segment <secondSegment.id>` so the boundary is explicit and the agent does not need to retype or recalculate seconds.
 
 `editor inspect --json` is the agent's source of truth before editing. It returns project metadata, video segments, media assets, narration/action segments, clicks, tracks, overlays, cursor summary, subtitles, freeze-sync timing, and warnings. It is sanitized: storage keys, signed URLs, hashes, selectors, and raw typed text are redacted.
+
+Use `editor describe --project <id>` only when the user wants AI-assisted understanding of the whole source video. It spends Vorec analysis credits and writes the description back to the project. Prefer `editor inspect`, `snapshot`, and `filmstrip` for normal edit verification because they are deterministic and do not spend credits.
 
 **Resolving actions to coordinates.** In `editor inspect --json`, narration/action segments and on-screen actions are separate arrays. Each segment carries `primaryClickIndex` and `clickRefs[]`; these are indexes, not coordinates and not database row IDs. To get the actual click position and timing, match them against `clicks[].clickIndex`. The `clicks[]` array (`project_clicks`) is the source of truth for action coordinates (`x`, `y`), `timestampSeconds`, and `interactionType`. Never read coordinates from a segment when a matching click exists.
 
@@ -1050,9 +1060,11 @@ Use `actions move` when the visible action marker should move in time but narrat
 
 Use `narration move` when the voice segment should move; add `--with-action` only when the primary action should move to the same timestamp. Use `narration update` to change one segment's script or name; changing script clears old audio so it can be regenerated. Use `narration attach-action` to add a click reference to the segment, with `--primary` when it should become the main action. These mutations create timeline revisions, so the printed `vorec timeline undo` command can restore the previous state.
 
-Use `overlays add/update/move/resize/delete` when the user asks for visual editor effects or objects. Supported types are `zoom`, `follow-zoom`, `blur`, `spotlight`, `callout`, `text`, `shape`, `image`, `slide`, and `cursor`. Use normalized `0..1000` video coordinates and derive them from inspected clicks or rendered frames. Overlay clip mutations create timeline revisions and print an undo command. Cursor visibility is a project setting controlled by `cursor show|hide`; verify it with `cursor settings` or `editor inspect`.
+Use `overlays add/update/move/resize/delete` when the user asks for visual editor effects or objects. Supported types are `zoom`, `follow-zoom`, `blur`, `spotlight`, `callout`, `text`, `shape`, `image`, `slide`, and `cursor`. Use `overlays add-image <path>` for local PNG/JPEG/WebP/GIF files; use `overlays add --type image --image-url ...` only when the image is already hosted. Use normalized `0..1000` video coordinates and derive them from inspected clicks or rendered frames. Overlay clip mutations create timeline revisions and print an undo command. Cursor visibility is a project setting controlled by `cursor show|hide`; it also prints an undo command because revisions include `projects.cursor_settings`.
 
-Use `background get/set/disable` when the user asks whether the video has a background, wants a wallpaper/gradient/color background, or wants the background turned off. Background is `projects.video_background`, not an overlay clip. It affects preview/export around the recorded video and supports type, color, gradient colors/angle, wallpaper preset, padding, border radius, shadow, and optional border. Verify with `background get` and a fresh `editor snapshot`.
+Use `background get/set/disable` when the user asks whether the video has a background, wants a wallpaper/gradient/color background, or wants the background turned off. Background is `projects.video_background`, not an overlay clip. It affects preview/export around the recorded video and supports type, color, gradient colors/angle, wallpaper preset, padding, border radius, shadow, and optional border. Background changes print an undo command because revisions include `projects.video_background`. Verify with `background get` and a fresh `editor snapshot`.
+
+Use `export start/status/cancel` only when the user asks for a final MP4 export. Export uses the production queue and Cloud Run export worker; `--wait --download-url` waits for completion and prints a temporary signed URL when the export succeeds. Do not export automatically after edits unless the user asks.
 
 Use `editor snapshot` or `editor filmstrip` after meaningful edits to visually verify the rendered frame(s): inspect structured state, render a frame, edit, then render again.
 
