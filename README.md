@@ -4,7 +4,7 @@
 
 [![npm](https://img.shields.io/npm/v/@vorec/cli)](https://www.npmjs.com/package/@vorec/cli)
 [![Claude Code Plugin](https://img.shields.io/badge/Claude_Code-Plugin-blueviolet)](https://vorec.ai)
-[![Plugin Version](https://img.shields.io/badge/plugin-v14.39.0-success)](https://github.com/MustaphaSteph/vorec-plugins)
+[![Plugin Version](https://img.shields.io/badge/plugin-v14.40.0-success)](https://github.com/MustaphaSteph/vorec-plugins)
 [![macOS Recorder](https://img.shields.io/badge/macOS-Recorder_App-blue)](https://vorec.ai/download)
 
 ## How it works
@@ -209,6 +209,15 @@ npx @vorec/cli@latest actions verify --project <id> --click-index 7 --output act
 npx @vorec/cli@latest narration move --project <id> --segment <segment-id> --at 46.4
 npx @vorec/cli@latest narration update --project <id> --segment <segment-id> --text "Now save the settings."
 npx @vorec/cli@latest narration attach-action --project <id> --segment <segment-id> --click-index 7 --primary
+npx @vorec/cli@latest overlays list --project <id> --json
+npx @vorec/cli@latest overlays add --project <id> --type zoom --at 12 --duration 3 --x 430 --y 360
+npx @vorec/cli@latest overlays add --project <id> --type follow-zoom --at 18 --duration 4
+npx @vorec/cli@latest overlays add --project <id> --type blur --at 22 --duration 2 --x 700 --y 180 --width 220 --height 90
+npx @vorec/cli@latest overlays move --project <id> --clip <clip-id> --at 14.2 --x 480 --y 340
+npx @vorec/cli@latest overlays resize --project <id> --clip <clip-id> --duration 4 --width 280 --height 160
+npx @vorec/cli@latest overlays delete --project <id> --clip <clip-id>
+npx @vorec/cli@latest cursor hide --project <id>
+npx @vorec/cli@latest cursor show --project <id>
 npx @vorec/cli@latest segments --project <id> # Read narration segments (JSON)
 npx @vorec/cli@latest media upload intro.mp4 --project <id> --wait
 npx @vorec/cli@latest media list --project <id>
@@ -219,9 +228,11 @@ npx @vorec/cli@latest timeline add-video intro.mp4 --project <id> --position int
 
 The `run` and `analyze` split lets you review the raw MP4 before paying credits to analyze it. The agent always shows you the recording first.
 
-Editor media/timeline/action commands are optional post-analysis controls. Use them only when the user asks to inspect or edit an existing Vorec project. Use `editor snapshot` / `editor filmstrip` for visual readback. For exact mid-segment insertion, split first, then add the media at the split timestamp.
+Editor media/timeline/action/overlay commands are optional post-analysis controls. Use them only when the user asks to inspect or edit an existing Vorec project. Use `editor snapshot` / `editor filmstrip` for visual readback. For exact mid-segment insertion, split first, then add the media at the split timestamp.
 
 Narration segments reference actions by index. In `editor inspect --json`, `narrationSegments[].primaryClickIndex` and `clickRefs[]` match `clicks[].clickIndex`. The `clicks[]` entries are the source of truth for action `timestampSeconds`, `x`, `y`, and `interactionType`; segment coordinates are not the source of truth. Use `narration move/update/attach-action` for voice segment edits, and `actions verify` to render the frame at an action timestamp.
+
+Overlay clips are normal editor timeline clips. Agents can add/update/delete zoom, follow-zoom, blur, spotlight, callout, text, shape, image, slide, and cursor clips, then move/resize them with normalized `0..1000` video coordinates. Cursor visibility is controlled separately with `cursor show|hide`.
 
 ## Compatibility
 

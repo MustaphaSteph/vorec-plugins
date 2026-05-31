@@ -945,7 +945,7 @@ What happens:
 
 ## Step 10: Optional editor media/timeline controls
 
-Use these only when the user explicitly asks to add an intro, outro, B-roll, or another local video asset to an analyzed Vorec project. Do not add extra video clips unprompted.
+Use these only when the user explicitly asks to add an intro, outro, B-roll, overlay, cursor visibility change, or another local/editor asset to an analyzed Vorec project. Do not add extra video clips or overlays unprompted.
 
 Treat the CLI as the editor control surface. Do not guess from memory, screenshots, or the editor URL alone. The correct loop is:
 
@@ -953,7 +953,7 @@ Treat the CLI as the editor control surface. Do not guess from memory, screensho
 2. **Render what matters** with `editor snapshot` for exact timestamps or `editor filmstrip` for broad timeline review. Use these PNGs to verify what the user and exporter will actually see.
 3. **Choose the edit point** from the inspected timeline and rendered frames. For intro/outro use `--position intro|outro`; for precise middle insertion use an exact `--at` timestamp.
 4. **Dry-run when placement is not obvious**. Confirm the affected segments, ripple amount, and resulting duration before changing the project.
-5. **Apply one edit at a time**. Upload media first if needed, then run the timeline command.
+5. **Apply one edit at a time**. Upload media first if needed, then run the timeline/overlay/cursor command.
 6. **Inspect again**. Verify the new video segments, narration/action times, overlays, cursor timing, and warnings.
 7. **Render again**. Capture a snapshot at the insertion point, and if the edit affects a range, capture a short filmstrip around it.
 8. **Report evidence**. Tell the user exactly what changed, the timestamps touched, output PNG paths if rendered, and any limitation or warning.
@@ -1004,6 +1004,27 @@ npx @vorec/cli@latest narration move --project <id> --segment <segment-id> --at 
 npx @vorec/cli@latest narration move --project <id> --segment <segment-id> --at 46.4 --with-action
 npx @vorec/cli@latest narration update --project <id> --segment <segment-id> --text "Now save the settings."
 npx @vorec/cli@latest narration attach-action --project <id> --segment <segment-id> --click-index 7 --primary
+
+# Add and adjust editor overlay clips.
+npx @vorec/cli@latest overlays list --project <id> --json
+npx @vorec/cli@latest overlays add --project <id> --type zoom --at 12 --duration 3 --x 430 --y 360 --zoom-level 2.2
+npx @vorec/cli@latest overlays add --project <id> --type follow-zoom --at 18 --duration 4 --zoom-level 3.2
+npx @vorec/cli@latest overlays add --project <id> --type blur --at 22 --duration 2 --x 700 --y 180 --width 220 --height 90 --mode redact
+npx @vorec/cli@latest overlays add --project <id> --type spotlight --at 31 --duration 3 --x 500 --y 450 --width 260 --height 160
+npx @vorec/cli@latest overlays add --project <id> --type callout --at 36 --duration 3 --x 520 --y 380 --width 220 --height 120
+npx @vorec/cli@latest overlays add --project <id> --type text --at 8 --duration 3 --text "New setting" --x 500 --y 160
+npx @vorec/cli@latest overlays add --project <id> --type shape --at 9 --duration 3 --shape-type arrow --x 640 --y 420
+npx @vorec/cli@latest overlays add --project <id> --type image --at 0 --duration 4 --image-url "https://example.com/logo.png" --file-name logo.png
+npx @vorec/cli@latest overlays add --project <id> --type slide --at 0 --duration 3 --title "Setup" --subtitle "Connect your workspace"
+npx @vorec/cli@latest overlays move --project <id> --clip <clip-id> --at 14.2 --x 480 --y 340
+npx @vorec/cli@latest overlays resize --project <id> --clip <clip-id> --duration 4 --width 280 --height 160
+npx @vorec/cli@latest overlays update --project <id> --clip <clip-id> --text "Updated label"
+npx @vorec/cli@latest overlays delete --project <id> --clip <clip-id>
+
+# Control cursor visibility.
+npx @vorec/cli@latest cursor settings --project <id> --json
+npx @vorec/cli@latest cursor hide --project <id>
+npx @vorec/cli@latest cursor show --project <id>
 ```
 
 Timeline insertion matches the editor's user-video behavior: if `--at` lands inside an existing video segment, Vorec snaps to the nearest segment edge, inserts the uploaded clip, and ripples later video, narration, source-following overlays, and action dots so preview/export stay aligned. Use `--dry-run` first when the placement is not obvious.
@@ -1019,6 +1040,8 @@ Example: to place a callout on the action a segment describes, read `segment.pri
 Use `actions move` when the visible action marker should move in time but narration should stay where it is. Use `actions update` to correct action coordinates or labels. Use `actions set-primary` when the narration segment should point to a different main action. Use `actions verify` to render the frame at an action's current timestamp.
 
 Use `narration move` when the voice segment should move; add `--with-action` only when the primary action should move to the same timestamp. Use `narration update` to change one segment's script or name; changing script clears old audio so it can be regenerated. Use `narration attach-action` to add a click reference to the segment, with `--primary` when it should become the main action. These mutations create timeline revisions, so the printed `vorec timeline undo` command can restore the previous state.
+
+Use `overlays add/update/move/resize/delete` when the user asks for visual editor effects or objects. Supported types are `zoom`, `follow-zoom`, `blur`, `spotlight`, `callout`, `text`, `shape`, `image`, `slide`, and `cursor`. Use normalized `0..1000` video coordinates and derive them from inspected clicks or rendered frames. Overlay clip mutations create timeline revisions and print an undo command. Cursor visibility is a project setting controlled by `cursor show|hide`; verify it with `cursor settings` or `editor inspect`.
 
 Use `editor snapshot` or `editor filmstrip` after meaningful edits to visually verify the rendered frame(s): inspect structured state, render a frame, edit, then render again.
 
