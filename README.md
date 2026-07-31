@@ -4,7 +4,7 @@
 
 [![npm](https://img.shields.io/npm/v/@vorec/cli)](https://www.npmjs.com/package/@vorec/cli)
 [![Claude Code Plugin](https://img.shields.io/badge/Claude_Code-Plugin-blueviolet)](https://vorec.ai)
-[![Plugin Version](https://img.shields.io/badge/plugin-v14.43.0-success)](https://github.com/MustaphaSteph/vorec-plugins)
+[![Plugin Version](https://img.shields.io/badge/plugin-v14.44.0-success)](https://github.com/MustaphaSteph/vorec-plugins)
 [![macOS Recorder](https://img.shields.io/badge/macOS-Recorder_App-blue)](https://vorec.ai/download)
 
 ## How it works
@@ -217,6 +217,7 @@ npx @vorec/cli@latest overlays add --project <id> --type blur --at 22 --duration
 npx @vorec/cli@latest overlays add-image logo.png --project <id> --at 0 --duration 4
 npx @vorec/cli@latest overlays move --project <id> --clip <clip-id> --at 14.2 --x 480 --y 340
 npx @vorec/cli@latest overlays resize --project <id> --clip <clip-id> --duration 4 --width 280 --height 160
+npx @vorec/cli@latest overlays update --project <id> --clip <clip-id> --data '{"compositionState":{"keyframes":[{"property":"destination.x","clock":"story","keyframes":[{"id":"kf-1","offsetSeconds":0,"value":400},{"id":"kf-2","offsetSeconds":1.5,"value":600}]}]}}'
 npx @vorec/cli@latest overlays delete --project <id> --clip <clip-id>
 npx @vorec/cli@latest cursor hide --project <id>
 npx @vorec/cli@latest cursor show --project <id>
@@ -243,6 +244,10 @@ Editor media/timeline/action/overlay/export commands are optional post-analysis 
 Narration segments reference actions by index. In `editor inspect --json`, `narrationSegments[].primaryClickIndex` and `clickRefs[]` match `clicks[].clickIndex`. The `clicks[]` entries are the source of truth for action `timestampSeconds`, `x`, `y`, and `interactionType`; segment coordinates are not the source of truth. Use `narration move/update/attach-action` for voice segment edits, and `actions verify` to render the frame at an action timestamp.
 
 Overlay clips are normal editor timeline clips. Agents can add/update/delete zoom, follow-zoom, blur, spotlight, callout, text, shape, image, slide, and cursor clips, upload local image overlays with `overlays add-image`, then move/resize them with normalized `0..1000` video coordinates. Cursor visibility is controlled separately with `cursor show|hide`. Video background is a project setting controlled with `background get/set/disable`; inspect it structurally before changing it. Cursor visibility and background changes now create undoable timeline revisions.
+
+Advanced `overlays add/update --data` payloads can author canonical keyframes and animation applications. Vorec validates animation payloads before writing them. If the CLI reports `(field=...)`, fix that exact field; do not remove animation data or retry the same malformed payload. Inspect the overlay again after the mutation so unrelated clip data and authored animation remain intact.
+
+Every `export start` is pinned to one immutable canonical composition revision. The CLI prints the pinned revision and content hash (and returns `compositionRevision` / `compositionContentHash` with `--json`), so later edits cannot change an in-flight render. Only the project owner can start an export. If no canonical revision is available, inspect and save the project instead of falling back to stale state.
 
 Video track segments are visible through `timeline list --json` and `editor inspect --json`. Agents should use `videoSegments[].id` as insertion anchors when possible: after splitting a source segment, insert with `timeline add-video --after-segment <firstSegment.id>` or `--before-segment <secondSegment.id>` instead of retyping the split timestamp.
 

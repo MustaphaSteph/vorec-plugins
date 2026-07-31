@@ -1022,6 +1022,7 @@ npx @vorec/cli@latest overlays add --project <id> --type slide --at 0 --duration
 npx @vorec/cli@latest overlays move --project <id> --clip <clip-id> --at 14.2 --x 480 --y 340
 npx @vorec/cli@latest overlays resize --project <id> --clip <clip-id> --duration 4 --width 280 --height 160
 npx @vorec/cli@latest overlays update --project <id> --clip <clip-id> --text "Updated label"
+npx @vorec/cli@latest overlays update --project <id> --clip <clip-id> --data '{"compositionState":{"keyframes":[{"property":"destination.x","clock":"story","keyframes":[{"id":"kf-1","offsetSeconds":0,"value":400},{"id":"kf-2","offsetSeconds":1.5,"value":600}]}]}}'
 npx @vorec/cli@latest overlays delete --project <id> --clip <clip-id>
 
 # Control cursor visibility.
@@ -1062,9 +1063,11 @@ Use `narration move` when the voice segment should move; add `--with-action` onl
 
 Use `overlays add/update/move/resize/delete` when the user asks for visual editor effects or objects. Supported types are `zoom`, `follow-zoom`, `blur`, `spotlight`, `callout`, `text`, `shape`, `image`, `slide`, and `cursor`. Use `overlays add-image <path>` for local PNG/JPEG/WebP/GIF files; use `overlays add --type image --image-url ...` only when the image is already hosted. Use normalized `0..1000` video coordinates and derive them from inspected clicks or rendered frames. Overlay clip mutations create timeline revisions and print an undo command. Cursor visibility is a project setting controlled by `cursor show|hide`; it also prints an undo command because revisions include `projects.cursor_settings`.
 
+For advanced animation writes, first read the existing clip with `overlays list --json`, preserve unrelated clip data, and send canonical `compositionState.keyframes` / `compositionState.animationApplication` through `--data`. The API validates property names, story/output clocks, easing names, finite non-negative strictly increasing offsets, unique keyframe ids, one track per property, animation ownership, and payload limits before writing. If the CLI returns `(field=...)`, correct that exact path. Never silently strip the animation or retry an identical malformed payload. Inspect the overlay after every animation mutation.
+
 Use `background get/set/disable` when the user asks whether the video has a background, wants a wallpaper/gradient/color background, or wants the background turned off. Background is `projects.video_background`, not an overlay clip. It affects preview/export around the recorded video and supports type, color, gradient colors/angle, wallpaper preset, padding, border radius, shadow, and optional border. Background changes print an undo command because revisions include `projects.video_background`. Verify with `background get` and a fresh `editor snapshot`.
 
-Use `export start/status/cancel` only when the user asks for a final MP4 export. Export uses the production queue and Cloud Run export worker; `--wait --download-url` waits for completion and prints a temporary signed URL when the export succeeds. Do not export automatically after edits unless the user asks.
+Use `export start/status/cancel` only when the user asks for a final MP4 export. Before starting, inspect the project again and make sure the intended canonical edits are saved. Export uses the production queue and Cloud Run export worker; every export is pinned to one immutable composition revision, so later edits cannot change the in-flight render. Record and report the `Revision:` and content-hash prefix printed by the CLI, or `compositionRevision` / `compositionContentHash` from `--json`. Only the project owner can start an export. If the CLI reports `composition_export_pin_unavailable` or a canonical conflict, inspect/reload and resolve it; never fall back to a stale document. `--wait --download-url` waits for completion and prints a temporary signed URL when the export succeeds. Do not export automatically after edits unless the user asks.
 
 Use `editor snapshot` or `editor filmstrip` after meaningful edits to visually verify the rendered frame(s): inspect structured state, render a frame, edit, then render again.
 
