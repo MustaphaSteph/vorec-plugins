@@ -2,6 +2,8 @@
 
 > **Tell Claude what to record. The Vorec Recorder for macOS captures it. AI writes the narration.** From terminal to polished tutorial video in one command.
 
+Use it to have Claude Code record a **product demo video of the app it just built**: it drives your real running app, saves the MP4 to your disk for review, then AI writes and voices narration synced to every click. Codex, Cursor and other command-running agents can do the same through [`@vorec/cli`](https://www.npmjs.com/package/@vorec/cli).
+
 [![npm](https://img.shields.io/npm/v/@vorec/cli)](https://www.npmjs.com/package/@vorec/cli)
 [![Claude Code Plugin](https://img.shields.io/badge/Claude_Code-Plugin-blueviolet)](https://vorec.ai)
 [![Plugin Version](https://img.shields.io/badge/plugin-v14.44.0-success)](https://github.com/MustaphaSteph/vorec-plugins)
