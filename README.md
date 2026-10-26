@@ -23,6 +23,9 @@ Your agent opens the browser and records **anything you can click through**: a p
 | Support answer | "record how a customer changes their invoice email" |
 | Course or lesson clip | "record how to set up a Notion database, step by step" |
 | Sales or investor demo | "record the 90-second tour of the dashboard" |
+| Meeting screen-share you already recorded (Zoom, Meet, Teams) | "narrate the screen-share part of yesterday's Zoom recording" (uses `vorec analyze` on the existing MP4) |
+
+More examples, with prompts and what an agent should *not* record: **[What can an AI agent record? 12 examples](https://vorec.ai/blog/what-can-an-ai-agent-record)**.
 
 Each one comes back as a narrated MP4 (AI voice-over, zoom, cursor polish, subtitles, up to 4K) plus an optional written step-by-step guide.
 
@@ -326,11 +329,13 @@ See [docs/release-checklist.md](docs/release-checklist.md) for the full release 
 
 ## Guides
 
+- [What can an AI agent record? 12 examples with prompts](https://vorec.ai/blog/what-can-an-ai-agent-record)
 - [Can an AI coding agent record your app demo?](https://vorec.ai/blog/ai-agent-screen-recording) — Playwright, Remotion, agentic-demo and Vorec compared
 - [Let Claude Code record a demo of the app it built](https://vorec.ai/blog/claude-code-demo-video)
 - [Record app demos with Codex](https://vorec.ai/blog/record-app-demos-with-codex)
 - [One recording, two outputs: tutorial video + written guide](https://vorec.ai/blog/tutorial-video-and-written-guide-from-one-recording)
 - [Add AI narration to any screen recording](https://vorec.ai/blog/how-to-add-narration-to-screen-recording)
+- Recording a meeting first? [Zoom](https://vorec.ai/blog/how-to-record-zoom-meeting) · [Google Meet](https://vorec.ai/blog/how-to-record-google-meet) · [Microsoft Teams](https://vorec.ai/blog/how-to-record-teams-meeting) · [Loom (add a voiceover)](https://vorec.ai/blog/add-voiceover-to-loom-video)
 
 ## Related
 
@@ -339,4 +344,4 @@ See [docs/release-checklist.md](docs/release-checklist.md) for the full release 
 
 ---
 
-**Keywords:** record anything with an ai agent, ai agent browser recording, record how-to video with ai, bug reproduction video, qa recording, claude opus 5.5, gpt-6.1 sol, gemini 4 argon, google antigravity, ai agent screen recording, codex demo video, cursor demo video, gemini cli, github copilot, ai coding agent demo recorder, claude code plugin, claude code skill, screen recording, AI narration, tutorial video generator, product demo recorder, investor demo, screencast tool, automated documentation, voice-over generator, video tutorial maker, SaaS demo, developer onboarding, vibe coding, solo developer tools, startup demo video, Claude Code screen recorder, AI tutorial maker, product walkthrough, open source documentation, customer onboarding video, changelog demo, training video maker, macOS screen recorder, ScreenCaptureKit recorder, Vorec Recorder, content creator tools
+**Keywords:** record zoom meeting, record google meet, record teams meeting, record anything with an ai agent, ai agent browser recording, record how-to video with ai, bug reproduction video, qa recording, claude opus 5.5, gpt-6.1 sol, gemini 4 argon, google antigravity, ai agent screen recording, codex demo video, cursor demo video, gemini cli, github copilot, ai coding agent demo recorder, claude code plugin, claude code skill, screen recording, AI narration, tutorial video generator, product demo recorder, investor demo, screencast tool, automated documentation, voice-over generator, video tutorial maker, SaaS demo, developer onboarding, vibe coding, solo developer tools, startup demo video, Claude Code screen recorder, AI tutorial maker, product walkthrough, open source documentation, customer onboarding video, changelog demo, training video maker, macOS screen recorder, ScreenCaptureKit recorder, Vorec Recorder, content creator tools
