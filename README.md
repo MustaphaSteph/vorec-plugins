@@ -1,14 +1,43 @@
-# Vorec — Let Any AI Coding Agent Record Narrated Demo Videos of Your App
+# Vorec — Let Any AI Agent Record & Narrate Anything on Your Screen
 
 > **Tell your agent what to record. The Vorec Recorder for macOS captures it. AI writes and voices the narration.** Works with **Claude Code** (ready-made plugin) and **any agent that can run terminal commands**: Codex, Cursor, Gemini CLI, GitHub Copilot, Windsurf, OpenCode and more.
 
-Use it to have your coding agent record a **product demo video of the app it just built**: it drives your real running app, saves the MP4 to your disk for review, then AI writes and voices narration synced to every click. Claude Code uses the plugin in this repo; every other agent uses the same workflow through [`@vorec/cli`](https://www.npmjs.com/package/@vorec/cli) and the agent skill at [vorec.ai/skill.md](https://vorec.ai/skill.md).
+Your agent opens the browser and records **anything you can click through**: a product demo of the app it just built, a how-to for any website (Google Docs, Canva, Notion, Shopify admin, your own SaaS), a bug reproduction, a QA run, an onboarding tour or a release video. For example, a product demo: it drives your real running app, saves the MP4 to your disk for review, then AI writes and voices narration synced to every click. Claude Code uses the plugin in this repo; every other agent uses the same workflow through [`@vorec/cli`](https://www.npmjs.com/package/@vorec/cli) and the agent skill at [vorec.ai/skill.md](https://vorec.ai/skill.md).
 
 [![npm](https://img.shields.io/npm/v/@vorec/cli)](https://www.npmjs.com/package/@vorec/cli)
 [![Claude Code Plugin](https://img.shields.io/badge/Claude_Code-Plugin-blueviolet)](https://vorec.ai)
 [![Plugin Version](https://img.shields.io/badge/plugin-v14.44.0-success)](https://github.com/MustaphaSteph/vorec-plugins)
 [![macOS Recorder](https://img.shields.io/badge/macOS-Recorder_App-blue)](https://vorec.ai/download)
 [![Works with any CLI agent](https://img.shields.io/badge/works_with-Codex_%7C_Cursor_%7C_Gemini_CLI_%7C_Copilot-black)](#use-it-with-codex-cursor-gemini-cli-copilot-or-any-other-agent)
+
+## What you can record
+
+| Recording | Example prompt to your agent |
+|---|---|
+| Product demo of the app it built | "record a demo of the new billing page" |
+| How-to on any website | "record how to create a pivot table in Google Sheets" |
+| Onboarding / first-run tour | "walk a new user through signup and the first project" |
+| Bug reproduction | "record the steps that trigger the checkout error" |
+| QA / regression run | "record the full signup flow on staging so I can review it" |
+| Release or changelog video | "show what's new in this release" |
+| Support answer | "record how a customer changes their invoice email" |
+| Course or lesson clip | "record how to set up a Notion database, step by step" |
+| Sales or investor demo | "record the 90-second tour of the dashboard" |
+
+Each one comes back as a narrated MP4 (AI voice-over, zoom, cursor polish, subtitles, up to 4K) plus an optional written step-by-step guide.
+
+## Works with your agent and model
+
+| Agent | How it uses Vorec | Popular models it runs |
+|---|---|---|
+| Claude Code | `record-tutorial` plugin from this repo | Claude Opus 5.5, Claude Sonnet 5.5 |
+| Codex (CLI / desktop) | `@vorec/cli` + `AGENTS.md` snippet | GPT-6.1 Sol |
+| Cursor | `@vorec/cli` + `.cursor/rules` snippet | any model you pick in Cursor |
+| Google Antigravity / Gemini CLI | `@vorec/cli` + `GEMINI.md` snippet | Gemini 4 Argon |
+| GitHub Copilot agent | `@vorec/cli` + `.github/copilot-instructions.md` | any model you pick in Copilot |
+| Windsurf, OpenCode, others | `@vorec/cli` + their instructions file | any |
+
+Vorec doesn't depend on the model: anything that can run `npx @vorec/cli@latest ...` in a terminal can plan the flow, record it and hand you the MP4.
 
 ## How it works
 
@@ -310,4 +339,4 @@ See [docs/release-checklist.md](docs/release-checklist.md) for the full release 
 
 ---
 
-**Keywords:** ai agent screen recording, codex demo video, cursor demo video, gemini cli, github copilot, ai coding agent demo recorder, claude code plugin, claude code skill, screen recording, AI narration, tutorial video generator, product demo recorder, investor demo, screencast tool, automated documentation, voice-over generator, video tutorial maker, SaaS demo, developer onboarding, vibe coding, solo developer tools, startup demo video, Claude Code screen recorder, AI tutorial maker, product walkthrough, open source documentation, customer onboarding video, changelog demo, training video maker, macOS screen recorder, ScreenCaptureKit recorder, Vorec Recorder, content creator tools
+**Keywords:** record anything with an ai agent, ai agent browser recording, record how-to video with ai, bug reproduction video, qa recording, claude opus 5.5, gpt-6.1 sol, gemini 4 argon, google antigravity, ai agent screen recording, codex demo video, cursor demo video, gemini cli, github copilot, ai coding agent demo recorder, claude code plugin, claude code skill, screen recording, AI narration, tutorial video generator, product demo recorder, investor demo, screencast tool, automated documentation, voice-over generator, video tutorial maker, SaaS demo, developer onboarding, vibe coding, solo developer tools, startup demo video, Claude Code screen recorder, AI tutorial maker, product walkthrough, open source documentation, customer onboarding video, changelog demo, training video maker, macOS screen recorder, ScreenCaptureKit recorder, Vorec Recorder, content creator tools
