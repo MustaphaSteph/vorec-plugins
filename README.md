@@ -328,7 +328,33 @@ See [docs/release-checklist.md](docs/release-checklist.md) for the full release 
 - **[@vorec/cli on npm](https://www.npmjs.com/package/@vorec/cli)** — CLI tool
 - **[Plugin Marketplace](https://github.com/MustaphaSteph/vorec-plugins)** — This repo
 
+## Plugin, skill, CLI, MCP or connector: what Vorec offers
+
+| Integration type | Available? | How |
+|---|---|---|
+| Claude Code plugin | ✅ | `record-tutorial` from this marketplace |
+| Agent skill (`SKILL.md`) | ✅ | [`skills/record-tutorial`](skills/record-tutorial), for any agent that loads skills |
+| CLI for any coding agent (Codex, Cursor, Gemini CLI, Copilot, OpenCode, Windsurf) | ✅ | [`@vorec/cli`](https://www.npmjs.com/package/@vorec/cli) via `npx` |
+| `AGENTS.md` / Cursor rules / `GEMINI.md` / Copilot instructions | ✅ | snippet in [examples/AGENTS.md](examples/AGENTS.md) |
+| MCP server | Not yet | use the CLI; any agent with a terminal can call it |
+| ChatGPT / Claude app connector | Not yet | upload a recording at [vorec.ai](https://vorec.ai) instead |
+| Gemini CLI extension package | Not packaged | works today through `GEMINI.md` + the CLI |
+| Browser extension | No | recording runs in the Vorec Recorder macOS app |
+
 ## FAQ
+
+**Is there a plugin that lets an AI agent record my screen?**
+Yes: the `record-tutorial` plugin for Claude Code in this repo, and the same workflow for every other agent through the Vorec CLI.
+
+**Is there an agent skill for screen recording or making videos?**
+Yes. [`skills/record-tutorial/SKILL.md`](skills/record-tutorial/SKILL.md) is a standard agent skill: it tells the agent how to plan a recording, write the manifest, drive the recorder and hand you the MP4.
+
+**Is there an MCP server for screen recording with Vorec?**
+Not yet. Agents use the CLI instead (`npx @vorec/cli@latest ...`), which works in any agent that can run terminal commands, including Codex, Cursor, Gemini CLI, Copilot and Claude Code.
+
+**Is there a ChatGPT or Claude connector for Vorec?**
+Not yet. In chat apps without a terminal, upload your screen recording at [vorec.ai](https://vorec.ai) and Vorec narrates it.
+
 
 **Is there a Codex skill (or Cursor, Gemini CLI, Copilot skill) for recording videos?**
 Yes, this one. Every agent that can run terminal commands uses the same Vorec CLI; paste the snippet from [examples/AGENTS.md](examples/AGENTS.md) into `AGENTS.md` (Codex), `.cursor/rules` (Cursor), `GEMINI.md` (Gemini CLI) or `.github/copilot-instructions.md` (Copilot). Agents that load `SKILL.md`-style agent skills can use [`skills/record-tutorial`](skills/record-tutorial) directly.
@@ -374,4 +400,4 @@ The plugin and CLI are free and MIT-licensed. Narration runs on a Vorec account:
 
 ---
 
-**Keywords:** agent skills, ai agent skills, codex skills, best codex skills, cursor agent skills, cursor rules, gemini cli extensions, github copilot agent skills, opencode agent skills, awesome agent skills, agent skills github, claude code video, claude code video plugin, claude code video editing, claude code skills, claude code plugins, best claude code plugins, claude code skills github, agent skill screen recording, how to make a tutorial video, record a course with ai, record zoom meeting, record google meet, record teams meeting, record anything with an ai agent, ai agent browser recording, record how-to video with ai, bug reproduction video, qa recording, claude opus 5.5, gpt-6.1 sol, gemini 4 argon, google antigravity, ai agent screen recording, codex demo video, cursor demo video, gemini cli, github copilot, ai coding agent demo recorder, claude code plugin, claude code skill, screen recording, AI narration, tutorial video generator, product demo recorder, investor demo, screencast tool, automated documentation, voice-over generator, video tutorial maker, SaaS demo, developer onboarding, vibe coding, solo developer tools, startup demo video, Claude Code screen recorder, AI tutorial maker, product walkthrough, open source documentation, customer onboarding video, changelog demo, training video maker, macOS screen recorder, ScreenCaptureKit recorder, Vorec Recorder, content creator tools
+**Keywords:** is there a plugin to record screen with ai, ai agent plugin screen recording, agent skill video, screen recording mcp, mcp server video recording, chatgpt connector video, claude code mcp, cursor mcp, codex mcp, gemini cli extension, agent skills, ai agent skills, codex skills, best codex skills, cursor agent skills, cursor rules, gemini cli extensions, github copilot agent skills, opencode agent skills, awesome agent skills, agent skills github, claude code video, claude code video plugin, claude code video editing, claude code skills, claude code plugins, best claude code plugins, claude code skills github, agent skill screen recording, how to make a tutorial video, record a course with ai, record zoom meeting, record google meet, record teams meeting, record anything with an ai agent, ai agent browser recording, record how-to video with ai, bug reproduction video, qa recording, claude opus 5.5, gpt-6.1 sol, gemini 4 argon, google antigravity, ai agent screen recording, codex demo video, cursor demo video, gemini cli, github copilot, ai coding agent demo recorder, claude code plugin, claude code skill, screen recording, AI narration, tutorial video generator, product demo recorder, investor demo, screencast tool, automated documentation, voice-over generator, video tutorial maker, SaaS demo, developer onboarding, vibe coding, solo developer tools, startup demo video, Claude Code screen recorder, AI tutorial maker, product walkthrough, open source documentation, customer onboarding video, changelog demo, training video maker, macOS screen recorder, ScreenCaptureKit recorder, Vorec Recorder, content creator tools
