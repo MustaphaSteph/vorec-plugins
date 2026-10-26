@@ -23,7 +23,7 @@ Your agent opens the browser and records **anything you can click through**: a p
 | Support answer | "record how a customer changes their invoice email" |
 | Course or lesson clip | "record how to set up a Notion database, step by step" |
 | Sales or investor demo | "record the 90-second tour of the dashboard" |
-| Meeting screen-share you already recorded (Zoom, Meet, Teams) | "narrate the screen-share part of yesterday's Zoom recording" (uses `vorec analyze` on the existing MP4) |
+| Meeting screen-share you already recorded (Zoom, Meet, Teams) | Upload the MP4 at [vorec.ai](https://vorec.ai) and AI narrates it (the CLI's `analyze` is for takes recorded with `vorec run`) |
 
 More examples, with prompts and what an agent should *not* record: **[What can an AI agent record? 12 examples](https://vorec.ai/blog/what-can-an-ai-agent-record)**.
 
