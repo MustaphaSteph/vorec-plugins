@@ -1,13 +1,14 @@
-# Vorec — Claude Code Plugin for Screen Recording & AI Narration
+# Vorec — Let Any AI Coding Agent Record Narrated Demo Videos of Your App
 
-> **Tell Claude what to record. The Vorec Recorder for macOS captures it. AI writes the narration.** From terminal to polished tutorial video in one command.
+> **Tell your agent what to record. The Vorec Recorder for macOS captures it. AI writes and voices the narration.** Works with **Claude Code** (ready-made plugin) and **any agent that can run terminal commands**: Codex, Cursor, Gemini CLI, GitHub Copilot, Windsurf, OpenCode and more.
 
-Use it to have Claude Code record a **product demo video of the app it just built**: it drives your real running app, saves the MP4 to your disk for review, then AI writes and voices narration synced to every click. Codex, Cursor and other command-running agents can do the same through [`@vorec/cli`](https://www.npmjs.com/package/@vorec/cli).
+Use it to have your coding agent record a **product demo video of the app it just built**: it drives your real running app, saves the MP4 to your disk for review, then AI writes and voices narration synced to every click. Claude Code uses the plugin in this repo; every other agent uses the same workflow through [`@vorec/cli`](https://www.npmjs.com/package/@vorec/cli) and the agent skill at [vorec.ai/skill.md](https://vorec.ai/skill.md).
 
 [![npm](https://img.shields.io/npm/v/@vorec/cli)](https://www.npmjs.com/package/@vorec/cli)
 [![Claude Code Plugin](https://img.shields.io/badge/Claude_Code-Plugin-blueviolet)](https://vorec.ai)
 [![Plugin Version](https://img.shields.io/badge/plugin-v14.44.0-success)](https://github.com/MustaphaSteph/vorec-plugins)
 [![macOS Recorder](https://img.shields.io/badge/macOS-Recorder_App-blue)](https://vorec.ai/download)
+[![Works with any CLI agent](https://img.shields.io/badge/works_with-Codex_%7C_Cursor_%7C_Gemini_CLI_%7C_Copilot-black)](#use-it-with-codex-cursor-gemini-cli-copilot-or-any-other-agent)
 
 ## How it works
 
@@ -51,6 +52,24 @@ After installing:
 4. Select record-tutorial and install it
 5. Enable auto-update for the marketplace
 ```
+
+### Use it with Codex, Cursor, Gemini CLI, Copilot or any other agent
+
+No plugin needed. Any agent that can run terminal commands drives the same CLI:
+
+1. Install the Vorec Recorder (step 1) and `brew install cliclick`.
+2. Save your API key once (from [vorec.ai](https://vorec.ai) → Settings → API Keys): `npx @vorec/cli@latest init`.
+3. Tell your agent how to use Vorec by adding this to its instructions file (`AGENTS.md` for Codex and most agents, `.cursor/rules/vorec.md` for Cursor, `GEMINI.md` for Gemini CLI, `.github/copilot-instructions.md` for Copilot):
+
+```markdown
+## Recording demo videos
+When asked to record a demo, tutorial or walkthrough of this app, use Vorec:
+follow https://vorec.ai/skill.md. Write a vorec.json manifest, run
+`npx @vorec/cli@latest run vorec.json`, show me the MP4, and only after I
+approve run `npx @vorec/cli@latest analyze <mp4>` to add AI narration.
+```
+
+A copy-paste version lives in [examples/AGENTS.md](examples/AGENTS.md).
 
 ### 3. Configure your API key
 
@@ -276,6 +295,14 @@ See [docs/release-checklist.md](docs/release-checklist.md) for the full release 
 - **[@vorec/cli on npm](https://www.npmjs.com/package/@vorec/cli)** — CLI tool
 - **[Plugin Marketplace](https://github.com/MustaphaSteph/vorec-plugins)** — This repo
 
+## Guides
+
+- [Can an AI coding agent record your app demo?](https://vorec.ai/blog/ai-agent-screen-recording) — Playwright, Remotion, agentic-demo and Vorec compared
+- [Let Claude Code record a demo of the app it built](https://vorec.ai/blog/claude-code-demo-video)
+- [Record app demos with Codex](https://vorec.ai/blog/record-app-demos-with-codex)
+- [One recording, two outputs: tutorial video + written guide](https://vorec.ai/blog/tutorial-video-and-written-guide-from-one-recording)
+- [Add AI narration to any screen recording](https://vorec.ai/blog/how-to-add-narration-to-screen-recording)
+
 ## Related
 
 - [Claude Code](https://github.com/anthropics/claude-code) — AI coding agent by Anthropic
@@ -283,4 +310,4 @@ See [docs/release-checklist.md](docs/release-checklist.md) for the full release 
 
 ---
 
-**Keywords:** claude code plugin, claude code skill, screen recording, AI narration, tutorial video generator, product demo recorder, investor demo, screencast tool, automated documentation, voice-over generator, video tutorial maker, SaaS demo, developer onboarding, vibe coding, solo developer tools, startup demo video, Claude Code screen recorder, AI tutorial maker, product walkthrough, open source documentation, customer onboarding video, changelog demo, training video maker, macOS screen recorder, ScreenCaptureKit recorder, Vorec Recorder, content creator tools
+**Keywords:** ai agent screen recording, codex demo video, cursor demo video, gemini cli, github copilot, ai coding agent demo recorder, claude code plugin, claude code skill, screen recording, AI narration, tutorial video generator, product demo recorder, investor demo, screencast tool, automated documentation, voice-over generator, video tutorial maker, SaaS demo, developer onboarding, vibe coding, solo developer tools, startup demo video, Claude Code screen recorder, AI tutorial maker, product walkthrough, open source documentation, customer onboarding video, changelog demo, training video maker, macOS screen recorder, ScreenCaptureKit recorder, Vorec Recorder, content creator tools
