@@ -1,4 +1,4 @@
-# Vorec — Claude Code Video Plugin & Agent Skill: Record and Narrate Anything on Your Screen
+# Vorec — AI Agent Skill for Screen Recording & Narrated Video (Codex, Claude Code, Cursor, Gemini CLI, Copilot)
 
 > **Tell your agent what to record. The Vorec Recorder for macOS captures it. AI writes and voices the narration.** Works with **Claude Code** (ready-made plugin) and **any agent that can run terminal commands**: Codex, Cursor, Gemini CLI, GitHub Copilot, Windsurf, OpenCode and more.
 
@@ -29,11 +29,12 @@ More examples, with prompts and what an agent should *not* record: **[What can a
 
 Each one comes back as a narrated MP4 (AI voice-over, zoom, cursor polish, subtitles, up to 4K) plus an optional written step-by-step guide.
 
-## Works as a skill in Claude Code, Codex, Cursor, Gemini CLI and Copilot
+## Agent skill for every coding agent: Codex, Claude Code, Cursor, Gemini CLI, Copilot, OpenCode
 
 | Agent | How it uses Vorec | Popular models it runs |
 |---|---|---|
 | Claude Code | `record-tutorial` plugin from this repo | Claude Opus 5.5, Claude Sonnet 5.5 |
+| Any agent that loads `SKILL.md` skills | copy [`skills/record-tutorial`](skills/record-tutorial) into its skills folder | any |
 | Codex (CLI / desktop) | `@vorec/cli` + `AGENTS.md` snippet | GPT-6.1 Sol |
 | Cursor | `@vorec/cli` + `.cursor/rules` snippet | any model you pick in Cursor |
 | Google Antigravity / Gemini CLI | `@vorec/cli` + `GEMINI.md` snippet | Gemini 4 Argon |
@@ -329,6 +330,12 @@ See [docs/release-checklist.md](docs/release-checklist.md) for the full release 
 
 ## FAQ
 
+**Is there a Codex skill (or Cursor, Gemini CLI, Copilot skill) for recording videos?**
+Yes, this one. Every agent that can run terminal commands uses the same Vorec CLI; paste the snippet from [examples/AGENTS.md](examples/AGENTS.md) into `AGENTS.md` (Codex), `.cursor/rules` (Cursor), `GEMINI.md` (Gemini CLI) or `.github/copilot-instructions.md` (Copilot). Agents that load `SKILL.md`-style agent skills can use [`skills/record-tutorial`](skills/record-tutorial) directly.
+
+**Can an AI agent make videos?**
+Yes. The agent plans the walkthrough, drives your real app or any website through the Vorec Recorder on macOS, and saves an MP4. Vorec then writes and voices the narration and adds zoom, cursor polish and subtitles.
+
 **Can Claude Code make videos?**
 Yes. With this plugin, Claude Code plans the walkthrough, drives your real app through the Vorec Recorder on macOS, and saves an MP4. Vorec then writes and voices the narration and adds zoom, cursor polish and subtitles.
 
@@ -367,4 +374,4 @@ The plugin and CLI are free and MIT-licensed. Narration runs on a Vorec account:
 
 ---
 
-**Keywords:** claude code video, claude code video plugin, claude code video editing, claude code skills, claude code plugins, best claude code plugins, claude code skills github, agent skill screen recording, how to make a tutorial video, record a course with ai, record zoom meeting, record google meet, record teams meeting, record anything with an ai agent, ai agent browser recording, record how-to video with ai, bug reproduction video, qa recording, claude opus 5.5, gpt-6.1 sol, gemini 4 argon, google antigravity, ai agent screen recording, codex demo video, cursor demo video, gemini cli, github copilot, ai coding agent demo recorder, claude code plugin, claude code skill, screen recording, AI narration, tutorial video generator, product demo recorder, investor demo, screencast tool, automated documentation, voice-over generator, video tutorial maker, SaaS demo, developer onboarding, vibe coding, solo developer tools, startup demo video, Claude Code screen recorder, AI tutorial maker, product walkthrough, open source documentation, customer onboarding video, changelog demo, training video maker, macOS screen recorder, ScreenCaptureKit recorder, Vorec Recorder, content creator tools
+**Keywords:** agent skills, ai agent skills, codex skills, best codex skills, cursor agent skills, cursor rules, gemini cli extensions, github copilot agent skills, opencode agent skills, awesome agent skills, agent skills github, claude code video, claude code video plugin, claude code video editing, claude code skills, claude code plugins, best claude code plugins, claude code skills github, agent skill screen recording, how to make a tutorial video, record a course with ai, record zoom meeting, record google meet, record teams meeting, record anything with an ai agent, ai agent browser recording, record how-to video with ai, bug reproduction video, qa recording, claude opus 5.5, gpt-6.1 sol, gemini 4 argon, google antigravity, ai agent screen recording, codex demo video, cursor demo video, gemini cli, github copilot, ai coding agent demo recorder, claude code plugin, claude code skill, screen recording, AI narration, tutorial video generator, product demo recorder, investor demo, screencast tool, automated documentation, voice-over generator, video tutorial maker, SaaS demo, developer onboarding, vibe coding, solo developer tools, startup demo video, Claude Code screen recorder, AI tutorial maker, product walkthrough, open source documentation, customer onboarding video, changelog demo, training video maker, macOS screen recorder, ScreenCaptureKit recorder, Vorec Recorder, content creator tools
